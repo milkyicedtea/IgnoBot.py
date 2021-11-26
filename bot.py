@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import random
 # Commands introduction
 from discord.ext import commands
+from discord.ext.commands import MissingPermissions
 
 # Initializing variables from .env file
 load_dotenv()
@@ -20,7 +21,6 @@ client = discord.Client()
 @client.event
 async def on_ready():
     guild=discord.utils.get(client.guilds, name=GUILD)
-
     print(
         f'{client.user} has connected to the following guild:\n'
         f'{guild.name}(id: {guild.id})'
@@ -99,31 +99,56 @@ async def create_channel(ctx, channel_name='new-channel'):
     existing_channel = discord.utils.get(guild.channels, name=channel_name)
     if existing_channel:
         print(f'Channel already exists')
-        await ctx.send('A channel named "*new-channel*" already exists. Please delete or rename that channel before using this command')
+        await ctx.send('A channel named "*new-channel*" already exists. Please delete or rename that channel before using this command.')
     if not existing_channel:
-        print(f'Creating a new channel: {channel_name}')
+        print(f'Creating a new channel: {channel_name}.')
         await guild.create_text_channel(channel_name)
 
-# Error
-@bot.event
-async def on_command_error(ctx, error):
-    if isinstance(error, commands.errors.CheckFailure):
-        await ctx.send('Something went wrong or you are not able to execute this command.')
-
 # Am i cool command
-@bot.command(name='am-i-cool', help='Find out if you are cool')
+@bot.command(name='am-i-cool', help='Find out if you are cool.')
 async def amicool(ctx):
-    amicoolquotes = ['You are so cool, how do you do that', 'No, you are not cool at all']
+    amicoolquotes = ['You are so cool, how do even you do that?', 'No, you are not cool at all.']
     response = random.choice(amicoolquotes)
     await ctx.send(response)
 
 # Join date command
-@bot.command(name='join', help='Shows the date when a member joined')
+@bot.command(name='join', help='Shows the date when a member joined.')
 async def join(ctx, member: discord.Member):
-    await ctx.send(f'{member.name} joined on {member.joined_at}')
+    await ctx.send(f'{member.mention} joined on {member.joined_at}.')
 
+# Kick command
+@bot.command(name='kick', help='Kicks a user from the server')
+@commands.has_permissions(kick_members=True)
+async def kick(ctx, member:discord.Member, *, reason=None):
+    await member.kick(reason=reason)
+    await ctx.send(f'User {member.mention} has been kicked from the server.\nResponsible mod: **{ctx.author}**\nReason: {reason}')
 
+# Ban command
+@bot.command(name='ban', help='Bans a member.')
+@commands.has_permissions(ban_members=True)
+async def ban(ctx, member:discord.Member, *, reason=None):
+    await member.ban(reason=reason)
+    await ctx.send(f'User {member.mention} has been banned from the server.\nResponsible mod: **{ctx.author}**\nReason: {reason}')
 
+#Unban command
+@bot.command(name='unban', help='Unbans a previoudly banned member.')
+@commands.has_permissions(ban_members=True)
+async def unban(ctx,* , member):
+    banned_users = await ctx.guild.bans()
+    member_name, member_discriminator = member.split("#")
 
+    for ban_entry in banned_users:
+        user = ban_entry.user
+
+        if (user.name, user.discriminator) == (member_name, member_discriminator):
+            await ctx.guild.unban(user)
+            await ctx.send(f'Unbanned {user.mention}')
+            return
+
+# Generic error
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.errors.CheckFailure):
+       await ctx.send("Looks like you don't have the right permissions do that.")
 
 bot.run(TOKEN)
