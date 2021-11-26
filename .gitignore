@@ -1,0 +1,8 @@
+#ignore .env (bot_token, client_id, guild_name, guild_id
+.env
+
+#ignore err.log
+err.log
+
+#ignore cmd.bat cause useless
+cmd.bat
