@@ -131,7 +131,7 @@ async def ban(ctx, member:discord.Member, *, reason=None):
     await member.ban(reason=reason)
     await ctx.send(f'User {member.mention} has been banned from the server.\nResponsible mod: **{ctx.author}**\nReason: {reason}')
 
-#Unban command
+# Unban command
 @bot.command(name='unban', help='Unbans a previoudly banned member.')
 @commands.has_permissions(ban_members=True)
 async def unban(ctx,* , member):
@@ -145,6 +145,12 @@ async def unban(ctx,* , member):
             await ctx.guild.unban(user)
             await ctx.send(f'Unbanned {user.mention}')
             return
+
+# Purge command
+@bot.command(name='purge', help='Deletes multiple messages.')
+@commands.has_permissions(manage_messages=True)
+async def purge(ctx, amount: int):
+    await ctx.channel.purge(limit=amount+1)
 
 # Generic error
 @bot.event

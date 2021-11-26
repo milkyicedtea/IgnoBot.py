@@ -1,0 +1,18 @@
+Test commands
+# "beep" test command
+# "bad" test command
+# Dice simulation
+
+Fun commands
+# Am i cool command
+# Channel create command
+
+Info commands
+# Join date command
+
+Moderation commands
+# Kick command
+# Ban command
+# Unban command
+# Purge command
+
