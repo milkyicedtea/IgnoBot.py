@@ -1,9 +1,9 @@
 import os
 
 import discord
-from dotenv import load_dotenv
+
 import random
-# Commands introduction
+from dotenv import load_dotenv
 from discord.ext import commands
 from discord.ext.commands import MissingPermissions
 
@@ -55,6 +55,7 @@ async def on_error(event, *args, **kwargs):
             raise
 
 client.run(TOKEN)
+
 """
 # Using bot events and login by bot.run
 
