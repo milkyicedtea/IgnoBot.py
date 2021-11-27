@@ -15,4 +15,6 @@ Moderation commands
 # Ban command
 # Unban command
 # Purge command
+# Welcome message setup
 
+WIP

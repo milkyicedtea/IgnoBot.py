@@ -1,3 +1,5 @@
+from io import TextIOBase
+from math import degrees
 import os
 
 import discord
@@ -6,6 +8,11 @@ import random
 from dotenv import load_dotenv
 from discord.ext import commands
 from discord.ext.commands import MissingPermissions
+
+# Specific line reader
+import linecache
+
+
 
 # Initializing variables from .env file
 load_dotenv()
@@ -157,5 +164,59 @@ async def purge(ctx, amount: int):
 async def on_command_error(ctx, error):
     if isinstance(error, commands.errors.CheckFailure):
        await ctx.send("Looks like you don't have the right permissions do that.")
+
+
+# Welcome message setup
+@bot.command(name='welcome-message', help='Used to setup the welcome message')
+@commands.has_permissions(manage_guild=True)
+async def welcome_message(ctx, title, color, description):
+    f = open("./data/welcome/welcome.ini","w")
+    # write title, color and description in welcome.ini
+    f.write("# title\n" + title + "\n# color\n" + color + "\n# description\n" + description)
+    # await ctx.send("MOSTRA EMBED PREVIEW E METTI IN UNA WHILE CON CONDIZIONE = TRUE PER FAR FINIRE IL CICLO")
+    f.close()
+    await ctx.send("Test andato a buon fine.")
+    
+
+
+@bot.command(name='read-test', help='Used by dev to test file reading functionality (Requires the user to have manage_guild or administrator permission)')
+@commands.has_permissions(manage_guild=True)
+async def read_test(ctx):
+    text_title = linecache.getline('./data/welcome/welcome.ini', 2)
+    text_color = linecache.getline('./data/welcome/welcome.ini', 4)
+    text_description = linecache.getline('./data/welcome/welcome.ini', 6)
+    ctx.send("Il contenuto del file e': " + text_title + ", " + {text_color} + ", " + {text_description})
+
+
+
+
+
+
+
+# Sends a message when a user joins
+@bot.event
+async def on_member_join(member):
+    print("A member joined the server(" + member.name + ")")
+    embed=discord.Embed(
+        title="Welcome " + member.name+"!" ,
+        description="",
+        color=discord.Color.green()
+
+
+
+    ) 
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 bot.run(TOKEN)
