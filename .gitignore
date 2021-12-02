@@ -1,4 +1,4 @@
-#ignore .env (bot_token, client_id, guild_name, guild_id
+#ignore .env (bot_token, client_id, guild_name, guild_id)
 .env
 
 #ignore err.log
