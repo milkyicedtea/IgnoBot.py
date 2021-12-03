@@ -108,6 +108,11 @@ async def amicool(ctx):
     response = random.choice(amicoolquotes)
     await ctx.send(response)
 
+# uwuduck command
+@bot.command(name = 'uwuduck', help = 'uwuduck')
+async def uwuduck(ctx):
+    await ctx.send('<:uwuduck:916404134821904435>')
+
 #----------------
 #-     Test     -
 #----------------
