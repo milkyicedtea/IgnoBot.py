@@ -8,4 +8,4 @@ err.log
 cmd.bat
 
 #ignore pycache
-./cogs/__pycache__
+cogs/__pycache__
