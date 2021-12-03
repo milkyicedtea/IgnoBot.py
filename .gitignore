@@ -6,3 +6,6 @@ err.log
 
 #ignore cmd.bat cause useless
 cmd.bat
+
+#ignore pycache
+./cogs/__pycache__
