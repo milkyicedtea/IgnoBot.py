@@ -6,20 +6,25 @@ import os
 
 import discord
 
+from discord import guild
 from dotenv import load_dotenv
 from discord.ext import commands
 import discord.utils
 import random
+from discord.utils import get
+import math
 
 from discord import Color as c
 
 # Specific line reader
 import linecache
 
+# Database importing
+import mysql.connector
+
 # Initializing variables from .env file
 load_dotenv()
 TOKEN = os.getenv('bot_token')
-GUILD = os.getenv('guild_name')
 
 # Prefix setup
 client = commands.Bot(command_prefix = 'i.')
@@ -27,6 +32,7 @@ client = commands.Bot(command_prefix = 'i.')
 bot = commands.Bot(command_prefix='i.')
 
 bot.load_extension("cogs.music")
+bot.load_extension("cogs.database")
 
 #----------------------
 #-     Moderation     -
@@ -163,9 +169,9 @@ WIP
 @bot.command(name = 'welcome-message', help = 'Used to setup the welcome message')
 @commands.has_permissions(manage_guild=True)
 async def welcome_message(ctx, title, color, description):
-    filepath = "./data/welcome/welcome.ini"
+    welcomepath = "./data/welcome/welcome.ini"
     # open welcome.ini
-    f = open(filepath,"w")
+    f = open(welcomepath,"w")
     # write title, color and description in welcome.ini
     f.write("# title\n" + title + "\n# color\n" + color + "\n# description\n" + description)
     # close opened file
@@ -188,6 +194,36 @@ async def on_member_join(member):
 
 WIP
 """
+
+# Select role to give on join
+@bot.command(name = 'roleonjoin', help = 'Used to select the role to give when a user joins the server.')
+@commands.has_permissions(manage_guild = True)
+async def roleonjoin(ctx, roleid):
+    while roleid is math.nan():
+        await ctx.send('You must specify a role id')
+    rolepath = './data/rolegive/rolegive.ini'
+    f = open(rolepath, 'w')
+    f.write('# role\n' + roleid)
+    f.close
+    rolename = guild.get_role(roleid)
+    await ctx.send('Il ruolo selezionato è: ' + rolename + '\nCon id ' + roleid + ".")
+
+
+
+
+
+
+# Give role on join
+@bot.event
+async def on_member_join(member):
+    rolepath = './data/rolegive/rolegive.ini'
+    roleid = linecache.getline(rolepath, 2)
+    await member.add_roles(roleid)
+
+
+
+
+
 
 
 # Generic error
