@@ -11,7 +11,7 @@ from discord.ext import commands
 
 from youtube_dl import YoutubeDL
 
-class MusicCog(commands.Cog):
+class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
@@ -126,4 +126,4 @@ class MusicCog(commands.Cog):
             await ctx.send("I'm not in voice channel. You can make me join with the command: i.connect")
 
 def setup(bot):
-    bot.add_cog(MusicCog(bot))
+    bot.add_cog(Music(bot))

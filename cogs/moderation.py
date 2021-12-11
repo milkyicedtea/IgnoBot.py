@@ -8,6 +8,7 @@ import os
 
 import discord
 from discord.ext import commands
+import linecache
 
 class Moderation(commands.Cog):
     def __init__(self, bot):
@@ -65,6 +66,20 @@ class Moderation(commands.Cog):
     @commands.command(name = 'joindate', help = 'Shows the date when a member joined.')
     async def joindate(self, ctx, member: discord.Member):
         await ctx.send(f'{member.mention} joined on {member.joined_at}.')
+
+    # Patch command
+    @commands.command(name = 'patch', help = 'Shows the most recent patch')
+    async def patch(self, ctx):
+        f = open('cogs\patchnotes.txt', 'r')
+        patchContent = f.read()
+        await ctx.send(patchContent)
+        print(patchContent)
+        f.close()
+
+
+
+
+
 
 def setup(bot):
     bot.add_cog(Moderation(bot))
