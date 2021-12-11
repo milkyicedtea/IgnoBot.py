@@ -63,7 +63,6 @@ def dbclose():
     except mariadb.Error as ce:
         print(f'Error while closing the database: {ce}') 
 
-
 def setup(bot):
     bot.add_cog(Database(bot))
 
