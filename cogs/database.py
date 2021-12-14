@@ -37,7 +37,7 @@ class Database(commands.Cog):
         except mariadb.Error as ag:
             print(f'Something went wrong: {ag}')
 
-                # db open/close
+# db open/close
 def dbopen():
     global mydb
     global cursor
@@ -65,25 +65,3 @@ def dbclose():
 
 def setup(bot):
     bot.add_cog(Database(bot))
-
-    """
-    # connecting to the mariadb database
-    @bot.command(name = 'dbconnect')
-    @commands.has_permissions(manage_guild = True)
-    async def setmariadb(ctx):
-            global mydb
-            global cursor
-            try:
-                mydb = mariadb.connect(host = "localhost", user = "root", password = os.getenv('mariadb'), database = 'ignobot')
-                print("Connected to the database")
-                await ctx.send("Connected to the database")
-            except mariadb.Error as e:
-                print(f'Error connecting to the platform (mydb): {e}')
-                await ctx.send(f'Error connecting to the platform (mydb)')
-
-            # getting the cursor
-            try:
-                cursor = mydb.cursor()
-            except mariadb.Error as c:
-                print(f'Error connecting to the platform (cursor): {c}')
-    """

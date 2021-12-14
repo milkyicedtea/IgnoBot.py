@@ -39,9 +39,9 @@ class Dumb(commands.Cog):
         await ctx.send('<:uwuduck:916404134821904435>')
 
     # anni anni anni anni anni anni
-    @commands.command(name = 'anni', aliases = ['anni?'], help = 'anni anni anni anni anni')
-    async def anni(self, ctx):
-        annirange = str(random.choice(range(0,100+1)))
+    @commands.command(name = 'anni', aliases = ['anni?'], help = 'Dice quanti sono gli anni')
+    async def anniqty(self, ctx):
+        annirange = int(random.choice(range(0,100+1)))
         if annirange == 0:
             await ctx.send(f'Anni:{annirange}\nNon puoi farlo ha solo {annirange} anni')
         else:
@@ -52,6 +52,23 @@ class Dumb(commands.Cog):
         mof_string = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
         mof = random.choice(mof_string)
         await ctx.send(mof)
+
+    @commands.command(name = 'andrea', help = 'Muta Andrea. Solo Andrea')
+    async def andrea(self, ctx):
+        guild = ctx.guild.id
+        vc = ctx.author.voice.channel
+        for member in vc.members:
+            if guild.member.id == 620249007859433472:
+                await member.edit(mute=True)
+            else: print(f'Non Andrea')
+
+    @commands.command(name = 'annispam', help = 'anni anni anni anni anni..')
+    async def annispam(self, ctx, x = 0):
+        annispamrange = int(random.choice(range(1,20+1)))
+        while x < annispamrange:
+            await ctx.send(annispamrange)
+            x = x+1
+
 
 def setup(bot):
     bot.add_cog(Dumb(bot))
