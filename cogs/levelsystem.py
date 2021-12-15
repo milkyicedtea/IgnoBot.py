@@ -36,10 +36,10 @@ class LevelSystem(commands.Cog):
             levelvalue = 0
             print(f'insert into leveling(userid, guilid, xpvalue, levelvalue) values({userid}, {guildid}, {xpvalue}, {levelvalue})')
         else:
-            xprange = int(random.choice(range(1, 20+1)))
+            xprange = random.choice(range(1, 20+1))
             xpvaluefromdb = print(f'select * from leveling(xpvalue) where userid = {userid} and guildid = {guildid}')
             print(f'{xpvaluefromdb}')
-            xpvaluefromdb = int(xpvaluefromdb) + xprange
+            xpvaluefromdb += xprange
             print(f'insert into leveling(xpvalue) where userid = {userid} and guildid = {guildid} values({xpvaluefromdb})')
             levelvaluetodb = xpvaluefromdb ** (1/5)
             print(f'insert into leveling(levelvalue) where userid = {userid} and guildid = {guildid} values({levelvaluetodb})')
@@ -47,7 +47,11 @@ class LevelSystem(commands.Cog):
         
     @commands.command(name = 'level', help = 'Shows your current level')
     async def level(self, ctx, member = discord.member):
-        return
+        guildid = ctx.guild.id
+        guildname = ctx.guild.name
+        userid = ctx.author.id
+        levelfromdb = print(f'select from leveling(levelvalue) where userid = {userid} and guildid = {guildid}')
+        
 
     # memorizzazione dati....
     # SELECT xp, level FROM xpvalue, levelvalue
@@ -56,15 +60,6 @@ class LevelSystem(commands.Cog):
 
     #anig - server1 - p+v
     #anig - server2 - b+v
-
-
-
-
-
-
-
-
-
 
 # db open/close
 def dbopen():

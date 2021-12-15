@@ -5,6 +5,7 @@
 #########################
 
 import os
+from typing import AsyncContextManager
 
 import discord
 from discord.ext import commands
@@ -47,12 +48,14 @@ class Dumb(commands.Cog):
         else:
             await ctx.send(f'{annirange}')
 
+    # mof?
     @commands.command(name = 'mof', help = 'mof')
     async def mof(self, ctx):
         mof_string = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
         mof = random.choice(mof_string)
         await ctx.send(mof)
 
+    # ANDREA
     @commands.command(name = 'andrea', help = 'Muta Andrea. Solo Andrea')
     async def andrea(self, ctx):
         guild = ctx.guild.id
@@ -62,12 +65,28 @@ class Dumb(commands.Cog):
                 await member.edit(mute=True)
             else: print(f'Non Andrea')
 
+    # anni anni anni anni
     @commands.command(name = 'annispam', help = 'anni anni anni anni anni..')
-    async def annispam(self, ctx, x = 0):
-        annispamrange = int(random.choice(range(1,20+1)))
+    async def annispam(self, ctx):
+        x = 0
+        annispamrange = int(random.choice(range(1,5+1)))
         while x < annispamrange:
-            await ctx.send(annispamrange)
-            x = x+1
+            await ctx.send(f'anni')
+            x += 1
+
+    # no u
+    @commands.command(name = 'no-u', help = 'No u')
+    async def nou(self, ctx):
+        nourange = ['no u', 'yes me']
+        response = random.choice(nourange)
+        await ctx.send(response)
+
+    # listener io vado
+    @commands.Cog.listener()
+    async def on_message(self, msg):
+        if msg.content == 'vado':
+            response = 'ok a domani a domani a domani'
+            await msg.reply(f'ok a domani a domani a domani')
 
 
 def setup(bot):
