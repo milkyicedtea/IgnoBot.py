@@ -11,7 +11,6 @@ import discord
 from discord.ext import commands
 import mariadb
 import random
-import math
 
 mydb = None
 cursor = None
@@ -22,35 +21,38 @@ class LevelSystem(commands.Cog):
 
 
     @commands.Cog.listener()
-    async def on_message(self, ctx, member = discord.member):
+    async def on_message(self, ctx):
         dbopen()
+        global mydb
+        global cursor
         guildid = ctx.guild.id
         guildname = ctx.guild.name
         userid = ctx.author.id
-        primaryguildexist = print(f'select count(*) from guildinfo where guildid = {guildid} and guildname = {guildname}')
+        primaryguildexist = cursor.execute(f"select count(*) from guildinfo where guildid = {guildid} and guildname = '{guildname}'")
         if primaryguildexist == 0:
-            print(f'insert into guildinfo(guildname, guildid) values({guildname}, {guildid}')
-        xpsearch = print(f'select count(*) from leveling where userid = {userid} and guildid = {guildid}')
+            cursor.execute(f'insert into guildinfo(guildname, guildid) values({guildname}, {guildid}')
+            mydb.commit()
+        xpsearch = cursor.execute(f'select count(*) from leveling where userid = {userid} and guildid = {guildid}')
         if xpsearch == 0:
             xpvalue = 0
             levelvalue = 0
-            print(f'insert into leveling(userid, guilid, xpvalue, levelvalue) values({userid}, {guildid}, {xpvalue}, {levelvalue})')
+            cursor.execute(f'insert into leveling(userid, guilid, xpvalue, levelvalue) values({userid}, {guildid}, {xpvalue}, {levelvalue})')
         else:
             xprange = random.choice(range(1, 20+1))
-            xpvaluefromdb = print(f'select * from leveling(xpvalue) where userid = {userid} and guildid = {guildid}')
-            print(f'{xpvaluefromdb}')
+            xpvaluefromdb = cursor.execute(f"select xpvalue from leveling where userid = {userid} and guildid = {guildid}")
+            print(xpvaluefromdb)
             xpvaluefromdb += xprange
-            print(f'insert into leveling(xpvalue) where userid = {userid} and guildid = {guildid} values({xpvaluefromdb})')
+            cursor.execute(f'insert into leveling(xpvalue) where userid = {userid} and guildid = {guildid} values({xpvaluefromdb})')
             levelvaluetodb = xpvaluefromdb ** (1/5)
-            print(f'insert into leveling(levelvalue) where userid = {userid} and guildid = {guildid} values({levelvaluetodb})')
+            cursor.execute(f'insert into leveling(levelvalue) where userid = {userid} and guildid = {guildid} values({levelvaluetodb})')
         dbclose()
         
     @commands.command(name = 'level', help = 'Shows your current level')
-    async def level(self, ctx, member = discord.member):
+    async def level(self, ctx):
         guildid = ctx.guild.id
         guildname = ctx.guild.name
         userid = ctx.author.id
-        levelfromdb = print(f'select from leveling(levelvalue) where userid = {userid} and guildid = {guildid}')
+        levelfromdb = cursor.execute(f'select from leveling(levelvalue) where userid = {userid} and guildid = {guildid}')
         
 
     # memorizzazione dati....
