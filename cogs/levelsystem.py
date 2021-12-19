@@ -28,23 +28,26 @@ class LevelSystem(commands.Cog):
         guildid = ctx.guild.id
         guildname = ctx.guild.name
         userid = ctx.author.id
-        primaryguildexist = cursor.execute(f"select count(*) from guildinfo where guildid = {guildid} and guildname = '{guildname}'")
+        primaryguildexist = cursor.execute(f"select count(*) from guildinfo where guildid = {guildid} and guildname = '{guildname}';")
         if primaryguildexist == 0:
-            cursor.execute(f'insert into guildinfo(guildname, guildid) values({guildname}, {guildid}')
+            cursor.execute(f'insert into guildinfo(guildname, guildid) values({guildname}, {guildid};')
+            cursor.execute(f'insert into guildinfo(guildname, guildid) values({guildname}, {guildid};')
             mydb.commit()
-        xpsearch = cursor.execute(f'select count(*) from leveling where userid = {userid} and guildid = {guildid}')
+        xpsearch = cursor.execute(f'select count(*) from leveling where userid = {userid} and guildid = {guildid};')
+        print(xpsearch)
         if xpsearch == 0:
             xpvalue = 0
             levelvalue = 0
-            cursor.execute(f'insert into leveling(userid, guilid, xpvalue, levelvalue) values({userid}, {guildid}, {xpvalue}, {levelvalue})')
+            cursor.execute(f'insert into leveling(userid, guilid, xpvalue, levelvalue) values({userid}, {guildid}, {xpvalue}, {levelvalue});')
+            mydb.commit()
         else:
             xprange = random.choice(range(1, 20+1))
-            xpvaluefromdb = cursor.execute(f"select xpvalue from leveling where userid = {userid} and guildid = {guildid}")
-            print(xpvaluefromdb)
-            xpvaluefromdb += xprange
-            cursor.execute(f'insert into leveling(xpvalue) where userid = {userid} and guildid = {guildid} values({xpvaluefromdb})')
-            levelvaluetodb = xpvaluefromdb ** (1/5)
-            cursor.execute(f'insert into leveling(levelvalue) where userid = {userid} and guildid = {guildid} values({levelvaluetodb})')
+            xpfromdb = cursor.execute(f'select xpvalue from leveling where userid = {userid} and guildid = {guildid};')
+            print(xpfromdb)
+            xpfromdb += xprange
+            cursor.execute(f'insert into leveling(xpvalue) where userid = {userid} and guildid = {guildid} values({xpfromdb});')
+            leveltodb = xpfromdb ** (1/5)
+            cursor.execute(f'insert into leveling(levelvalue) where userid = {userid} and guildid = {guildid} values({leveltodb});')
         dbclose()
         
     @commands.command(name = 'level', help = 'Shows your current level')
@@ -52,7 +55,8 @@ class LevelSystem(commands.Cog):
         guildid = ctx.guild.id
         guildname = ctx.guild.name
         userid = ctx.author.id
-        levelfromdb = cursor.execute(f'select from leveling(levelvalue) where userid = {userid} and guildid = {guildid}')
+        levelfromdb = cursor.execute(f'select from leveling(levelvalue) where userid = {userid} and guildid = {guildid};')
+        xpfromdb = cursor.execute(f'select from leveling(xpvalue) where userid = {userid} and guildid = {guildid};')
         
 
     # memorizzazione dati....
