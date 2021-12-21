@@ -28,22 +28,26 @@ class LevelSystem(commands.Cog):
         guildid = ctx.guild.id
         guildname = ctx.guild.name
         userid = ctx.author.id
-        primaryguildexist = cursor.execute(f"select count(*) from guildinfo where guildid = {guildid} and guildname = '{guildname}';")
+        cursor.execute(f"select count(*) from guildinfo where guildid = {guildid} and guildname = '{guildname}';")
+        result = cursor.fetchone()
+        primaryguildexist = result[0]
         if primaryguildexist == 0:
-            cursor.execute(f'insert into guildinfo(guildname, guildid) values({guildname}, {guildid};')
-            cursor.execute(f'insert into guildinfo(guildname, guildid) values({guildname}, {guildid};')
+            cursor.execute(f"insert guildinfo values('{guildname}',{guildid};")
             mydb.commit()
-        xpsearch = cursor.execute(f'select count(*) from leveling where userid = {userid} and guildid = {guildid};')
-        print(xpsearch)
-        if xpsearch == 0:
+        cursor.execute(f'select count(*) from leveling where userid = {userid} and guildid = {guildid};')
+        result = cursor.fetchone()
+        number_of_rows = result[0]
+        print(number_of_rows)
+        if number_of_rows == 0:
             xpvalue = 0
             levelvalue = 0
-            cursor.execute(f'insert into leveling(userid, guilid, xpvalue, levelvalue) values({userid}, {guildid}, {xpvalue}, {levelvalue});')
+            cursor.execute(f'insert into leveling(userid, xpvalue, levelvalue) values({userid}, {xpvalue}, {levelvalue});')
             mydb.commit()
         else:
             xprange = random.choice(range(1, 20+1))
-            xpfromdb = cursor.execute(f'select xpvalue from leveling where userid = {userid} and guildid = {guildid};')
-            print(xpfromdb)
+            cursor.execute(f'select xpvalue from leveling where userid = {userid} and guildid = {guildid};')
+            result = cursor.fetchone()
+            xpfromdb = result[0]
             xpfromdb += xprange
             cursor.execute(f'insert into leveling(xpvalue) where userid = {userid} and guildid = {guildid} values({xpfromdb});')
             leveltodb = xpfromdb ** (1/5)
