@@ -39,7 +39,7 @@ class Dumb(commands.Cog):
     async def uwuduck(self, ctx):
         await ctx.send('<:uwuduck:916404134821904435>')
 
-    # anni anni anni anni anni anni
+    # anni?
     @commands.command(name = 'anni', aliases = ['anni?'], help = 'Dice quanti sono gli anni')
     async def anniqty(self, ctx):
         annirange = int(random.choice(range(0,100+1)))

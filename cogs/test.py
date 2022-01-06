@@ -10,6 +10,8 @@ import discord
 from discord.ext import commands
 import linecache
 import random
+import asyncio
+import time
 
 class Test(commands.Cog):
     def __init__(self, bot):
@@ -52,6 +54,21 @@ class Test(commands.Cog):
                 for _ in range(dices_to_roll)
             ]
             await ctx.send(', '.join(dice))
+
+    # asyncio.sleep() test
+    @commands.command(name = 'asynciosleep', help = 'Asyncio.sleep test')
+    async def asynciosleep(self, ctx, amount_to_sleep: int, *, sentence: str):
+        await ctx.send(f'Waiting {amount_to_sleep} seconds before sending your message.')
+        await asyncio.sleep(amount_to_sleep)
+        await ctx.send(f'{sentence}')
+
+    # time.sleep() test
+    @commands.command(name = 'timesleep', help = 'Time.sleep test')
+    @commands.has_guild_permissions(manage_guild = True)
+    async def timesleep(self, ctx, amount_to_sleep: int, *, sentence: str):
+        await ctx.send(f'Waiting {amount_to_sleep} seconds before sending your message.')
+        time.sleep(amount_to_sleep)
+        await ctx.send(f'{sentence}')
 
 def setup(bot):
     bot.add_cog(Test(bot))
