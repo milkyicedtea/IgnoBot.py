@@ -1,3 +1,0 @@
-Version 0.6
-Date: 11/12/2021
-Content: Added dumb.py with dumb commands, B64 decoder and encoder, patch command

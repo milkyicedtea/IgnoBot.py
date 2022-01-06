@@ -5,13 +5,10 @@
 ######################
 
 import os
-from typing import AnyStr
 
 import discord
 from discord import channel
 from discord.ext import commands
-import time
-import asyncio
 
 class Moderation(commands.Cog):
     def __init__(self, bot):
@@ -84,14 +81,10 @@ class Moderation(commands.Cog):
         await ctx.send(f'{member.mention} joined on {member.joined_at}.')
 
     # Patch command
-    @commands.command(name = 'patch', help = 'Shows the most recent patch')
+    @commands.command(name = 'patchnotes', help = 'Shows the most recent patch')
     async def patch(self, ctx):
-        f = open('cogs\patchnotes.txt', 'r')
-        patchContent = f.read()
-        await ctx.send(patchContent)
-        print(patchContent)
-        f.close()
-
+        url = 'https://github.com/ignorance-uwu/IgnoBot.py/commits/main'
+        await ctx.send(url)
 
 
 
