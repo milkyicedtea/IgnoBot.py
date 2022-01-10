@@ -42,8 +42,8 @@ class Dumb(commands.Cog):
     # anni?
     @commands.command(name = 'anni', aliases = ['anni?'], help = 'Dice quanti sono gli anni')
     async def anniqty(self, ctx):
-        annirange = int(random.choice(range(0,100+1)))
-        if annirange == 0:
+        annirange = int(random.choice(range(-100,100+1)))
+        if annirange <= 0:
             await ctx.send(f'Anni:{annirange}\nNon puoi farlo ha solo {annirange} anni')
         else:
             await ctx.send(f'{annirange}')
@@ -84,9 +84,9 @@ class Dumb(commands.Cog):
     # listener io vado
     @commands.Cog.listener()
     async def on_message(self, msg):
-        if msg.content == 'vado':
+        if msg.content == 'vado' or msg.content == 'io vado' or msg.content == 'bella' or msg.content == 'a domani':
             response = 'ok a domani a domani a domani'
-            await msg.reply(f'ok a domani a domani a domani')
+            await msg.reply(response)
 
 
 def setup(bot):

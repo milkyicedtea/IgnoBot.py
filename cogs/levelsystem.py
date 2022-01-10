@@ -61,15 +61,6 @@ class LevelSystem(commands.Cog):
         userid = ctx.author.id
         levelfromdb = cursor.execute(f'select from leveling(levelvalue) where userid = {userid} and guildid = {guildid};')
         xpfromdb = cursor.execute(f'select from leveling(xpvalue) where userid = {userid} and guildid = {guildid};')
-        
-
-    # memorizzazione dati....
-    # SELECT xp, level FROM xpvalue, levelvalue
-    #   WHERE guildid == ctx.guild.id memberid == ctx.message.author.id
-    
-
-    #anig - server1 - p+v
-    #anig - server2 - b+v
 
 # db open/close
 def dbopen():
