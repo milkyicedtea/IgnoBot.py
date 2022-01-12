@@ -26,32 +26,39 @@ class LevelSystem(commands.Cog):
         global mydb
         global cursor
         guildid = ctx.guild.id
-        guildname = ctx.guild.name
+        guildraw = ctx.guild.name
+        guildname = guildraw.replace("'", "")
         userid = ctx.author.id
+        username = ctx.author.name
         cursor.execute(f"select count(*) from guildinfo where guildid = {guildid} and guildname = '{guildname}';")
         result = cursor.fetchone()
-        primaryguildexist = result[0]
-        if primaryguildexist == 0:
-            cursor.execute(f"insert guildinfo values('{guildname}',{guildid};")
+        print(f'guild exists = {result[0]}')
+        if result[0] == 0:
+            cursor.execute(f"insert into guildinfo(guildid, guildname) values({guildid},'{guildname}');")
             mydb.commit()
         cursor.execute(f'select count(*) from leveling where userid = {userid} and guildid = {guildid};')
         result = cursor.fetchone()
-        number_of_rows = result[0]
-        print(number_of_rows)
-        if number_of_rows == 0:
-            xpvalue = 0
-            levelvalue = 0
-            cursor.execute(f'insert into leveling(userid, xpvalue, levelvalue) values({userid}, {xpvalue}, {levelvalue});')
+        print(f'userid exists = {result[0]}')
+        if result[0] == 0:
+            xptodb = 0
+            leveltodb = 0
+            cursor.execute(f'insert into leveling(guildid, userid, xpvalue, levelvalue) values({guildid} ,{userid}, 0, 0);')
+            print('new user added')
             mydb.commit()
         else:
-            xprange = random.choice(range(1, 20+1))
-            cursor.execute(f'select xpvalue from leveling where userid = {userid} and guildid = {guildid};')
-            result = cursor.fetchone()
-            xpfromdb = result[0]
-            xpfromdb += xprange
-            cursor.execute(f'insert into leveling(xpvalue) where userid = {userid} and guildid = {guildid} values({xpfromdb});')
-            leveltodb = xpfromdb ** (1/5)
-            cursor.execute(f'insert into leveling(levelvalue) where userid = {userid} and guildid = {guildid} values({leveltodb});')
+            print(f'user {username} is already present in the db')
+        xprange = random.choice(range(1, 20+1))
+        print(f'generated xp is = {xprange}')
+        cursor.execute(f'select xpvalue from leveling where userid = {userid} and guildid = {guildid};')
+        result = cursor.fetchone()
+        xpfromdb = result[0]
+        print(f'xpfromdb is = {result[0]}')
+        xptodb = xpfromdb + xprange
+        print(f'xptodb is = {xptodb}')
+        # cursor.execute(f"insert into leveling set xpvalue = {xpfromdb} where userid = {userid} and guildid = {guildid};")
+        # leveltodb = xpfromdb ** (1/5)
+        cursor.execute(f"update leveling set xpvalue = {xptodb} where guildid = {guildid} and userid = {userid};")
+        mydb.commit()
         dbclose()
         
     @commands.command(name = 'level', help = 'Shows your current level')

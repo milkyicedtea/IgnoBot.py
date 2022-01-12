@@ -32,11 +32,12 @@ for filename in os.listdir('./cogs'): #loads all files (*.py)
         bot.load_extension(f'cogs.{filename[:-3]}') #loads the file without ".py" for example: cogs.ping
         print(f'Loaded {filename[:-3]}')
 
-# unload database cogs until i don't get back home :)
-bot.unload_extension('cogs.levelsystem')
-print('Unloaded levelsystem')
-bot.unload_extension('cogs.database')
-print('Unloaded database')
+#   unload database cogs until i don't get back home :)
+
+#   bot.unload_extension('cogs.levelsystem')
+#   print('Unloaded levelsystem')
+#   bot.unload_extension('cogs.database')
+#   print('Unloaded database')
 
 """
 WIP

@@ -46,11 +46,11 @@ class Moderation(commands.Cog):
     # Purge command
     @commands.command(name = 'purge', help = 'Deletes multiple messages.')
     @commands.has_permissions(manage_messages = True)
-    async def purge(self, ctx, amount):
-        if amount == 0:
+    async def purge(self, ctx, amount_to_delete: int):
+        if amount_to_delete == 0:
             await ctx.send('You must enter an amount of messages to purge equal to 1 or more')
         else:
-            await ctx.message.delete(amount_to_delete = amount+1)
+            await ctx.channel.purge(amount_to_delete+1)
 
 
     # Creating a new channel
