@@ -82,7 +82,7 @@ class Dumb(commands.Cog):
         await ctx.send(response)
 
     # bastardi chiamo da reggio emilia
-    @commands.command(name = 'bastardi', help = 'Bastardi chiamo da Reggio Emilia')
+    @commands.command(name = 'pronto', aliases = 'pronto?', help = 'Bastardi chiamo da Reggio Emilia')
     async def bastardi(self, ctx):
         response = '**Bastardi**, chiamo da Reggio Emilia, sono un assassino di **meridionali**. Vi ammazzo tutti *bastardi pezzi di merda*.'
         await ctx.send(response)
@@ -97,7 +97,7 @@ class Dumb(commands.Cog):
     # bastardi on message
     @commands.Cog.listener()
     async def on_message(self, msg):
-        if msg.content == 'bastardi' or msg.content == 'bastardo' or msg.content == 'stronzo' or msg.content == 'stronzi':
+        if msg.content == 'pronto' or msg.content == 'pronto?' or msg.content:
             response = '**Bastardi**, chiamo da Reggio Emilia, sono un assassino di **meridionali**. Vi ammazzo tutti *bastardi pezzi di merda*.'
             await msg.reply(response)
 
