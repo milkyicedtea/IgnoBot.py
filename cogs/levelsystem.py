@@ -5,12 +5,13 @@
 ########################
 
 import os
+from pprint import pprint
 from typing import ContextManager
 
 import discord
 from discord.ext import commands
-import mariadb
 import random
+import mysql.connector
 
 mydb = None
 cursor = None
@@ -42,6 +43,9 @@ class LevelSystem(commands.Cog):
             if result[0] != 0:
                 cursor.execute(f"select count(*) from guildinfo where guildname = '{guildname}';")
                 result = cursor.fetchone()
+            elif result[0] == 0:
+                cursor.execute(f"insert into guildinfo(guildid, guildname) values({guildid}, '{guildname}');")
+                mydb.commit()
                 if result[0] == 0:
                     cursor.execute(f"update guildinfo set guildname = '{guildname}' where guildid = {guildid};")
                     mydb.commit()
@@ -74,7 +78,7 @@ class LevelSystem(commands.Cog):
         if result[0] == 0:          # user is not in the db so we add him first and then give
             xptodb = 0
             leveltodb = 0
-            cursor.execute(f"insert into leveling(guildid, userid, username, xpvalue, levelvalue) values({guildid} ,{userid}, '{username}', 0, 0);")
+            cursor.execute(f"insert into leveling(guildid, userid, username, xpvalue, levelvalue) values({guildid}, {userid}, '{username}', 0, 0);")
             print(f'new user {username} added')
             mydb.commit()
         elif userid == 913424314290815007:            # user is a bot so no xp for him
@@ -89,6 +93,7 @@ class LevelSystem(commands.Cog):
         print(f'generated xp is = {xprange}')
         cursor.execute(f'select xpvalue from leveling where userid = {userid} and guildid = {guildid};')
         result = cursor.fetchone()
+        print(f'result[0] is = {result[0]}')
         xpfromdb = result[0]
         print(f'xpfromdb is = {result[0]}')
         xptodb = xpfromdb + xprange
@@ -113,15 +118,15 @@ def dbopen():
     global mydb
     global cursor
     try:
-        mydb = mariadb.connect(host = "localhost", user = "root", password = os.getenv('mariadb'), database = 'ignobot')
+        mydb = mysql.connector.connect(host = os.getenv('mysqlhost'), user = os.getenv('mysqluser'), password = os.getenv('mysqlpw'), database = os.getenv('mysqldb'), port = os.getenv('mysqlport'))
         print("Connected to the database")
-    except mariadb.Error as e:
+    except mysql.connector.Error as e:
         print(f'Error connecting to the platform (mydb): {e}')
 
     # getting the cursor
     try:
         cursor = mydb.cursor()
-    except mariadb.Error as c:
+    except mysql.connector.Error as c:
         print(f'Error connecting to the platform (cursor): {c}')
 
 def dbclose():
@@ -131,7 +136,7 @@ def dbclose():
         cursor.close()
         mydb.close()
         print(f'Database closed')
-    except mariadb.Error as ce:
+    except mysql.connector.Error as ce:
         print(f'Error while closing the database: {ce}')   
 
 

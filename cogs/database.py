@@ -10,7 +10,7 @@ import discord
 from discord import guild
 from discord.ext import commands
 
-import mariadb
+import mysql.connector
 
 mydb = None
 cursor = None
@@ -50,7 +50,7 @@ class Database(commands.Cog):
                     await ctx.send(f"Guild '{guildname}' with id {guildid} was added to the database")
             dbclose()
 
-        except mariadb.Error as ag:
+        except mysql.connector.Error as ag:
             print(f'Something went wrong: {ag}')
 
 # db open/close
@@ -58,15 +58,15 @@ def dbopen():
     global mydb
     global cursor
     try:
-        mydb = mariadb.connect(host = "localhost", user = "root", password = os.getenv('mariadb'), database = 'ignobot')
+        mydb = mysql.connector.connect(host = os.getenv('mysqlhost'), user = os.getenv('mysqluser'), password = os.getenv('mysqlpw'), database = os.getenv('mysqldb'), port = os.getenv('mysqlport'))
         print("Connected to the database")
-    except mariadb.Error as e:
+    except mysql.connector.Error as e:
         print(f'Error connecting to the platform (mydb): {e}')
 
     # getting the cursor
     try:
         cursor = mydb.cursor()
-    except mariadb.Error as c:
+    except mysql.connector.Error as c:
         print(f'Error connecting to the platform (cursor): {c}')
 
 def dbclose():
@@ -76,7 +76,7 @@ def dbclose():
         cursor.close()
         mydb.close()
         print(f'Database closed')
-    except mariadb.Error as ce:
+    except mysql.connector.Error as ce:
         print(f'Error while closing the database: {ce}') 
 
 def setup(bot):
