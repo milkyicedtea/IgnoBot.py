@@ -8,8 +8,11 @@ import os
 from typing import AsyncContextManager
 
 import discord
+from discord import client
 from discord.ext import commands
 import random
+
+from discord.ext.commands import bot
 
 class Dumb(commands.Cog):
     def __init__(self, bot):
@@ -55,25 +58,6 @@ class Dumb(commands.Cog):
         mof = random.choice(mof_string)
         await ctx.send(mof)
 
-    # ANDREA
-    @commands.command(name = 'andrea', help = 'Muta Andrea. Solo Andrea')
-    async def andrea(self, ctx):
-        guild = ctx.guild.id
-        vc = ctx.author.voice.channel
-        for member in vc.members:
-            if guild.member.id == 620249007859433472:
-                await member.edit(mute=True)
-            else: print(f'Non Andrea')
-
-    # anni anni anni anni
-    @commands.command(name = 'annispam', help = 'anni anni anni anni anni..')
-    async def annispam(self, ctx):
-        x = 0
-        annispamrange = int(random.choice(range(1,5+1)))
-        while x < annispamrange:
-            await ctx.send(f'anni')
-            x += 1
-
     # no u
     @commands.command(name = 'no-u', help = 'No u')
     async def nou(self, ctx):
@@ -82,25 +66,66 @@ class Dumb(commands.Cog):
         await ctx.send(response)
 
     # bastardi chiamo da reggio emilia
-    @commands.command(name = 'pronto', aliases = 'pronto?', help = 'Bastardi chiamo da Reggio Emilia')
+    @commands.command(name = 'pronto', aliases = ['pronto?'], help = 'Bastardi chiamo da Reggio Emilia')
     async def bastardi(self, ctx):
         response = '**Bastardi**, chiamo da Reggio Emilia, sono un assassino di **meridionali**. Vi ammazzo tutti *bastardi pezzi di merda*.'
         await ctx.send(response)
 
-    # listener io vado
+    # paytowin paytowin paytowin
+    @commands.command(name = 'fennec', help = 'paytowin paytowin paytowin..')
+    async def fennec(self, ctx):
+        x = 0
+        paytowinrange = int(random.choice(range(1,5+1)))
+        while x < paytowinrange:
+            await ctx.send(f'pay to win')
+            x += 1
+
+    # anni anni anni anni
+    @commands.command(name = 'annispam', help = 'anni anni anni anni anni..')
+    async def annispam(self, ctx):
+        x = 0
+        annispamrange = int(random.choice(range(1,5+1)))
+        while x < annispamrange:
+            await ctx.send('anni')
+            x += 1
+
+    # CRUNCH CRUNCH CRUNCH
+    @commands.command(name = 'silvio', help = '*crunch crunch crunch*')
+    async def silvio(self,ctx):
+        x = 0
+        crunchspamrange = int(random.choice(range(1,5+1)))
+        while x < crunchspamrange:
+            await ctx.send('***crunch***')
+            x += 1
+
+
+
+    # listeners
     @commands.Cog.listener()
     async def on_message(self, msg):
+        
+    # bastardi on message
+        if msg.content == "pronto" or msg.content == "pronto?":
+            response = '**Bastardi**, chiamo da Reggio Emilia, sono un assassino di **meridionali**. Vi ammazzo tutti *bastardi pezzi di merda*.'
+            await msg.reply(response)
+
+    # vado on message
         if msg.content == 'vado' or msg.content == 'io vado' or msg.content == 'bella' or msg.content == 'a domani':
             response = 'ok a domani a domani a domani'
             await msg.reply(response)
 
-    # bastardi on message
-    @commands.Cog.listener()
-    async def on_message(self, msg):
-        if msg.content == 'pronto' or msg.content == 'pronto?' or msg.content:
-            response = '**Bastardi**, chiamo da Reggio Emilia, sono un assassino di **meridionali**. Vi ammazzo tutti *bastardi pezzi di merda*.'
+    # bimbo dingo
+        if msg.content == 'rocket league' or msg.content == 'dingo':
+            x = 0
+            response = 'bimbo dingo'
+            bimbodingospamrange = int(random.choice(range(1,5+1)))
+            while x < bimbodingospamrange:
+                await msg.reply(response)
+                x += 1
+        
+        if msg.content == 'sconosciuto':
+            response = random.choice(['Hai fatto incazzare la persona sbagliata. Non hai futuro.', 'Mi hai fregato la macchina! Sarai mangime per vermi, pezzo di merda.'])
             await msg.reply(response)
-
 
 
 def setup(bot):

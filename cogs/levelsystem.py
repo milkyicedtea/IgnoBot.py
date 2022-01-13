@@ -29,24 +29,62 @@ class LevelSystem(commands.Cog):
         guildraw = ctx.guild.name
         guildname = guildraw.replace("'", "")
         userid = ctx.author.id
-        username = ctx.author.name
+        usernameraw = ctx.author.name
+        username = usernameraw.replace("'", "")
+
+        # guild check and update
         cursor.execute(f"select count(*) from guildinfo where guildid = {guildid} and guildname = '{guildname}';")
         result = cursor.fetchone()
-        print(f'guild exists = {result[0]}')
         if result[0] == 0:
-            cursor.execute(f"insert into guildinfo(guildid, guildname) values({guildid},'{guildname}');")
-            mydb.commit()
+            cursor.execute(f'select count(*) from guildinfo where guildid = {guildid};')
+            result = cursor.fetchone()
+            print(f'Guildid search result is: {result}')
+            if result[0] != 0:
+                cursor.execute(f"select count(*) from guildinfo where guildname = '{guildname}';")
+                result = cursor.fetchone()
+                if result[0] == 0:
+                    cursor.execute(f"update guildinfo set guildname = '{guildname}' where guildid = {guildid};")
+                    mydb.commit()
+                    print(f'updated guild {guildid} with new name: {guildname}')
+                else:
+                    print(f'guild {guildid} with name {guildname} is already in the database')
+
+        # user check and update
+        cursor.execute(f"select count(*) from guildinfo where guildid = {guildid} and guildname = '{guildname}';")
+        result = cursor.fetchone()
+        if result[0] == 0:
+            cursor.execute(f'select count(*) from leveling where userid = {userid};')
+            result = cursor.fetchone()
+            print(f'Guildid search result is: {result}')
+            if result[0] != 0:
+                cursor.execute(f"select count(*) from leveling where username = '{username}';")
+                result = cursor.fetchone()
+                if result[0] == 0:
+                    cursor.execute(f"update leveling set username = '{username}' where userid = {userid};")
+                    mydb.commit()
+                    print(f'updated user {userid} with new name: {username}')
+                else:
+                    print(f'user {userid} with name {usernameraw} is already in the database')
+
+        # search for user in the db
         cursor.execute(f'select count(*) from leveling where userid = {userid} and guildid = {guildid};')
         result = cursor.fetchone()
         print(f'userid exists = {result[0]}')
-        if result[0] == 0:
+
+        if result[0] == 0:          # user is not in the db so we add him first and then give
             xptodb = 0
             leveltodb = 0
-            cursor.execute(f'insert into leveling(guildid, userid, xpvalue, levelvalue) values({guildid} ,{userid}, 0, 0);')
-            print('new user added')
+            cursor.execute(f"insert into leveling(guildid, userid, username, xpvalue, levelvalue) values({guildid} ,{userid}, '{username}', 0, 0);")
+            print(f'new user {username} added')
             mydb.commit()
-        else:
+        elif userid == 913424314290815007:            # user is a bot so no xp for him
+            print(f'The user ({username}) is a bot! No xp for bots')
+            dbclose()
+            return
+        else:           # user is already in the the db so no changes to be made
             print(f'user {username} is already present in the db')
+
+        # xp giving
         xprange = random.choice(range(1, 20+1))
         print(f'generated xp is = {xprange}')
         cursor.execute(f'select xpvalue from leveling where userid = {userid} and guildid = {guildid};')
@@ -64,7 +102,8 @@ class LevelSystem(commands.Cog):
     @commands.command(name = 'level', help = 'Shows your current level')
     async def level(self, ctx):
         guildid = ctx.guild.id
-        guildname = ctx.guild.name
+        guildraw = ctx.guild.name
+        guildname = guildraw.replace("'", "")
         userid = ctx.author.id
         levelfromdb = cursor.execute(f'select from leveling(levelvalue) where userid = {userid} and guildid = {guildid};')
         xpfromdb = cursor.execute(f'select from leveling(xpvalue) where userid = {userid} and guildid = {guildid};')

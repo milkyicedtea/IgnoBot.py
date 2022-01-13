@@ -50,8 +50,7 @@ class Moderation(commands.Cog):
         if amount_to_delete == 0:
             await ctx.send('You must enter an amount of messages to purge equal to 1 or more')
         else:
-            await ctx.channel.purge(amount_to_delete+1)
-
+            await ctx.channel.purge(limit = amount_to_delete + 1)
 
     # Creating a new channel
     @commands.command(name = 'create-channel', help = 'Creates a new channel.')
