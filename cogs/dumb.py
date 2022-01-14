@@ -103,6 +103,11 @@ class Dumb(commands.Cog):
     async def sexy(self, ctx):
         await ctx.send('https://ibb.co/KjmR0Hq')
 
+    # osu skins repo
+    @commands.command(name = 'osuskins', help = 'Brings up my osu skins repository')
+    async def osuskins(self, ctx):
+        await ctx.send('https://github.com/ignorance-uwu/Osu-Skins')
+
 
 
     # listeners

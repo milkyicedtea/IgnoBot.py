@@ -93,16 +93,24 @@ class LevelSystem(commands.Cog):
         # xp giving
         xprange = random.choice(range(1, 20+1))
         print(f'generated xp is = {xprange}')
-        cursor.execute(f'select xpvalue from leveling where userid = {userid} and guildid = {guildid};')
+        cursor.execute(f'select xpvalue from leveling where userid = {userid} and guildid = {guildid};')            # getting xp
         result = cursor.fetchone()
         print(f'result[0] is = {result[0]}')
         xpfromdb = result[0]
         print(f'xpfromdb is = {result[0]}')
         xptodb = xpfromdb + xprange
         print(f'xptodb is = {xptodb}')
-        # cursor.execute(f"insert into leveling set xpvalue = {xpfromdb} where userid = {userid} and guildid = {guildid};")
-        # leveltodb = xpfromdb ** (1/5)
-        cursor.execute(f"update leveling set xpvalue = {xptodb} where guildid = {guildid} and userid = {userid};")
+        cursor.execute(f'select levelvalue from leveling where guildid = {guildid} and userid = {userid}')          # getting level
+        result = cursor.fetchone()
+        level = result[0]
+        if level == 0:
+            neededtolvl = 100
+        else:
+            neededtolvl = level * level * 100           # determines how much xp is needed to level up
+        if xpfromdb >= neededtolvl:
+            level+= 1
+        cursor.execute(f'update leveling set xpvalue = {xptodb} where guildid = {guildid} and userid = {userid};')
+        cursor.execute(f'update leveling set levelvaue = {level} where guildid = {guildid} and userid = {userid};')
         mydb.commit()
         dbclose()
         
