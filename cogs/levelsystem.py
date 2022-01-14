@@ -110,7 +110,7 @@ class LevelSystem(commands.Cog):
         if xpfromdb >= neededtolvl:
             level+= 1
         cursor.execute(f'update leveling set xpvalue = {xptodb} where guildid = {guildid} and userid = {userid};')
-        cursor.execute(f'update leveling set levelvaue = {level} where guildid = {guildid} and userid = {userid};')
+        cursor.execute(f'update leveling set levelvalue = {level} where guildid = {guildid} and userid = {userid};')
         mydb.commit()
         dbclose()
         
