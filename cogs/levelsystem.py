@@ -75,16 +75,18 @@ class LevelSystem(commands.Cog):
         result = cursor.fetchone()
         print(f'userid exists = {result[0]}')
 
+        if userid == 913424314290815007:            # user is a bot so no xp for him
+            print(f'The user ({username}) is a bot! No xp for bots')
+            dbclose()
+            return
+
         if result[0] == 0:          # user is not in the db so we add him first and then give
             xptodb = 0
             leveltodb = 0
             cursor.execute(f"insert into leveling(guildid, userid, username, xpvalue, levelvalue) values({guildid}, {userid}, '{username}', 0, 0);")
             print(f'new user {username} added')
             mydb.commit()
-        elif userid == 913424314290815007:            # user is a bot so no xp for him
-            print(f'The user ({username}) is a bot! No xp for bots')
-            dbclose()
-            return
+
         else:           # user is already in the the db so no changes to be made
             print(f'user {username} is already present in the db')
 

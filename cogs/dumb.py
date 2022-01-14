@@ -98,6 +98,11 @@ class Dumb(commands.Cog):
             await ctx.send('***crunch***')
             x += 1
 
+    # sexy
+    @commands.command(name = 'sexy', help = 'SCONOSCIUTO SEXY A 2 METRI DA TE')
+    async def sexy(self, ctx):
+        await ctx.send('https://ibb.co/KjmR0Hq')
+
 
 
     # listeners
