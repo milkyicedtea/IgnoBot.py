@@ -108,6 +108,10 @@ class Dumb(commands.Cog):
     async def osuskins(self, ctx):
         await ctx.send('https://github.com/ignorance-uwu/Osu-Skins')
 
+    @commands.command(name = 'shid', help = 'i just shidded and farded +HDDT')
+    async def shid(self, msg):
+        await msg.reply('https://ibb.co/K7Bjd8Q')
+
 
 
     # listeners
