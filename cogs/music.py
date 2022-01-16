@@ -9,7 +9,6 @@ import functools
 import itertools
 import math
 import random
-import ffmpeg
 
 import discord
 import youtube_dl
