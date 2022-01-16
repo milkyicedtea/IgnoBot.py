@@ -5,9 +5,6 @@
 ########################
 
 import os
-from pprint import pprint
-from typing import ContextManager
-from xml.etree.ElementPath import prepare_descendant
 
 import discord
 from discord.ext import commands
@@ -92,7 +89,7 @@ class LevelSystem(commands.Cog):
             print(f'user {username} is already present in the db')
 
         # xp giving
-        xprange = random.choice(range(1, 20+1))
+        xprange = random.choice(range(20, 50+1))
         print(f'generated xp is = {xprange}')
         cursor.execute(f'select xpvalue from leveling where userid = {userid} and guildid = {guildid};')            # getting xp
         result = cursor.fetchone()
@@ -111,7 +108,9 @@ class LevelSystem(commands.Cog):
         if xpfromdb >= neededtolvl:
             level+= 1
         neededtolvlbefore = (level - 1) * (level -1) *100
-        percentage = (xptodb - neededtolvlbefore) / (neededtolvl - neededtolvlbefore)
+        first_term = xptodb - neededtolvlbefore
+        second_term = neededtolvl - neededtolvlbefore
+        percentage = first_term / second_term
         print(f'level percentage is: {percentage * 100}')
         cursor.execute(f'update leveling set xpvalue = {xptodb} where guildid = {guildid} and userid = {userid};')
         cursor.execute(f'update leveling set levelvalue = {level} where guildid = {guildid} and userid = {userid};')
