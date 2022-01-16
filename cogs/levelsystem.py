@@ -7,6 +7,7 @@
 import os
 from pprint import pprint
 from typing import ContextManager
+from xml.etree.ElementPath import prepare_descendant
 
 import discord
 from discord.ext import commands
@@ -109,6 +110,9 @@ class LevelSystem(commands.Cog):
             neededtolvl = level * level * 100           # determines how much xp is needed to level up
         if xpfromdb >= neededtolvl:
             level+= 1
+        neededtolvlbefore = (level - 1) * (level -1) *100
+        percentage = (neededtolvl - neededtolvlbefore) / xpfromdb
+        print(f'level percentage is: {percentage * 100}')
         cursor.execute(f'update leveling set xpvalue = {xptodb} where guildid = {guildid} and userid = {userid};')
         cursor.execute(f'update leveling set levelvalue = {level} where guildid = {guildid} and userid = {userid};')
         mydb.commit()
