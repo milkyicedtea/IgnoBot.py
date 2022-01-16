@@ -111,7 +111,7 @@ class LevelSystem(commands.Cog):
         if xpfromdb >= neededtolvl:
             level+= 1
         neededtolvlbefore = (level - 1) * (level -1) *100
-        percentage = (neededtolvl - neededtolvlbefore) / (xptodb - neededtolvlbefore)
+        percentage = (xptodb - neededtolvlbefore) / (neededtolvl - neededtolvlbefore)
         print(f'level percentage is: {percentage * 100}')
         cursor.execute(f'update leveling set xpvalue = {xptodb} where guildid = {guildid} and userid = {userid};')
         cursor.execute(f'update leveling set levelvalue = {level} where guildid = {guildid} and userid = {userid};')
