@@ -89,7 +89,7 @@ class LevelSystem(commands.Cog):
             print(f'user {username} is already present in the db')
 
         # xp giving
-        xprange = random.choice(range(20, 50+1))
+        xprange = random.choice(range(1, 20+1))
         print(f'generated xp is = {xprange}')
         cursor.execute(f'select xpvalue from leveling where userid = {userid} and guildid = {guildid};')            # getting xp
         result = cursor.fetchone()

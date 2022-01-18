@@ -21,7 +21,7 @@ TOKEN = os.getenv('bot_token')
 # Prefix setup
 # client = commands.Bot(command_prefix = 'i.') # not using the client
 
-bot = commands.Bot(command_prefix='i.')
+bot = commands.Bot(command_prefix = 'i.')
 
 # cogs loading
 for filename in os.listdir('./cogs'): #loads all files (*.py)
