@@ -104,7 +104,7 @@ class Dumb(commands.Cog):
         await ctx.send('https://ibb.co/KjmR0Hq')
 
     # osu skins repo
-    @commands.command(name = 'osuskins', help = 'Brings up my osu skins repository')
+    # @commands.command(name = 'osuskins', help = 'Brings up my osu skins repository')
     async def osuskins(self, ctx):
         await ctx.send('https://github.com/ignorance-uwu/Osu-Skins')
 
@@ -112,7 +112,13 @@ class Dumb(commands.Cog):
     async def shid(self, msg):
         await msg.reply('https://ibb.co/K7Bjd8Q')
 
-
+    @commands.command(name = 'python', help = 'python python python..')
+    async def pythonspam(self, ctx):
+        x = 0
+        pythonspamrange = int(random.choice(range(1,5+1)))
+        while x < pythonspamrange:
+            await ctx.send('***python***')
+            x += 1
 
     # listeners
     @commands.Cog.listener()
@@ -137,8 +143,14 @@ class Dumb(commands.Cog):
                 await msg.reply(response)
                 x += 1
         
+    # sconosciuto
         if msg.content == 'sconosciuto':
             response = random.choice(['Hai fatto incazzare la persona sbagliata. Non hai futuro.', 'Mi hai fregato la macchina! Sarai mangime per vermi, pezzo di merda.'])
+            await msg.reply(response)
+
+    # python bad
+        if msg.content == 'python?':
+            response = 'bad'
             await msg.reply(response)
 
 
