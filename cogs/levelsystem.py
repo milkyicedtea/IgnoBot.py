@@ -9,7 +9,7 @@ import os
 import discord
 from discord.ext import commands
 import random
-import mysql.connector
+import psycopg2
 
 mydb = None
 cursor = None
@@ -112,29 +112,37 @@ class LevelSystem(commands.Cog):
         mydb.commit()
         dbclose()
         
-    @commands.command(name = 'level', help = 'Shows your current level')
+    # @commands.command(name = 'level', help = 'Shows your current level')
     async def level(self, ctx):
         guildid = ctx.guild.id
         guildraw = ctx.guild.name
         guildname = guildraw.replace("'", "")
         userid = ctx.author.id
+        usernameraw = ctx.author.name
+        username = usernameraw.replace("'", "")
+        useravatar = ctx.author.avatar_url
+        guildavatar = ctx.guild.avatar_url
         levelfromdb = cursor.execute(f'select from leveling(levelvalue) where userid = {userid} and guildid = {guildid};')
         xpfromdb = cursor.execute(f'select from leveling(xpvalue) where userid = {userid} and guildid = {guildid};')
+        embed = discord.Embed(title = f'Level and XP for {usernameraw}', url = '', description = '', color = discord.Colour.random)
+        embed.add_field(name = "Text XP", value = f'{xpfromdb}', inline = True)
+        embed.add_field(name = "Level", value = f'{levelfromdb}', inline = True)
+        await ctx.send(embed)
 
 # db open/close
 def dbopen():
     global mydb
     global cursor
     try:
-        mydb = mysql.connector.connect(host = os.getenv('mysqlhost'), user = os.getenv('mysqluser'), password = os.getenv('mysqlpw'), database = os.getenv('mysqldb'), port = os.getenv('mysqlport'))
+        mydb = psycopg2.connect(host = os.getenv('dbhost'), user = os.getenv('dbuser'), password = os.getenv('dbpw'), database = os.getenv('db_db'), port = os.getenv('dbport'))
         print("Connected to the database")
-    except mysql.connector.Error as e:
+    except psycopg2.Error as e:
         print(f'Error connecting to the platform (mydb): {e}')
 
     # getting the cursor
     try:
         cursor = mydb.cursor()
-    except mysql.connector.Error as c:
+    except psycopg2.Error as c:
         print(f'Error connecting to the platform (cursor): {c}')
 
 def dbclose():
@@ -144,8 +152,8 @@ def dbclose():
         cursor.close()
         mydb.close()
         print(f'Database closed')
-    except mysql.connector.Error as ce:
-        print(f'Error while closing the database: {ce}')   
+    except psycopg2.Error as ce:
+        print(f'Error while closing the database: {ce}')  
 
 
 def setup(bot):

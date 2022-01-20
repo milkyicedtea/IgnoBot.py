@@ -10,7 +10,7 @@ import discord
 from discord import guild
 from discord.ext import commands
 
-import mysql.connector
+import psycopg2
 
 mydb = None
 cursor = None
@@ -50,7 +50,7 @@ class Database(commands.Cog):
                     await ctx.send(f"Guild '{guildname}' with id {guildid} was added to the database")
             dbclose()
 
-        except mysql.connector.Error as ag:
+        except psycopg2.Error as ag:
             print(f'Something went wrong: {ag}')
 
 # db open/close
@@ -58,15 +58,15 @@ def dbopen():
     global mydb
     global cursor
     try:
-        mydb = mysql.connector.connect(host = os.getenv('mysqlhost'), user = os.getenv('mysqluser'), password = os.getenv('mysqlpw'), database = os.getenv('mysqldb'), port = os.getenv('mysqlport'))
+        mydb = psycopg2.connect(host = os.getenv('dbhost'), user = os.getenv('dbuser'), password = os.getenv('dbpw'), database = os.getenv('db_db'), port = os.getenv('dbport'))
         print("Connected to the database")
-    except mysql.connector.Error as e:
+    except psycopg2.Error as e:
         print(f'Error connecting to the platform (mydb): {e}')
 
     # getting the cursor
     try:
         cursor = mydb.cursor()
-    except mysql.connector.Error as c:
+    except psycopg2.Error as c:
         print(f'Error connecting to the platform (cursor): {c}')
 
 def dbclose():
@@ -76,8 +76,8 @@ def dbclose():
         cursor.close()
         mydb.close()
         print(f'Database closed')
-    except mysql.connector.Error as ce:
-        print(f'Error while closing the database: {ce}') 
+    except psycopg2.Error as ce:
+        print(f'Error while closing the database: {ce}')   
 
 def setup(bot):
     bot.add_cog(Database(bot))
