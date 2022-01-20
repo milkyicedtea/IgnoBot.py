@@ -112,7 +112,7 @@ class LevelSystem(commands.Cog):
         mydb.commit()
         dbclose()
         
-    # @commands.command(name = 'level', help = 'Shows your current level')
+    @commands.command(name = 'level', help = 'Shows your current level')
     async def level(self, ctx):
         guildid = ctx.guild.id
         guildraw = ctx.guild.name
@@ -124,9 +124,9 @@ class LevelSystem(commands.Cog):
         guildavatar = ctx.guild.avatar_url
         levelfromdb = cursor.execute(f'select from leveling(levelvalue) where userid = {userid} and guildid = {guildid};')
         xpfromdb = cursor.execute(f'select from leveling(xpvalue) where userid = {userid} and guildid = {guildid};')
-        embed = discord.Embed(title = f'Level and XP for {usernameraw}', url = '', description = '', color = discord.Colour.random)
-        embed.add_field(name = "Text XP", value = f'{xpfromdb}', inline = True)
-        embed.add_field(name = "Level", value = f'{levelfromdb}', inline = True)
+        embed = discord.Embed(title = 'Level and XP for {}'.format(usernameraw) , url = '', description = '', color = discord.Colour.random)
+        embed.add_field(name = "Text XP", value = xpfromdb, inline = True)
+        embed.add_field(name = "Level", value = levelfromdb, inline = True)
         await ctx.send(embed)
 
 # db open/close
