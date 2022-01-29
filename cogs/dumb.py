@@ -101,7 +101,7 @@ class Dumb(commands.Cog):
     # sexy
     @commands.command(name = 'sexy', help = 'SCONOSCIUTO SEXY A 2 METRI DA TE')
     async def sexy(self, ctx):
-        await ctx.send('https://ibb.co/KjmR0Hq')
+        await ctx.send('https://cdn.discordapp.com/attachments/933336708026626128/933382456596389908/Immagine_2022-01-13_090718.png')
 
     # osu skins repo
     # @commands.command(name = 'osuskins', help = 'Brings up my osu skins repository')
@@ -153,6 +153,9 @@ class Dumb(commands.Cog):
             response = 'bad'
             await msg.reply(response)
 
+    # O RAZZIATORE???
+        if msg.content == 'o razziatore' or msg.content == 'razziatore' or msg.content == 'o razziatore?':
+            await msg.reply('https://cdn.discordapp.com/attachments/933336707825295368/936916126594633779/Immagine_2022-01-27_221310.png')
 
 def setup(bot):
     bot.add_cog(Dumb(bot))

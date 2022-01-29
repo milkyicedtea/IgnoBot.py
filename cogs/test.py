@@ -21,16 +21,12 @@ class Test(commands.Cog):
     @commands.command(name = 'embed-test', help = 'Embed test')
     @commands.has_permissions(manage_guild=True)
     async def embed_test(self, ctx):
-        linecache.clearcache()
-        title_read = linecache.getline('./data/welcome/welcome.ini', 2)
-        color_read = linecache.getline('./data/welcome/welcome.ini', 4)
-        description_read = linecache.getline('./data/welcome/welcome.ini', 6)
-        embed=discord.Embed(
-            title = "" + title_read ,
-            description = "" + description_read,
-            color = "" + discord.Color(color_read)
-        )   
-        await ctx.send(embed)
+        colorvalue = discord.Colour.random()
+        print(f'colorvalue is: {colorvalue}')
+        embedVar = discord.Embed(title = 'Title', description = 'Desc', color = (colorvalue))
+        embedVar.add_field(name = "Field1", value = "hi", inline = False)
+        embedVar.add_field(name = "Field2", value = "hi2", inline = False)
+        await ctx.send(embed = embedVar)
 
     # Read test
     @commands.command(name = 'read-test', help = 'Used to test file reading functionality (Requires the user to have manage_guild or administrator permission)')

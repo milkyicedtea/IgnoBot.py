@@ -124,10 +124,11 @@ class LevelSystem(commands.Cog):
         guildavatar = ctx.guild.avatar_url
         levelfromdb = cursor.execute(f'select from leveling(levelvalue) where userid = {userid} and guildid = {guildid};')
         xpfromdb = cursor.execute(f'select from leveling(xpvalue) where userid = {userid} and guildid = {guildid};')
-        embed = discord.Embed(title = 'Level and XP for {}'.format(usernameraw) , url = '', description = '', color = discord.Colour.random)
-        embed.add_field(name = "Text XP", value = xpfromdb, inline = True)
-        embed.add_field(name = "Level", value = levelfromdb, inline = True)
-        await ctx.send(embed)
+        colorvalue = discord.Colour.random()
+        embedVar = discord.Embed(title = "Level and XP for".format(usernameraw), description = "Desc", color = (colorvalue))
+        embedVar.add_field(name = "Text XP", value = "XP: {}".format(xpfromdb), inline = False)
+        embedVar.add_field(name = "Level", value = "Level: {}".format(levelfromdb) + (levelfromdb), inline = False)
+        await ctx.reply(embed = embedVar)
 
 # db open/close
 def dbopen():

@@ -46,9 +46,10 @@ class Moderation(commands.Cog):
     # Purge command
     @commands.command(name = 'purge', help = 'Deletes multiple messages.')
     @commands.has_permissions(manage_messages = True)
-    async def purge(self, ctx, amount_to_delete):
-        if amount_to_delete == 0 or amount_to_delete == None:
-            await ctx.send('You must enter an amount of messages to purge equal to 1 or more')
+    async def purge_messages(self, ctx, amount_to_delete: int = 0):
+        print(amount_to_delete)
+        if amount_to_delete < 1 or amount_to_delete > 100:
+            await ctx.send('You need to enter a value between 1 and 100')
         else:
             await ctx.channel.purge(limit = amount_to_delete + 1)
 
@@ -73,11 +74,14 @@ class Moderation(commands.Cog):
 
     # Join date command
     @commands.command(name = 'joindate', help = 'Shows the date when a member joined.')
-    async def joindate(self, ctx, member = None):
-        if member != None:
-            await ctx.send(f'{member.mention} joined on {member.joined_at}')
-        else: member = ctx.message.author
-        await ctx.send(f'{member.mention} joined on {member.joined_at}.')
+    async def join_date(self, ctx, member: discord.Member = None):
+        print(member)
+        if member == None:
+            await ctx.send('You must enter a valid member!')
+        else:
+            member = member
+        joined_at = member.joined_at
+        await ctx.send(f'{member.mention} joined on {joined_at}.')
 
     # Patch command
     @commands.command(name = 'patchnotes', help = 'Shows the most recent patch')
