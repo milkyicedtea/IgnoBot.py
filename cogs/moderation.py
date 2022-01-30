@@ -77,7 +77,7 @@ class Moderation(commands.Cog):
     async def join_date(self, ctx, member: discord.Member = None):
         print(member)
         if member == None:
-            await ctx.send('You must enter a valid member!')
+            member = ctx.message.author
         else:
             member = member
         joined_at = member.joined_at
