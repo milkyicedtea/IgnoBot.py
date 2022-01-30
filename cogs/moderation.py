@@ -17,15 +17,15 @@ class Moderation(commands.Cog):
     # Kick command
     @commands.command(name = 'kick', help = 'Kicks a user from the server')
     @commands.has_permissions(kick_members = True)
-    async def kick(self, ctx, member:discord.Member, *, reason=None):
-        await member.kick(reason=reason)
+    async def kick(self, ctx, member:discord.Member, *, reason = None):
+        await member.kick(reason = reason)
         await ctx.send(f'User {member.mention} has been kicked from the server.\nResponsible mod: **{ctx.author}**\nReason: {reason}')
 
     # Ban command
     @commands.command(name = 'ban', help = 'Bans a member.')
     @commands.has_permissions(ban_members = True)
-    async def ban(self, ctx, member:discord.Member, *, reason=None):
-        await member.ban(reason=reason)
+    async def ban(self, ctx, member:discord.Member, *, reason = None):
+        await member.ban(reason = reason)
         await ctx.send(f'User {member.mention} has been banned from the server.\nResponsible mod: **{ctx.author}**\nReason: {reason}')
 
     # Unban command

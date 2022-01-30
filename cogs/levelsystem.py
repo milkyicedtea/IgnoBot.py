@@ -112,23 +112,34 @@ class LevelSystem(commands.Cog):
         mydb.commit()
         dbclose()
         
+    # level embed
     @commands.command(name = 'level', help = 'Shows your current level')
-    async def level(self, ctx):
+    async def level_embed(self, ctx):
+        dbopen()
         guildid = ctx.guild.id
         guildraw = ctx.guild.name
         guildname = guildraw.replace("'", "")
         userid = ctx.author.id
         usernameraw = ctx.author.name
         username = usernameraw.replace("'", "")
-        useravatar = ctx.author.avatar_url
-        guildavatar = ctx.guild.avatar_url
-        levelfromdb = cursor.execute(f'select from leveling(levelvalue) where userid = {userid} and guildid = {guildid};')
-        xpfromdb = cursor.execute(f'select from leveling(xpvalue) where userid = {userid} and guildid = {guildid};')
-        colorvalue = discord.Colour.random()
-        embedVar = discord.Embed(title = "Level and XP for".format(usernameraw), description = "Desc", color = (colorvalue))
+        colorValue = discord.Colour.random()
+        
+        # embed setup
+        embedVar = discord.Embed(title = "Level and XP for {}".format(usernameraw), color = (colorValue))
+
+        # fetch xpvalue
+        cursor.execute(f'select xpvalue from leveling where guildid = {guildid} and userid = {userid};')
+        result = cursor.fetchone()
+        xpfromdb = result[0]
         embedVar.add_field(name = "Text XP", value = "XP: {}".format(xpfromdb), inline = False)
-        embedVar.add_field(name = "Level", value = "Level: {}".format(levelfromdb) + (levelfromdb), inline = False)
+
+        # fetch levelvalue
+        cursor.execute(f'select levelvalue from leveling where guildid = {guildid} and userid = {userid};')
+        result = cursor.fetchone()
+        levelfromdb = result[0]
+        embedVar.add_field(name = "Level", value = "Level: {}".format(levelfromdb), inline = False)
         await ctx.reply(embed = embedVar)
+        dbclose()
 
 # db open/close
 def dbopen():
