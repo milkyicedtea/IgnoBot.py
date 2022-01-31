@@ -19,7 +19,7 @@ class Welcome(commands.Cog):
         self.bot = bot
 
     @commands.command(name = 'set-welcome', help = 'Used to set your welcome message when a user joins')
-    @commands.has_permissions(manage_server = True)
+    @commands.has_permissions(manage_guild = True)
     async def set_welcome(self, ctx, message:str, ):
         await ctx.send('This command is currently WIP')
 
