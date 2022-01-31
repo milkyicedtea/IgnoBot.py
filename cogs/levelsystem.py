@@ -73,11 +73,6 @@ class LevelSystem(commands.Cog):
         result = cursor.fetchone()
         print(f'userid exists = {result[0]}')
 
-        if userid == 913424314290815007:            # user is a bot so no xp for him
-            print(f'The user ({username}) is a bot! No xp for bots')
-            dbclose()
-            return
-
         if result[0] == 0:          # user is not in the db so we add him first and then give
             xptodb = 0
             leveltodb = 0
@@ -114,18 +109,39 @@ class LevelSystem(commands.Cog):
         
     # level embed
     @commands.command(name = 'level', help = 'Shows your current level')
-    async def level_embed(self, ctx):
+    async def level_embed(self, ctx, member: discord.Member = None):
         dbopen()
         guildid = ctx.guild.id
         guildraw = ctx.guild.name
         guildname = guildraw.replace("'", "")
-        userid = ctx.author.id
         usernameraw = ctx.author.name
         username = usernameraw.replace("'", "")
         colorValue = discord.Colour.random()
         
+        # getting the right user id
+        if member == None:
+            userid = ctx.author.id
+        else:
+            userid = member.id
+            print(member)
+
+        # getting the right name to display
+        if member == None:
+            member = usernameraw
+        else:
+            member = member.display_name
+
+        # search for user in the db
+        cursor.execute(f'select count(*) from leveling where userid = {userid} and guildid = {guildid};')
+        result = cursor.fetchone()
+        print(f'userid exists = {result[0]}')
+
+        if result[0] == 0:          # user is not in the database so we return an error message
+            await ctx.send('Something went wrong while loading your xp stats.')
+            print("Error while fetching someone's stats")
+
         # embed setup
-        embedVar = discord.Embed(title = "Level and XP for {}".format(usernameraw), color = (colorValue))
+        embedVar = discord.Embed(title = "Level and XP for {}".format(member), color = (colorValue))
 
         # fetch xpvalue
         cursor.execute(f'select xpvalue from leveling where guildid = {guildid} and userid = {userid};')
@@ -138,7 +154,7 @@ class LevelSystem(commands.Cog):
         result = cursor.fetchone()
         levelfromdb = result[0]
         embedVar.add_field(name = "Level", value = "Level: {}".format(levelfromdb), inline = False)
-        await ctx.reply(embed = embedVar)
+        await ctx.reply(embed = embedVar, mention_author = False)
         dbclose()
 
 # db open/close
