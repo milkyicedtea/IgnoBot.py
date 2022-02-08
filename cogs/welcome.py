@@ -10,7 +10,6 @@ import discord
 from discord.ext import commands
 import random
 import psycopg2
-from pyparsing import restOfLine
 
 mydb = None
 cursor = None
