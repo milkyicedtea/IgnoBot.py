@@ -7,7 +7,6 @@
 import os
 
 import discord
-from discord import channel
 from discord.ext import commands
 
 class Moderation(commands.Cog):

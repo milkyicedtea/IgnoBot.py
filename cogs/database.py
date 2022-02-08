@@ -7,7 +7,6 @@
 import os
 
 import discord
-from discord import guild
 from discord.ext import commands
 
 import psycopg2

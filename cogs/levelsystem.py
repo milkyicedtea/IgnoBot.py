@@ -37,7 +37,6 @@ class LevelSystem(commands.Cog):
         if result[0] == 0:
             cursor.execute(f'select count(*) from guildinfo where guildid = {guildid};')
             result = cursor.fetchone()
-            print(f'Guildid search result is: {result}')
             if result[0] != 0:
                 cursor.execute(f"select count(*) from guildinfo where guildname = '{guildname}';")
                 result = cursor.fetchone()
@@ -57,7 +56,6 @@ class LevelSystem(commands.Cog):
         if result[0] == 0:
             cursor.execute(f'select count(*) from leveling where userid = {userid};')
             result = cursor.fetchone()
-            print(f'Guildid search result is: {result}')
             if result[0] != 0:
                 cursor.execute(f"select count(*) from leveling where username = '{username}';")
                 result = cursor.fetchone()
@@ -71,7 +69,6 @@ class LevelSystem(commands.Cog):
         # search for user in the db
         cursor.execute(f'select count(*) from leveling where userid = {userid} and guildid = {guildid};')
         result = cursor.fetchone()
-        print(f'userid exists = {result[0]}')
 
         if result[0] == 0:          # user is not in the db so we add him first and then give
             xptodb = 0
@@ -88,9 +85,7 @@ class LevelSystem(commands.Cog):
         print(f'generated xp is = {xprange}')
         cursor.execute(f'select xpvalue from leveling where userid = {userid} and guildid = {guildid};')            # getting xp
         result = cursor.fetchone()
-        print(f'result[0] is = {result[0]}')
         xpfromdb = result[0]
-        print(f'xpfromdb is = {result[0]}')
         xptodb = xpfromdb + xprange
         print(f'xptodb is = {xptodb}')
         cursor.execute(f'select levelvalue from leveling where guildid = {guildid} and userid = {userid}')          # getting level

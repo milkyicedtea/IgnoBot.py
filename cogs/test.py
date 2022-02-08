@@ -12,6 +12,7 @@ import linecache
 import random
 import asyncio
 import time
+import http.client
 
 class Test(commands.Cog):
     def __init__(self, bot):
@@ -65,6 +66,24 @@ class Test(commands.Cog):
         await ctx.send(f'Waiting {amount_to_sleep} seconds before sending your message.')
         time.sleep(amount_to_sleep)
         await ctx.send(f'{sentence}')
+
+    # anime api test
+    @commands.command(name = 'animetest', help = 'Anime api test')
+    async def animetest(self,ctx):
+        conn = http.client.HTTPSConnection("jikan1.p.rapidapi.com")
+
+        headers = {
+            'x-rapidapi-host': "jikan1.p.rapidapi.com",
+            'x-rapidapi-key': "79e506351bmsh051e1172c44a0b6p1de664jsn579a9893d633"
+            }
+
+        conn.request("GET", "/meta/requests/anime/today", headers=headers)
+
+        res = conn.getresponse()
+        data = res.read()
+
+        print(data)
+        print(data.decode("utf-8"))
 
 def setup(bot):
     bot.add_cog(Test(bot))

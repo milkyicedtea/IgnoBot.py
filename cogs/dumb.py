@@ -5,10 +5,8 @@
 #########################
 
 import os
-from typing import AsyncContextManager
 
 import discord
-from discord import client
 from discord.ext import commands
 import random
 
@@ -156,6 +154,10 @@ class Dumb(commands.Cog):
     # O RAZZIATORE???
         if msg.content == 'o razziatore' or msg.content == 'razziatore' or msg.content == 'o razziatore?':
             await msg.reply('https://cdn.discordapp.com/attachments/933336707825295368/936916126594633779/Immagine_2022-01-27_221310.png')
+
+    # Was für eine parade!
+        if msg.content == 'Was für eine parade!':
+            await msg.reply('Danke!')
 
 def setup(bot):
     bot.add_cog(Dumb(bot))

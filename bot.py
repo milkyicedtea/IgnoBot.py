@@ -5,14 +5,17 @@
 ################
 
 import os
+from types import NoneType
 
 import discord
 
-from discord import guild
 from dotenv import load_dotenv
 from discord.ext import commands
 import discord.utils
-import math
+import psycopg2
+
+mydb = None
+cursor = None
 
 # Initializing variables from .env file
 load_dotenv()
@@ -21,75 +24,122 @@ TOKEN = os.getenv('bot_token')
 # Prefix setup
 # client = commands.Bot(command_prefix = 'i.') # not using the client
 
-bot = commands.Bot(command_prefix = 'i.')
+def get_prefix(bot, message):
+    global mydb
+    global cursor
+    guildid = message.guild.id
+    print(f'Guildid for prefix function ({guildid})')
+    dbopen()
+
+    cursor.execute(f'select count(*) from guildsettings where guildid = {guildid};')
+    result = cursor.fetchone()
+    print(f'count for get_prefix is: {result[0]}')
+    if result[0] == 0:
+        prefix = 'i.'
+        cursor.execute(f"insert into guildsettings(guildid) values({guildid});")
+        cursor.execute(f"insert into guildsettings(prefix) values('i.');")
+        mydb.commit()
+
+    
+    cursor.execute(f'select prefix from guildsettings where guildid = {guildid};')
+    result = cursor.fetchone()
+    prefix = result[0]
+
+    print(f'the prefix (result[0]) is: {result[0]}')
+    dbclose()
+    return prefix
+    
+
+bot = commands.Bot(command_prefix = (get_prefix), intents = discord.Intents().all())
 
 # cogs loading
 for filename in os.listdir('./cogs'): #loads all files (*.py)
     if filename.endswith('.py'):
         bot.load_extension(f'cogs.{filename[:-3]}') #loads the file without ".py" for example: cogs.ping
-        print(f'Loaded {filename[:-3]}')
-
-"""
-WIP
-
-# Welcome message | setup working but missing the modularity with the embed message
-@bot.command(name = 'welcome-message', help = 'Used to setup the welcome message')
-@commands.has_permissions(manage_guild=True)
-async def welcome_message(ctx, title, color, description):
-    welcomepath = "./data/welcome/welcome.ini"
-    # open welcome.ini
-    f = open(welcomepath,"w")
-    # write title, color and description in welcome.ini
-    f.write("# title\n" + title + "\n# color\n" + color + "\n# description\n" + description)
-    # close opened file
-    f.close()
-    await ctx.send("Test andato a buon fine.")
-
-# Sends a message when a user joins
-@bot.event
-async def on_member_join(member):
-    print("A member joined the server(" + member.name + ")")
-    linecache.clearcache()
-    title_read = linecache.getline('./data/welcome/welcome.ini', 2)
-    color_read = linecache.getline('./data/welcome/welcome.ini', 4)
-    description_read = linecache.getline('./data/welcome/welcome.ini', 6)
-    embed=discord.Embed(
-        title = title_read ,
-        description = description_read,
-        color =
-    )
-
-
-
-# Select role to give on join
-@bot.command(name = 'roleonjoin', help = 'Used to select the role to give when a user joins the server.')
-@commands.has_permissions(manage_guild = True)
-async def roleonjoin(ctx, roleid):
-    while roleid is math.nan():
-        await ctx.send('You must specify a role id')
-    rolepath = './data/rolegive/rolegive.ini'
-    f = open(rolepath, 'w')
-    f.write('# role\n' + roleid)
-    f.close
-    rolename = guild.get_role(roleid)
-    await ctx.send('Il ruolo selezionato è: ' + rolename + '\nCon id ' + roleid + ".")
-
-# Give role on join
-@bot.event
-async def on_member_join(member):
-    rolepath = './data/rolegive/rolegive.ini'
-    roleid = linecache.getline(rolepath, 2)
-    await member.add_roles(roleid)
-
-WIP
-"""
-
-####################
+        print(f'Loaded {filename[:-3]}')    
 
 # Bot login event
 @bot.event
 async def on_ready():
     print(f'{bot.user} has logged in.')
+
+@bot.event
+async def on_guild_join(guild):
+    global mydb
+    global cursor
+    guildid = guild.id
+    guildname = guild.name
+    dbopen()
+    
+    # do stuff in guildinfo
+    cursor.execute(f"insert into guildinfo(guildid, guildname) values({guildid}, '{guildname}');")
+
+    # do stuff in guildsettings
+    cursor.execute(f"insert into guildsettings(guildid, prefix) values({guildid}, 'i.');")
+
+    # do stuff in welcome
+    welcomedef_channel = discord.utils.get(guild.channels, name = 'general')
+    welcomedef_channel_id = welcomedef_channel.id
+    welcomedef_message = 'Hey %mention_user%! Welcome to {}!'.format(guildname)
+    cursor.execute(f"insert into welcome(channel_id, guildid, welcome_message) values({welcomedef_channel_id}, {guildid}, '{welcomedef_message}');")
+    mydb.commit()
+    dbclose()
+
+@bot.event
+async def on_guild_remove(guild):
+    global mydb
+    global cursor
+    guildid = guild.id
+    guildname = guild.name
+    dbopen()
+    
+    # do stuff in guildsettings
+    cursor.execute(f'delete from guildsettings where guildid = {guildid};')
+    mydb.commit()
+
+    #do stuff in welcome
+    cursor.execute(f'delete from welcome where guildid = {guildid};')
+    mydb.commit()
+
+    #do stuff in leveling
+    cursor.execute(f'delete from leveling where guildid = {guildid};')
+    mydb.commit()
+
+    # do stuff in guildinfo
+    cursor.execute(f"delete from guildinfo where guildid = {guildid};")
+    mydb.commit()
+
+    print(f'deleted every information relative to guild {guildname} with id {guildid} from the database')
+    dbclose()
+
+
+
+
+# db open/close
+def dbopen():
+    global mydb
+    global cursor
+    try:
+        mydb = psycopg2.connect(host = os.getenv('dbhost'), user = os.getenv('dbuser'), password = os.getenv('dbpw'), database = os.getenv('db_db'), port = os.getenv('dbport'))
+        print("Connected to the database")
+    except psycopg2.Error as e:
+        print(f'Error connecting to the platform (mydb): {e}')
+
+    # getting the cursor
+    try:
+        cursor = mydb.cursor()
+    except psycopg2.Error as c:
+        print(f'Error connecting to the platform (cursor): {c}')
+
+def dbclose():
+    global mydb
+    global cursor
+    try:
+        cursor.close()
+        mydb.close()
+        print(f'Database closed')
+    except psycopg2.Error as ce:
+        print(f'Error while closing the database: {ce}')
 
 # bot.run
 bot.run(TOKEN)

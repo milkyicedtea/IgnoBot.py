@@ -8,7 +8,6 @@ import os
 
 import discord
 from discord.ext import commands
-import random
 import psycopg2
 
 mydb = None
@@ -19,45 +18,38 @@ class Settings(commands.Cog):
         self.bot = bot
 
     @commands.command(name = 'setprefix', help = 'Sets the prefix for the bot in the current server')
-    async def setprefix(self, ctx, *, prefix: None):
+    async def setprefix(self, ctx, prefix:str = None):
         global mydb
         global cursor
         guildid = ctx.guild.id
         guildraw = ctx.guild.name
         guildname = guildraw.replace("'", "")
-        userid = ctx.author.id
-        usernameraw = ctx.author.name
-        username = usernameraw.replace("'", "")
 
-        # guild check and update
-        cursor.execute(f"select count(*) from guildinfo where guildid = {guildid} and guildname = '{guildname}';")
+        dbopen()
+
+        if prefix == None:
+            print('prefix is none')
+            prefix = 'i.'
+
+        cursor.execute(f'select count(*) from guildinfo where guildid = {guildid};')
         result = cursor.fetchone()
         if result[0] == 0:
-            cursor.execute(f'select count(*) from guildinfo where guildid = {guildid};')
-            result = cursor.fetchone()
-            print(f'Guildid search result is: {result}')
-            if result[0] != 0:
-                cursor.execute(f"select count(*) from guildinfo where guildname = '{guildname}';")
-                result = cursor.fetchone()
-            elif result[0] == 0:
-                cursor.execute(f"insert into guildinfo(guildid, guildname) values({guildid}, '{guildname}');")
-                mydb.commit()
-                if result[0] == 0:
-                    cursor.execute(f"update guildinfo set guildname = '{guildname}' where guildid = {guildid};")
-                    mydb.commit()
-                    print(f'updated guild {guildid} with new name: {guildname}')
-                else:
-                    print(f'guild {guildid} with name {guildname} is already in the database')
+            cursor.execute(f"insert into guildinfo(guildid) values({guildid});")
+            mydb.commit()
 
-        cursor.execute(f"select prefix from guildsettings where guildid = {guildid}")
+        cursor.execute(f"select count(*) from guildsettings where guildid = {guildid};")
         result = cursor.fetchone()
-        
+        if result[0] == 0:
+            cursor.execute(f"insert into guildsettings(guildid) values({guildid});")
+            mydb.commit()
 
-
-
-
-
-
+        print(f'guildid is {guildid}')
+        print('prefix is {}'.format(prefix))
+        cursor.execute(f"update guildsettings set prefix = '{prefix}' where guildid = {guildid};")
+        print(cursor.rowcount)
+        mydb.commit()
+        await ctx.send(f"The bot's prefix is now set to {prefix}")
+        dbclose()
 
 # db open/close
 def dbopen():
