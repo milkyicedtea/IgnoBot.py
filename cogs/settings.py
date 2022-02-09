@@ -22,8 +22,6 @@ class Settings(commands.Cog):
         global mydb
         global cursor
         guildid = ctx.guild.id
-        guildraw = ctx.guild.name
-        guildname = guildraw.replace("'", "")
 
         dbopen()
 

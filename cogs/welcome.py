@@ -20,34 +20,22 @@ class Welcome(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-
-        ################ ABILITA GLI INTENT NEL DEV PORTAL
-
-
-        print('ciao')
-        print(member)
         dbopen()
         guildid = member.guild.id
         guildname = member.guild.name
         cursor.execute(f'select channel_id from welcome where guildid = {guildid};')
         result = cursor.fetchone()
         channel_id:int = result[0]
-        print(channel_id)
         channel = self.bot.get_channel(id = channel_id)
-        print(channel)
         member = member.mention
         default_message = 'Hey {} welcome to {}!'.format(member, guildname)
-        print(default_message)
         cursor.execute(f'select count(*) from welcome where guildid = {guildid};')
         result = cursor.fetchone()
         if result[0] == 0:
-            print("sono all'if")
             await channel.send(default_message)
         else:
             cursor.execute(f'select welcome_message from welcome where guildid = {guildid};')
-            print('Sono all else')
             result = cursor.fetchone()
-            print(result[0])
             custom_message = result[0]
             custom_message = custom_message.replace('%mention_user%', member)
             await channel.send(custom_message)
@@ -63,7 +51,6 @@ class Welcome(commands.Cog):
             welcome_channel1 = welcome_channel.replace("<", "")
             welcome_channel2 = welcome_channel1.replace(">", "")
             channel_id = welcome_channel2.replace("#", "")
-            print(channel_id)
 
             # check if the guild is in the welcome table
             cursor.execute(f'select count(*) from welcome where guildid = {guildid};')
