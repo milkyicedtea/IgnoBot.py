@@ -20,7 +20,7 @@ class Settings(commands.Cog):
 
         dbhelper = DbHelper()
         mydb = dbhelper.open()
-        cursor = dbhelper.cursorget_cursor()
+        cursor = dbhelper.get_cursor()
 
         if prefix == None:
             print('prefix is none')
@@ -44,7 +44,7 @@ class Settings(commands.Cog):
         print(cursor.rowcount)
         mydb.commit()
         await ctx.send(f"The bot's prefix is now set to {prefix}")
-        dbhelper.closeclose()
+        dbhelper.close()
 
 def setup(bot):
     bot.add_cog(Settings(bot))
