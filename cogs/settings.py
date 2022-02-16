@@ -8,10 +8,7 @@ import os
 
 import discord
 from discord.ext import commands
-import psycopg2
-
-mydb = None
-cursor = None
+from utils.dbhelper import DbHelper
 
 class Settings(commands.Cog):
     def __init__(self, bot):
@@ -19,11 +16,11 @@ class Settings(commands.Cog):
 
     @commands.command(name = 'setprefix', help = 'Sets the prefix for the bot in the current server')
     async def setprefix(self, ctx, prefix:str = None):
-        global mydb
-        global cursor
         guildid = ctx.guild.id
 
-        dbopen()
+        dbhelper = DbHelper()
+        mydb = dbhelper.open()
+        cursor = dbhelper.cursorget_cursor()
 
         if prefix == None:
             print('prefix is none')
@@ -47,33 +44,7 @@ class Settings(commands.Cog):
         print(cursor.rowcount)
         mydb.commit()
         await ctx.send(f"The bot's prefix is now set to {prefix}")
-        dbclose()
-
-# db open/close
-def dbopen():
-    global mydb
-    global cursor
-    try:
-        mydb = psycopg2.connect(host = os.getenv('dbhost'), user = os.getenv('dbuser'), password = os.getenv('dbpw'), database = os.getenv('db_db'), port = os.getenv('dbport'))
-        print("Connected to the database")
-    except psycopg2.Error as e:
-        print(f'Error connecting to the platform (mydb): {e}')
-
-    # getting the cursor
-    try:
-        cursor = mydb.cursor()
-    except psycopg2.Error as c:
-        print(f'Error connecting to the platform (cursor): {c}')
-
-def dbclose():
-    global mydb
-    global cursor
-    try:
-        cursor.close()
-        mydb.close()
-        print(f'Database closed')
-    except psycopg2.Error as ce:
-        print(f'Error while closing the database: {ce}')   
+        dbhelper.closeclose()
 
 def setup(bot):
     bot.add_cog(Settings(bot))

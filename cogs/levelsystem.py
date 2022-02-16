@@ -9,10 +9,7 @@ import os
 import discord
 from discord.ext import commands
 import random
-import psycopg2
-
-mydb = None
-cursor = None
+from utils.dbhelper import DbHelper
 
 class LevelSystem(commands.Cog):
     def __init__(self, bot):
@@ -21,9 +18,11 @@ class LevelSystem(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, ctx):
-        dbopen()
-        global mydb
-        global cursor
+
+        dbhelper = DbHelper()
+        mydb = dbhelper.open()
+        cursor = dbhelper.get_cursor()
+
         guildid = ctx.guild.id
         guildraw = ctx.guild.name
         guildname = guildraw.replace("'", "")
@@ -63,8 +62,6 @@ class LevelSystem(commands.Cog):
                     cursor.execute(f"update leveling set username = '{username}' where userid = {userid};")
                     mydb.commit()
                     print(f'updated user {userid} with new name: {username}')
-                else:
-                    print(f'user {userid} with name {usernameraw} is already in the database')
 
         # search for user in the db
         cursor.execute(f'select count(*) from leveling where userid = {userid} and guildid = {guildid};')
@@ -77,17 +74,12 @@ class LevelSystem(commands.Cog):
             print(f'new user {username} added')
             mydb.commit()
 
-        else:           # user is already in the the db so no changes to be made
-            print(f'user {username} is already present in the db')
-
         # xp giving
         xprange = random.choice(range(1, 20+1))
-        print(f'generated xp is = {xprange}')
         cursor.execute(f'select xpvalue from leveling where userid = {userid} and guildid = {guildid};')            # getting xp
         result = cursor.fetchone()
         xpfromdb = result[0]
         xptodb = xpfromdb + xprange
-        print(f'xptodb is = {xptodb}')
         cursor.execute(f'select levelvalue from leveling where guildid = {guildid} and userid = {userid}')          # getting level
         result = cursor.fetchone()
         level = result[0]
@@ -100,12 +92,16 @@ class LevelSystem(commands.Cog):
         cursor.execute(f'update leveling set xpvalue = {xptodb} where guildid = {guildid} and userid = {userid};')
         cursor.execute(f'update leveling set levelvalue = {level} where guildid = {guildid} and userid = {userid};')
         mydb.commit()
-        dbclose()
+        dbhelper.close()
         
     # level embed
     @commands.command(name = 'level', help = 'Shows your current level')
     async def level_embed(self, ctx, member: discord.Member = None):
-        dbopen()
+
+        dbhelper = DbHelper()
+        mydb = dbhelper.open()
+        cursor = dbhelper.cursorget_cursor()
+
         guildid = ctx.guild.id
         guildraw = ctx.guild.name
         guildname = guildraw.replace("'", "")
@@ -150,34 +146,7 @@ class LevelSystem(commands.Cog):
         levelfromdb = result[0]
         embedVar.add_field(name = "Level", value = "Level: {}".format(levelfromdb), inline = False)
         await ctx.reply(embed = embedVar, mention_author = False)
-        dbclose()
-
-# db open/close
-def dbopen():
-    global mydb
-    global cursor
-    try:
-        mydb = psycopg2.connect(host = os.getenv('dbhost'), user = os.getenv('dbuser'), password = os.getenv('dbpw'), database = os.getenv('db_db'), port = os.getenv('dbport'))
-        print("Connected to the database")
-    except psycopg2.Error as e:
-        print(f'Error connecting to the platform (mydb): {e}')
-
-    # getting the cursor
-    try:
-        cursor = mydb.cursor()
-    except psycopg2.Error as c:
-        print(f'Error connecting to the platform (cursor): {c}')
-
-def dbclose():
-    global mydb
-    global cursor
-    try:
-        cursor.close()
-        mydb.close()
-        print(f'Database closed')
-    except psycopg2.Error as ce:
-        print(f'Error while closing the database: {ce}')  
-
+        dbhelper.close()
 
 def setup(bot):
     bot.add_cog(LevelSystem(bot))

@@ -99,7 +99,38 @@ class Dumb(commands.Cog):
     # sexy
     @commands.command(name = 'sexy', help = 'SCONOSCIUTO SEXY A 2 METRI DA TE')
     async def sexy(self, ctx):
-        await ctx.send('https://cdn.discordapp.com/attachments/933336708026626128/933382456596389908/Immagine_2022-01-13_090718.png')
+        guildidcompare = int(os.getenv('guild_id'))
+        guild = ctx.guild.id
+        # remember this is on stored on the .env and server ffs
+        if guild == guildidcompare:
+            sexy = os.getenv(random.choice(['scono0', 
+                                            'scono1',
+                                            'scono2',
+                                            'scono3',
+                                            'scono4',
+                                            'scono5',
+                                            'scono6',
+                                            'scono7',
+                                            'scono8',
+                                            'scono9',
+                                            'scono10',
+                                            'scono11',
+                                            'scono12',
+                                            'scono13',
+                                            'scono14',
+                                            'scono15',
+                                            'scono16',
+                                            'scono17',
+                                            'scono18',
+                                            'scono19',
+                                            'livio0']))
+            await ctx.send(sexy)
+            catturato = os.getenv('livio0')
+            if catturato == sexy:
+                await ctx.send('CATTURATO IN 16K UHD 1298037HZ HDR69420+ 87BIT')
+        else:
+            print('bad')
+            return
 
     # osu skins repo
     # @commands.command(name = 'osuskins', help = 'Brings up my osu skins repository')
@@ -107,8 +138,9 @@ class Dumb(commands.Cog):
         await ctx.send('https://github.com/ignorance-uwu/Osu-Skins')
 
     @commands.command(name = 'shid', help = 'i just shidded and farded +HDDT')
-    async def shid(self, msg):
-        await msg.reply('https://ibb.co/K7Bjd8Q')
+    async def shid(self, ctx):
+        await ctx.send('omg bro')
+        await ctx.send('https://cdn.discordapp.com/attachments/933336707825295369/943248934531387452/E3j-LAlj-VEAQz1f8.jpg')
 
     @commands.command(name = 'python', help = 'python python python..')
     async def pythonspam(self, ctx):

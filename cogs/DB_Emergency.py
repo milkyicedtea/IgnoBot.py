@@ -8,13 +8,11 @@ import os
 
 import discord
 from discord.ext import commands
+from utils.dbhelper import DbHelper
 
 import psycopg2
 
-mydb = None
-cursor = None
-
-class Database(commands.Cog):
+class DB_Emergency(commands.Cog):
     def __init__(self, bot):
         self.bot = bot 
 
@@ -23,7 +21,11 @@ class Database(commands.Cog):
     @commands.has_permissions(manage_guild = True)
     async def addguild(self, ctx):
         try:
-            dbopen()
+            dbhelper = DbHelper()
+
+            mydb = dbhelper.open()
+            cursor = dbhelper.get_cursor()
+
             guildid = ctx.message.guild.id
             guildraw = ctx.guild.name
             guildname = guildraw.replace("'", "")
@@ -47,36 +49,10 @@ class Database(commands.Cog):
                     # auto commit is disabled so i mydb.commit()
                     mydb.commit()
                     await ctx.send(f"Guild '{guildname}' with id {guildid} was added to the database")
-            dbclose()
+            dbhelper.close()
 
         except psycopg2.Error as ag:
             print(f'Something went wrong: {ag}')
 
-# db open/close
-def dbopen():
-    global mydb
-    global cursor
-    try:
-        mydb = psycopg2.connect(host = os.getenv('dbhost'), user = os.getenv('dbuser'), password = os.getenv('dbpw'), database = os.getenv('db_db'), port = os.getenv('dbport'))
-        print("Connected to the database")
-    except psycopg2.Error as e:
-        print(f'Error connecting to the platform (mydb): {e}')
-
-    # getting the cursor
-    try:
-        cursor = mydb.cursor()
-    except psycopg2.Error as c:
-        print(f'Error connecting to the platform (cursor): {c}')
-
-def dbclose():
-    global mydb
-    global cursor
-    try:
-        cursor.close()
-        mydb.close()
-        print(f'Database closed')
-    except psycopg2.Error as ce:
-        print(f'Error while closing the database: {ce}')   
-
 def setup(bot):
-    bot.add_cog(Database(bot))
+    bot.add_cog(DB_Emergency(bot))

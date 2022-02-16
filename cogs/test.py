@@ -12,7 +12,6 @@ import linecache
 import random
 import asyncio
 import time
-import http.client
 
 class Test(commands.Cog):
     def __init__(self, bot):
