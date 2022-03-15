@@ -1,7 +1,7 @@
 import requests
 from typing import Optional
 from bs4 import BeautifulSoup
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass
