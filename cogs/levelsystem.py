@@ -36,10 +36,7 @@ class LevelSystem(commands.Cog):
         if result[0] == 0:
             cursor.execute(f'select count(*) from guildinfo where guildid = {guildid};')
             result = cursor.fetchone()
-            if result[0] != 0:
-                cursor.execute(f"select count(*) from guildinfo where guildname = '{guildname}';")
-                result = cursor.fetchone()
-            elif result[0] == 0:
+            if result[0] == 0:
                 cursor.execute(f"insert into guildinfo(guildid, guildname) values({guildid}, '{guildname}');")
                 mydb.commit()
                 if result[0] == 0:
@@ -99,7 +96,7 @@ class LevelSystem(commands.Cog):
     async def level_embed(self, ctx, member: discord.Member = None):
 
         dbhelper = DbHelper()
-        mydb = dbhelper.open()
+        dbhelper.open()
         cursor = dbhelper.cursorget_cursor()
 
         guildid = ctx.guild.id

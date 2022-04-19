@@ -77,8 +77,6 @@ class Moderation(commands.Cog):
         print(member)
         if member == None:
             member = ctx.message.author
-        else:
-            member = member
         joined_at = member.joined_at
         await ctx.send(f'{member.mention} joined on {joined_at}.')
 

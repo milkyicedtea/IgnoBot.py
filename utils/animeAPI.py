@@ -25,8 +25,6 @@ def get_anime_info(query: str) -> Optional[AnimeInfo]:
     if not results:
         return None
 
-    anime_info = AnimeInfo()
-
     post = results[0]
     head = post.select_one('div.post-details > h2 > a')
     link, title = head.get('href'), head.text

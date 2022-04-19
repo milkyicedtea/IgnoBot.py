@@ -130,7 +130,6 @@ class Dumb(commands.Cog):
                 await ctx.send('CATTURATO IN 16K UHD 1298037HZ HDR69420+ 87BIT')
         else:
             print('bad')
-            return
 
     # osu skins repo
     # @commands.command(name = 'osuskins', help = 'Brings up my osu skins repository')

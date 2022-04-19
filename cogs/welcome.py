@@ -19,7 +19,7 @@ class Welcome(commands.Cog):
     async def on_member_join(self, member):
         dbhelper = DbHelper()
 
-        mydb = dbhelper.open()
+        dbhelper.open()
         cursor = dbhelper.get_cursor()
 
         guildid = member.guild.id
