@@ -1,7 +1,7 @@
 # IgnoBot.py
 
 [![Python3](https://img.shields.io/badge/python-3.9-blue.svg?style=for-the-badge)](https://github.com/ignorance-uwu/IgnoBot.py)
-[![Discord Server](https://img.shields.io/badge/Support-Discord%20Server-blue.svg)](InviteLinkHere)
+[![Discord Server](https://img.shields.io/badge/Support-Discord%20Server-blue.svg?style=for-the-badge)](InviteLinkHere)
 ![showLatestCommit](https://img.shields.io/github/last-commit/ignorance-uwu/IgnoBot.py?style=for-the-badge)
 ![showLicense](https://img.shields.io/github/license/ignorance-uwu/IgnoBot.py?style=for-the-badge)
 
