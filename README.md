@@ -1,8 +1,8 @@
 # IgnoBot.py
 
-![showVersion](https://img.shields.io/github/package-json/v/stromcon/IgnoBot.py?style=for-the-badge)
-![showLatestCommit](https://img.shields.io/github/last-commit/stromcon/IgnoBot.py/main?style=for-the-badge)
-![showLicense](https://img.shields.io/github/license/stromcon/IgnoBot.py?style=for-the-badge)
+![[Discord Server](https://img.shields.io/badge/Support-Discord%20Server-blue.svg)](InviteLinkHere)
+![showLatestCommit](https://img.shields.io/github/last-commit/ignorance-uwu/IgnoBot.py?style=for-the-badge)
+![showLicense](https://img.shields.io/github/license/ignorance-uwu/IgnoBot.py?style=for-the-badge)
 
 Still IgnoBot (but now it's a duck), now finally working and written using the Python programming language :D
 
