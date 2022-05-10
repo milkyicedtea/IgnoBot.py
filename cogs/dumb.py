@@ -149,6 +149,20 @@ class Dumb(commands.Cog):
             await ctx.send('***python***')
             x += 1
 
+    @commands.command(name = 'duckimage', help = 'Shows you a cute duck image <:uwuduck:916404134821904435>')
+    async def duckimage(self, ctx):
+        
+
+    @commands.command(name = 'duckvideo', help = 'Shows you a cute duck video <:uwuduck:916404134821904435>')
+    async def duckvideo(self, ctx):
+
+
+
+
+
+
+
+
     # listeners
     @commands.Cog.listener()
     async def on_message(self, msg):
