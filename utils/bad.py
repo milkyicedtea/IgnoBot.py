@@ -1,22 +1,25 @@
+import praw
+import os
+from dotenv import load_dotenv
 
 
-def getImages(url):
-    submission = reddit.submission(url=url)
-    # Tell API to return all comment in thread, results are
-    # paginated by default
-    submission.comments.replace_more(limit=None)
+load_dotenv()
+client_id = str(os.getenv('reddit_clientID'))
+client_secret = str(os.getenv('reddit_clientSecret'))
+user_agent = str(os.getenv('reddit_user_agent'))
+password = str(os.getenv('reddit_password'))
+username = str(os.getenv('reddit_username'))
 
-    # Create RegEx object for matching images
-    REGEX_TEST = r"((http|https)://i.imgur.com/.+?(jpg|png))"
-    p = re.compile(REGEX_TEST, re.IGNORECASE)
+print(username, client_id, user_agent, password, username, sep = ", ")
 
-    imageMatches = []
-    for comment in submission.comments.list():
-        matches = p.findall(comment.body)
-        for match in matches:
-            if checkLinkActive(match[0]):
-                imageMatches.append(
-                    {"image": match[0], "thumbnail": getImgurThumbnail(match[0], "m")}
-                )
 
-    return imageMatches
+
+
+
+reddit = praw.Reddit(client_id = client_id,
+                     client_secret = client_secret,
+                     password = password,
+                     user_agent = user_agent,
+                     username = username)
+
+print(reddit.user.me())

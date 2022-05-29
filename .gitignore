@@ -10,3 +10,4 @@ cmd.bat
 #ignore pycache
 cogs/__pycache__
 utils/__pycache__
+utils/bad.py
