@@ -1,7 +1,7 @@
-#ignore .env (bot_token)
+#ignore .env (tokens and stuff)
 .env
 
-#ignore err.log
+#ignore err.log (it's not even there anymore what)
 err.log
 
 #ignore cmd.bat cause useless
@@ -10,4 +10,6 @@ cmd.bat
 #ignore pycache
 cogs/__pycache__
 utils/__pycache__
+
+#ignore test file(s)
 utils/bad.py

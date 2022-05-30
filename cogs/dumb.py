@@ -152,17 +152,15 @@ class Dumb(commands.Cog):
 
     @commands.command(name = 'duckimage', help = 'Shows you a cute duck image <:uwuduck:916404134821904435>')
     async def duckimage(self, ctx):
-        
+        duck_image = await duckAPI.get_image()
+        x = random.choice(range(len(duck_image)))
+        await ctx.send(duck_image[x])
 
     @commands.command(name = 'duckvideo', help = 'Shows you a cute duck video <:uwuduck:916404134821904435>')
     async def duckvideo(self, ctx):
-
-
-
-
-
-
-
+        duck_video = await duckAPI.get_video()
+        x = random.choice(range(len(duck_video)))
+        await ctx.send(duck_video[x])
 
     # listeners
     @commands.Cog.listener()
