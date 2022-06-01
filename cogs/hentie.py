@@ -9,7 +9,7 @@ import os
 import discord
 from discord.ext import commands
 import base64
-import utils.animeAPI
+import utils.APIs.animeAPI
 
 mydb = None
 cursor = None

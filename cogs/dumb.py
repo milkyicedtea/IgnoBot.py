@@ -11,7 +11,7 @@ from discord.ext import commands
 import random
 
 from discord.ext.commands import bot
-from utils import duckAPI
+from utils.APIs import duckAPI
 
 class Dumb(commands.Cog):
     def __init__(self, bot):

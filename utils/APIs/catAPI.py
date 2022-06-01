@@ -1,3 +1,11 @@
+##################
+#                #
+#     catAPI     #
+#                #
+##################
+
+# yes, this is literally a copy of duckAPI.py with the subreddit changed :pepega:
+
 import os
 import asyncpraw as apraw
 from dotenv import load_dotenv
@@ -21,7 +29,7 @@ async def get_image():
                         username = username)
 
     # targert subreddit to get the images from
-    target_subreddit = await reddit.subreddit("duck")
+    target_subreddit = await reddit.subreddit("cats")
 
     # fetch subreddits
     async for submission in target_subreddit.new(limit = 50):
@@ -45,7 +53,7 @@ async def get_video():
                         username = username)
 
     # targert subreddit to get the videos from
-    target_subreddit = await reddit.subreddit("duck")
+    target_subreddit = await reddit.subreddit("cats")
 
     # fetch subreddits
     async for submission in target_subreddit.new(limit = 50):
@@ -63,4 +71,4 @@ async def get_video():
     return url_list
 
 if __name__ == "__main__":
-    print('You ran duckAPI.py alone. Now what?')
+    print('You ran catAPI.py alone. Now what?')
