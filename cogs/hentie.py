@@ -9,7 +9,7 @@ import os
 import discord
 from discord.ext import commands
 import base64
-import utils.APIs.animeAPI
+from utils.APIs.animeAPI import get_anime_info
 
 mydb = None
 cursor = None
@@ -23,7 +23,7 @@ class Hentie(commands.Cog):
         print("ciao")
 
         print(anime_name)
-        anime = utils.animeAPI.get_anime_info(query = anime_name)
+        anime = get_anime_info(query = anime_name)
         print('sto qui')
         print(anime)
         if anime is None:

@@ -97,7 +97,7 @@ class LevelSystem(commands.Cog):
 
         dbhelper = DbHelper()
         dbhelper.open()
-        cursor = dbhelper.cursorget_cursor()
+        cursor = dbhelper.get_cursor()
 
         guildid = ctx.guild.id
         guildraw = ctx.guild.name
