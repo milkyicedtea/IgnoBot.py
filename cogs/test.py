@@ -66,5 +66,13 @@ class Test(commands.Cog):
         time.sleep(amount_to_sleep)
         await ctx.send(f'{sentence}')
 
+    @commands.command(name = 'getroletest', help = 'getrole test')
+    @commands.has_permissions(manage_guild=True)
+    async def getroletest(self, ctx, *, role_name):
+        print(discord.utils.get(ctx.guild.roles, name = role_name))
+
+
+
+
 def setup(bot):
     bot.add_cog(Test(bot))

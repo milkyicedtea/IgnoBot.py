@@ -74,29 +74,23 @@ class Dumb(commands.Cog):
     # paytowin paytowin paytowin
     @commands.command(name = 'fennec', help = 'paytowin paytowin paytowin..')
     async def fennec(self, ctx):
-        x = 0
         paytowinrange = int(random.choice(range(1,5+1)))
-        while x < paytowinrange:
+        for x in range(paytowinrange):
             await ctx.send(f'pay to win')
-            x += 1
 
     # anni anni anni anni
     @commands.command(name = 'annispam', help = 'anni anni anni anni anni..')
     async def annispam(self, ctx):
-        x = 0
         annispamrange = int(random.choice(range(1,5+1)))
-        while x < annispamrange:
+        for x in range(annispamrange):
             await ctx.send('anni')
-            x += 1
 
     # CRUNCH CRUNCH CRUNCH
     @commands.command(name = 'silvio', help = '*crunch crunch crunch*')
     async def silvio(self,ctx):
-        x = 0
         crunchspamrange = int(random.choice(range(1,5+1)))
-        while x < crunchspamrange:
+        for x in range(crunchspamrange):
             await ctx.send('***crunch***')
-            x += 1
 
     # sexy
     @commands.command(name = 'sexy', help = 'SCONOSCIUTO SEXY A 2 METRI DA TE')
@@ -145,11 +139,9 @@ class Dumb(commands.Cog):
 
     @commands.command(name = 'python', help = 'python python python..')
     async def pythonspam(self, ctx):
-        x = 0
         pythonspamrange = int(random.choice(range(1,5+1)))
-        while x < pythonspamrange:
+        for x in range(pythonspamrange):
             await ctx.send('***python***')
-            x += 1
 
     @commands.command(name = 'duckimage', help = 'Shows you a cute duck image')
     async def duckimage(self, ctx):
@@ -191,12 +183,10 @@ class Dumb(commands.Cog):
 
     # bimbo dingo
         if msg.content == 'rocket league' or msg.content == 'dingo':
-            x = 0
             response = 'bimbo dingo'
             bimbodingospamrange = int(random.choice(range(1,5+1)))
-            while x < bimbodingospamrange:
+            for x in range(bimbodingospamrange):
                 await msg.reply(response)
-                x += 1
         
     # sconosciuto
         if msg.content == 'sconosciuto':

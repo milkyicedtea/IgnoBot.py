@@ -8,6 +8,7 @@ import os
 
 import discord
 from discord.ext import commands
+import re
 
 class Moderation(commands.Cog):
     def __init__(self, bot):
@@ -80,13 +81,36 @@ class Moderation(commands.Cog):
         joined_at = member.joined_at
         await ctx.send(f'{member.mention} joined on {joined_at}.')
 
+    # Avatar command
+    @commands.command(name = 'avatar', help = 'Gets you the avatar of a user')
+    async def avatar(self, ctx, member: discord.Member = None):
+        if member == None:
+            member = ctx.message.author
+        avatar_url = member.avatar_url
+        print(avatar_url)
+        embedVar = discord.Embed(title = f"{member}'s profile image", color = discord.Colour.random())
+        print('embed created')
+        embedVar.set_image(url = avatar_url)
+        print('image set')
+
+        await ctx.send(embed = embedVar)
+
+    # Server image command
+    @commands.command(name = 'servericon', help = 'Gets you the icon of the server')
+    async def servericon(self, ctx):
+        guildraw = ctx.guild
+        guildname = guildraw.name.replace("'", "")
+        server_icon = guildraw.icon_url
+        embedVar = discord.Embed(title = guildname, color = discord.Colour.random())
+        embedVar.set_image(url = server_icon)
+
+        await ctx.send(embed = embedVar)
+
     # Patch command
     @commands.command(name = 'patchnotes', help = 'Shows the most recent patch')
     async def patch(self, ctx):
         url = 'https://github.com/ignorance-uwu/IgnoBot.py/commits/main'
         await ctx.send(url)
-
-
 
 def setup(bot):
     bot.add_cog(Moderation(bot))

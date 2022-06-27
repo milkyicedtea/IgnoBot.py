@@ -5,7 +5,6 @@
 ################
 
 import os
-from types import NoneType
 
 import discord
 
@@ -45,7 +44,6 @@ def get_prefix(bot, message):
 
     dbhelper.close()
     return prefix
-    
 
 bot = commands.Bot(command_prefix = (get_prefix), intents = discord.Intents().all())
 
