@@ -324,6 +324,5 @@ class LevelSystem(commands.Cog):
         else:
             print('Something went wrong')
 
-
 def setup(bot):
     bot.add_cog(LevelSystem(bot))
