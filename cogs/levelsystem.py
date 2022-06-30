@@ -11,7 +11,6 @@ from discord.ext import commands
 
 import random
 
-from numpy import number
 from utils.dbhelper import DbHelper
 
 class LevelSystem(commands.Cog):
@@ -181,7 +180,7 @@ class LevelSystem(commands.Cog):
 
         print('here')
         # select number of role guild has
-        cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}' and rolenames != NULL and reachlevels != NULL;")
+        cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}';")
         result = cursor.fetchone()
         print(result[0])
         if result[0] == 0:
@@ -189,18 +188,23 @@ class LevelSystem(commands.Cog):
 
         elif result[0] != 0:
             cursor.execute(f"select rolenames from roles where guildid = {guildid} and guildname = '{guildname}';") # pulls role names from rolename column in that guild
+            print('first exe')
             rolename = cursor.fetchall()
+            print('ok')
             cursor.execute(f"select rolelevels from roles where guildid = {guildid} and guildname = '{guildname}';") # pulls reachlevels from rolelevels column in that guild
+            print('second exe')
             reachlevel = cursor.fetchall()
             embedVar = discord.Embed(title = 'Guild roles', color = discord.Colour.random())
             for x in range(len(rolename)):
+                rolename[x] = rolename[x].replace("'", "")
                 embedVar.add_field(name = f'{rolename[x]}', value = f'Reached at level {reachlevel[x]}') # REPLACE ROLENAME[X] WITH THE ROLE PING WITHOUT PINGING THAT ROLE IF POSSIBLE
 
             await ctx.send(embed = embedVar)
         dbhelper.close()
 
     # set roles to give for every levels
-    @commands.command(name = 'setroles')
+    @commands.command(name = 'setrole')
+    @commands.has_permissions(manage_roles = True)
     async def set_roles(self, ctx, reach_level: int, *, role_name:str):
         dbhelper = DbHelper()
         mydb = dbhelper.open()
@@ -218,7 +222,7 @@ class LevelSystem(commands.Cog):
         number_of_roles = cursor.fetchone()
         print(number_of_roles)
         if number_of_roles[0] == 10 or number_of_roles[0] > 10:   # if it has more than 10 fuck off :kek:
-            await ctx.send('Your server already has the maximum number of roles (10). More roles will be added with future updates if needed.')
+            await ctx.send("Your server already has the maximum number of roles (10). More roles will be added with future updates if needed.\nIn the meantime you can remove the roles you don't need with the command ``removerole``")
             print('exiting')
             return
         else:
@@ -229,13 +233,97 @@ class LevelSystem(commands.Cog):
 
         # check if the role already exixts
         print(discord.utils.get(ctx.guild.roles, name = {role_name}))
-        if str(discord.utils.get(ctx.guild.roles, name = {role_name})) == None:    # guild doesn't have role named like that
+        if discord.utils.get(ctx.guild.roles, name = {role_name}) == None:    # guild doesn't have role named like that
             print("guild doesn't have role")
             await ctx.guild.create_role(name = role_name)   # create role
-            print('role just created')
+            print("role just created")
         
         dbhelper.close()
         await ctx.send(f"The role **{role_name}** has been added to the guild! People will receive it when they reach level **{reach_level}**")
+
+    @commands.command(name = 'removerole')
+    @commands.has_permissions(manage_roles = True)
+    async def removerole(self, ctx, *,  role_name: str):
+        dbhelper = DbHelper()
+        mydb = dbhelper.open()
+        cursor = dbhelper.get_cursor()
+
+        guildid = ctx.guild.id
+        guildraw = ctx.guild.name
+        guildname = guildraw.replace("'", "")
+        usernameraw = ctx.author.name
+        username = usernameraw.replace("'", "")
+        colorValue = discord.Colour.random()
+
+        delfromdb: bool = False
+        delfromserver: bool = False
+
+        print('here 1')
+        cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}' and rolenames = '{role_name}';")
+        result = cursor.fetchone()
+        if result[0] > 0:
+            print('here 2')
+            cursor.execute(f"delete from roles where guildid = {guildid} and guildname = '{guildname}' and rolenames = '{role_name}';")
+            mydb.commit()
+            print('role deleted from database')
+            delfromdb: bool = True
+        elif result[0] == 0:
+            delfromdb: bool = True
+
+        role = discord.utils.get(ctx.message.guild.roles, name = role_name)
+
+        if role:
+            await role.delete()
+            print('role deleted from server')
+            delfromserver: bool = True
+
+        if delfromdb and delfromserver:
+            await ctx.send(f'The role **{role_name}** got deleted from existance >:)')
+        else:
+            await ctx.send(f"The role **{role_name}** couldn't be deleted due to an error. If this continues to happen please refer this to our discord server")
+
+    @commands.command(name = 'selfrole')
+    async def selfrole(self, ctx, *, role_name: str):
+        dbhelper = DbHelper()
+        mydb = dbhelper.open()
+        cursor = dbhelper.get_cursor()
+
+        guildid = ctx.guild.id
+        guildraw = ctx.guild.name
+        guildname = guildraw.replace("'", "")
+        usernameraw = ctx.author.name
+        username = usernameraw.replace("'", "")
+        colorValue = discord.Colour.random()
+
+        member: discord.Member = ctx.message.author
+
+        exists_in_db: bool = False
+        exists_in_guild: bool = False
+
+        #check if role is present in db and guild
+        cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}' and rolenames = '{role_name}'")
+        result = cursor.fetchone()
+        if result[0] > 0:
+            exists_in_db = True
+            print('role is in db')
+        else:
+            print('role is not in db')
+
+        role = discord.utils.get(ctx.message.guild.roles, name = role_name)
+
+        if role:
+            exists_in_guild = True
+            print('role is in guild')
+        else:
+            print('role is not in guild')
+
+        if exists_in_db and exists_in_guild:
+            print('test')
+            await member.add_roles(role)
+            await ctx.send(f'The role **{role_name}** has been assigned to you')
+        else:
+            print('Something went wrong')
+
 
 def setup(bot):
     bot.add_cog(LevelSystem(bot))
