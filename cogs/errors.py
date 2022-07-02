@@ -9,8 +9,7 @@ import os
 import discord
 from discord.ext import commands
 
-mydb = None
-cursor = None
+from utils.dbhelper import DbHelper
 
 class Errors(commands.Cog):
     def __init__(self, bot):
@@ -19,8 +18,8 @@ class Errors(commands.Cog):
 # Generic error
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        if isinstance(error, commands.errors.CheckFailure):
-            await ctx.send("Looks like you don't have the right permissions do that.")
+        if isinstance(error, commands.errors.NSFWChannelRequired):
+            await ctx.send("You need to be in an NSFW channel to use this command")
 
 def setup(bot):
     bot.add_cog(Errors(bot))

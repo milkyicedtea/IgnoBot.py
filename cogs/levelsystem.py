@@ -91,6 +91,9 @@ class LevelSystem(commands.Cog):
         cursor.execute(f'update leveling set xpvalue = {xptodb} where guildid = {guildid} and userid = {userid};')
         cursor.execute(f'update leveling set levelvalue = {level} where guildid = {guildid} and userid = {userid};')
         mydb.commit()
+
+
+
         dbhelper.close()
         
     # level embed
@@ -113,7 +116,6 @@ class LevelSystem(commands.Cog):
             userid = ctx.author.id
         else:
             userid = member.id
-            print(member)
 
         # getting the right name to display
         if member == None:
@@ -173,12 +175,10 @@ class LevelSystem(commands.Cog):
                 if result[0] == 0:
                     cursor.execute(f"update roles set guildname = '{guildname}' where guildid = {guildid};")
                     mydb.commit()
-                    print(f'updated guild {guildid} with new name: {guildname}')
-                    
+                    print(f'updated guild {guildid} with new name: {guildname}')                    
                 else:
                     print(f'guild {guildid} with name {guildname} is already in the database')
 
-        print('here')
         # select number of role guild has
         cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}';")
         result = cursor.fetchone()
@@ -188,12 +188,11 @@ class LevelSystem(commands.Cog):
 
         elif result[0] != 0:
             cursor.execute(f"select rolenames from roles where guildid = {guildid} and guildname = '{guildname}';") # pulls role names from rolename column in that guild
-            print('first exe')
             rolename = cursor.fetchall()
-            print('ok')
+
             cursor.execute(f"select rolelevels from roles where guildid = {guildid} and guildname = '{guildname}';") # pulls reachlevels from rolelevels column in that guild
-            print('second exe')
             reachlevel = cursor.fetchall()
+
             embedVar = discord.Embed(title = 'Guild roles', color = discord.Colour.random())
             for x in range(len(rolename)):
                 rolename[x] = rolename[x].replace("'", "")
@@ -223,27 +222,49 @@ class LevelSystem(commands.Cog):
         print(number_of_roles)
         if number_of_roles[0] == 10 or number_of_roles[0] > 10:   # if it has more than 10 fuck off :kek:
             await ctx.send("Your server already has the maximum number of roles (10). More roles will be added with future updates if needed.\nIn the meantime you can remove the roles you don't need with the command ``removerole``")
-            print('exiting')
             return
+
+        # check if there role already exists in db
+        cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}' and rolenames = '{role_name}';")
+        role_exists = cursor.fetchone()
+        if role_exists[0] == 0:
+            role_exists_db: bool = False
+            print("Role doesn't exist in db")
         else:
-            print('first else')
+            role_exists_db: bool = True
+            print('Role already exists in db')
+
+        print(f'role_exists_db = {role_exists_db}')
+
+        if role_exists_db == False:
             cursor.execute(f"insert into roles(guildname, guildid, rolenames, reachlevels) values('{guildname}', {guildid}, '{role_name}', {reach_level});")
-            print('insert exe')
             mydb.commit()
 
-        # check if the role already exixts
-        print(discord.utils.get(ctx.guild.roles, name = {role_name}))
-        if discord.utils.get(ctx.guild.roles, name = {role_name}) == None:    # guild doesn't have role named like that
+        role = discord.utils.get(ctx.message.guild.roles, name = role_name)
+
+        # check if there role already exists in guild
+        if role:
+            role_exists_guild: bool = True
+            print("Role already exist in guild")
+        else:
+            role_exists_guild: bool = False
+            print("Role doesn't exists in guild")
+
+        if role_exists_guild == False:    # guild doesn't have role named like that
             print("guild doesn't have role")
-            await ctx.guild.create_role(name = role_name)   # create role
+            await ctx.guild.create_role(name = role_name, colour = colorValue)  # create role
             print("role just created")
         
+        if role_exists_db and role_exists_guild:
+            await ctx.send(f"The role **{role_name}** was already present and no changed were made")
+
+        elif not role_exists_db or not role_exists_guild:
+            await ctx.send(f"The role **{role_name}** has been added to the guild! People will receive it when they reach level **{reach_level}**")
         dbhelper.close()
-        await ctx.send(f"The role **{role_name}** has been added to the guild! People will receive it when they reach level **{reach_level}**")
 
     @commands.command(name = 'removerole')
     @commands.has_permissions(manage_roles = True)
-    async def removerole(self, ctx, *,  role_name: str):
+    async def removerole(self, ctx, *, role_name: str):
         dbhelper = DbHelper()
         mydb = dbhelper.open()
         cursor = dbhelper.get_cursor()
@@ -258,14 +279,12 @@ class LevelSystem(commands.Cog):
         delfromdb: bool = False
         delfromserver: bool = False
 
-        print('here 1')
         cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}' and rolenames = '{role_name}';")
         result = cursor.fetchone()
         if result[0] > 0:
-            print('here 2')
             cursor.execute(f"delete from roles where guildid = {guildid} and guildname = '{guildname}' and rolenames = '{role_name}';")
             mydb.commit()
-            print('role deleted from database')
+
             delfromdb: bool = True
         elif result[0] == 0:
             delfromdb: bool = True
@@ -274,13 +293,13 @@ class LevelSystem(commands.Cog):
 
         if role:
             await role.delete()
-            print('role deleted from server')
             delfromserver: bool = True
 
         if delfromdb and delfromserver:
             await ctx.send(f'The role **{role_name}** got deleted from existance >:)')
         else:
             await ctx.send(f"The role **{role_name}** couldn't be deleted due to an error. If this continues to happen please refer this to our discord server")
+        dbhelper.close()
 
     @commands.command(name = 'selfrole')
     async def selfrole(self, ctx, *, role_name: str):
@@ -305,7 +324,6 @@ class LevelSystem(commands.Cog):
         result = cursor.fetchone()
         if result[0] > 0:
             exists_in_db = True
-            print('role is in db')
         else:
             print('role is not in db')
 
@@ -323,6 +341,7 @@ class LevelSystem(commands.Cog):
             await ctx.send(f'The role **{role_name}** has been assigned to you')
         else:
             print('Something went wrong')
+        dbhelper.close()
 
 def setup(bot):
     bot.add_cog(LevelSystem(bot))

@@ -47,7 +47,6 @@ class Moderation(commands.Cog):
     @commands.command(name = 'purge', help = 'Deletes multiple messages.')
     @commands.has_permissions(manage_messages = True)
     async def purge_messages(self, ctx, amount_to_delete: int = 0):
-        print(amount_to_delete)
         if amount_to_delete < 1 or amount_to_delete > 100:
             await ctx.send('You need to enter a value between 1 and 100')
         else:
@@ -60,22 +59,18 @@ class Moderation(commands.Cog):
         guild = ctx.guild
         existing_channel = discord.utils.get(guild.channels, name = channel_name)
         if existing_channel:
-            print(f'Channel already exists')
             await ctx.send(f'A channel named "{channel_name}" already exists. Please delete or rename that channel before using this command.')
         if not existing_channel:
             if channel_name != None:
-                print(f'Creating a new channel: {channel_name}')
                 await guild.create_text_channel(channel_name)
                 await ctx.send(f'Created a channel named {channel_name}')
             else:
-                print(f'Creating a new channel: {channel_name}.')
                 await guild.create_text_channel(channel_name)
                 await ctx.send(f'Created a channel named {channel_name}')
 
     # Join date command
     @commands.command(name = 'joindate', help = 'Shows the date when a member joined.')
     async def join_date(self, ctx, member: discord.Member = None):
-        print(member)
         if member == None:
             member = ctx.message.author
         joined_at = member.joined_at
@@ -86,12 +81,10 @@ class Moderation(commands.Cog):
     async def avatar(self, ctx, member: discord.Member = None):
         if member == None:
             member = ctx.message.author
+
         avatar_url = member.avatar_url
-        print(avatar_url)
         embedVar = discord.Embed(title = f"{member}'s profile image", color = discord.Colour.random())
-        print('embed created')
         embedVar.set_image(url = avatar_url)
-        print('image set')
 
         await ctx.send(embed = embedVar)
 
@@ -111,6 +104,15 @@ class Moderation(commands.Cog):
     async def patch(self, ctx):
         url = 'https://github.com/ignorance-uwu/IgnoBot.py/commits/main'
         await ctx.send(url)
+
+    @commands.command(name = 'assignrole')
+    @commands.has_permissions(manage_roles = True)
+    async def giverole(self, ctx, member: discord.Member, *, role_name):
+        role = discord.utils.get(ctx.message.guild.roles, name = role_name)
+        if role:
+            await member.add_roles(role)
+            await ctx.send(f'The role **{role_name}** has been assigned to {member._user}')
+
 
 def setup(bot):
     bot.add_cog(Moderation(bot))
