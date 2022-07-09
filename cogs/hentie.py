@@ -5,19 +5,16 @@
 ##################
 
 import os
-from unicodedata import numeric
 
 import discord
 from discord.ext import commands
 
 import base64
 import random
-
-from numpy import number
+import rule34
+import asyncio
 
 from utils.APIs.animeAPI import get_anime_info
-
-from utils.APIs import hentieAPI
 
 mydb = None
 cursor = None
@@ -52,14 +49,24 @@ class Hentie(commands.Cog):
     # actual hentie command OwO (don't try at home)
     @commands.command(name = 'hentai')
     @commands.is_nsfw()
-    async def hentai(self, ctx, number_to_send: int = None):
+    async def hentai(self, ctx, number_to_send: int = None, tag: str = None):
         if number_to_send == None:
-            number_to_send = 1
-        hen_image = await hentieAPI.get_image()
+            number_to_send = 5
+
+        if number_to_send > 20:
+            number_to_send = 20
+
+        if tag == None:
+            tag = 'vanilla'
+
+        Rule34 = rule34.Rule34()
+
+        images = await Rule34.getImages(tag)
+
         for x in range(number_to_send):
-            embedVar = discord.Embed(title = x+1, color = discord.Colour.darker_grey())
-            embedVar.set_image(url = hen_image[random.choice(range(len(hen_image)))])
-            await ctx.send(embed = embedVar)
+            await ctx.send(f'|| {images[random.choice(range(len(images)))].file_url} ||')
+            print(images[0].file_url)
+            asyncio.sleep(1)
 
 def setup(bot):
     bot.add_cog(Hentie(bot))

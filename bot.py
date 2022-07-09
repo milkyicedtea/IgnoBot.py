@@ -57,6 +57,9 @@ for filename in os.listdir('./cogs'): #loads all files (*.py)
 @bot.event
 async def on_ready():
     print(f'{bot.user} has logged in.')
+    print('Servers connected to:')
+    for guild in bot.guilds:
+        print(guild.name)
 
 @bot.event
 async def on_guild_join(guild):
