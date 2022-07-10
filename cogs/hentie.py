@@ -43,8 +43,8 @@ class Hentie(commands.Cog):
         embed.add_field(name = 'Aired', value = anime.aired, inline = False)
         embed.add_field(name = "Link", value = f"Decode this using i.decode *string*\n{base64_string}", inline = False)
 
-        embed.set_image(url=anime.thumbnail)
-        await ctx.send(embed=embed)
+        embed.set_image(url = anime.thumbnail)
+        await ctx.send(embed = embed)
 
     # actual hentie command OwO (don't try at home)
     @commands.command(name = 'hentai')
