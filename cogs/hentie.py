@@ -48,7 +48,7 @@ class Hentie(commands.Cog):
 
     # actual hentie command OwO (don't try at home)
     @commands.command(name = 'hentai')
-    @commands.is_nsfw()
+    @commands.is_nsfw()     # channel must be marked as 18+
     async def hentai(self, ctx, number_to_send: int = None, tag: str = None):
         if number_to_send == None:
             number_to_send = 5
