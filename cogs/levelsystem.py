@@ -4,12 +4,15 @@
 #                      #
 ########################
 
+from dataclasses import dataclass
 import os
 
 import discord
 from discord.ext import commands
 
 import random
+
+from numpy import size
 
 from utils.dbhelper import DbHelper
 
@@ -163,6 +166,11 @@ class LevelSystem(commands.Cog):
         usernameraw = ctx.author.name
         username = usernameraw.replace("'", "")
 
+        @dataclass
+        class roles:
+            rolename:str
+            reachlevel:int
+
         # guild check and update
         cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}';")
         result = cursor.fetchone()
@@ -188,15 +196,16 @@ class LevelSystem(commands.Cog):
 
         elif result[0] != 0:
             cursor.execute(f"select rolenames from roles where guildid = {guildid} and guildname = '{guildname}';") # pulls role names from rolename column in that guild
-            rolename = cursor.fetchall()
+            rolenamedb = cursor.fetchmany(size = result[0])
 
-            cursor.execute(f"select rolelevels from roles where guildid = {guildid} and guildname = '{guildname}';") # pulls reachlevels from rolelevels column in that guild
-            reachlevel = cursor.fetchall()
+            cursor.execute(f"select reachlevels from roles where guildid = {guildid} and guildname = '{guildname}';") # pulls reachlevels from rolelevels column in that guild
+            reachleveldb = cursor.fetchmany(size = result[0])
 
             embedVar = discord.Embed(title = 'Guild roles', color = discord.Colour.random())
-            for x in range(len(rolename)):
-                rolename[x] = rolename[x].replace("'", "")
-                embedVar.add_field(name = f'{rolename[x]}', value = f'Reached at level {reachlevel[x]}') # REPLACE ROLENAME[X] WITH THE ROLE PING WITHOUT PINGING THAT ROLE IF POSSIBLE
+            for x in range(result[0]):
+                rolename = str(rolenamedb[x]).replace("'", "").replace("(", "").replace(")", "").replace(",", "")
+                reachlevel = str(reachleveldb[x]).replace("'", "").replace("(", "").replace(")", "").replace(",", "")
+                embedVar.add_field(name = f'{rolename}', value = f'Reached at level {reachlevel}') # REPLACE ROLENAME[X] WITH THE ROLE PING WITHOUT PINGING THAT ROLE IF POSSIBLE
 
             await ctx.send(embed = embedVar)
         dbhelper.close()
