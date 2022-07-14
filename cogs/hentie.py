@@ -66,7 +66,7 @@ class Hentie(commands.Cog):
         for x in range(number_to_send):
             await ctx.send(f'|| {images[random.choice(range(len(images)))].file_url} ||')
             print(images[0].file_url)
-            asyncio.sleep(1)
+            await asyncio.sleep(1)
 
 def setup(bot):
     bot.add_cog(Hentie(bot))
