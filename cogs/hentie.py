@@ -11,7 +11,7 @@ from discord.ext import commands
 
 import base64
 import random
-import rule34
+import cogs.rule34 as rule34
 import asyncio
 
 from utils.APIs.animeAPI import get_anime_info
