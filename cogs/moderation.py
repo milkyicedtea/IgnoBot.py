@@ -62,6 +62,7 @@ class Moderation(commands.Cog):
             await ctx.send(f'A channel named "{channel_name}" already exists. Please delete or rename that channel before using this command.')
         if not existing_channel:
             if channel_name != None:
+                channel_name = 'new-channel'
                 await guild.create_text_channel(channel_name)
                 await ctx.send(f'Created a channel named {channel_name}')
             else:
