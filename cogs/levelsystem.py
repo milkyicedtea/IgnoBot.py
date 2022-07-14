@@ -20,19 +20,19 @@ class LevelSystem(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-
+    # gives exp for every message
     @commands.Cog.listener()
-    async def on_message(self, ctx):
+    async def on_message(self, message):
 
         dbhelper = DbHelper()
         mydb = dbhelper.open()
         cursor = dbhelper.get_cursor()
 
-        guildid = ctx.guild.id
-        guildraw = ctx.guild.name
+        guildid = message.guild.id
+        guildraw = message.guild.name
         guildname = guildraw.replace("'", "")
-        userid = ctx.author.id
-        usernameraw = ctx.author.name
+        userid = message.author.id
+        usernameraw = message.author.name
         username = usernameraw.replace("'", "")
 
         # guild check and update
@@ -90,16 +90,42 @@ class LevelSystem(commands.Cog):
         else:
             neededtolvl = level * level * 100           # determines how much xp is needed to level up
         if xpfromdb >= neededtolvl:
-            level+= 1
+            level += 1
         cursor.execute(f'update leveling set xpvalue = {xptodb} where guildid = {guildid} and userid = {userid};')
         cursor.execute(f'update leveling set levelvalue = {level} where guildid = {guildid} and userid = {userid};')
         mydb.commit()
 
-
-
+        # implement giving role on message (kinda dumb way) (or?)
+        user = message.author
+        if not user.bot:    # checks if user is bot
+            cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}';")
+            result = cursor.fetchone()
+            if result[0] > 0:
+                cursor.execute(f"select rolenames from roles where guildid = {guildid} and guildname = '{guildname}';")
+                rolenames = cursor.fetchmany(size = result[0])
+                cursor.execute(f"select reachlevels from roles where guildid = {guildid} and guildname = '{guildname}';")
+                reachlevels = cursor.fetchmany(size = result[0])
+                doloop = True
+                while doloop:
+                    for x in range(result[0]):
+                        print('for')
+                        if level < int(str(reachlevels[x]).replace("'", "").replace("(", "").replace(")", "").replace(",", "")):
+                            print('if')
+                            index = x-1
+                            role = discord.utils.get(message.guild.roles, name = str(rolenames[index]).replace("'", "").replace("(", "").replace(")", "").replace(",", ""))
+                            print(str(rolenames[index]).replace("'", "").replace("(", "").replace(")", "").replace(",", ""))
+                            if role:
+                                await message.author.add_roles(role)
+                                doloop = False
+                            else:
+                                realrole = str(rolenames[index]).replace("'", "").replace("(", "").replace(")", "").replace(",", "")
+                                await message.channel.send(f"There was an error while assigning the role **{realrole}**. Please report this to our discord.")
+                                doloop = False
+            else:
+                print('no roles')
         dbhelper.close()
-        
-    # level embed
+
+    # show an embed with level
     @commands.command(name = 'level', help = 'Shows your current level')
     async def level_embed(self, ctx, member: discord.Member = None):
 
@@ -152,6 +178,7 @@ class LevelSystem(commands.Cog):
         await ctx.reply(embed = embedVar, mention_author = False)
         dbhelper.close()
 
+    # show a list of all the roles in the guild
     @commands.command(name = 'roles')
     async def roles(self, ctx):
        
@@ -271,6 +298,7 @@ class LevelSystem(commands.Cog):
             await ctx.send(f"The role **{role_name}** has been added to the guild! People will receive it when they reach level **{reach_level}**")
         dbhelper.close()
 
+    # remove role from guild
     @commands.command(name = 'removerole')
     @commands.has_permissions(manage_roles = True)
     async def removerole(self, ctx, *, role_name: str):
@@ -293,7 +321,6 @@ class LevelSystem(commands.Cog):
         if result[0] > 0:
             cursor.execute(f"delete from roles where guildid = {guildid} and guildname = '{guildname}' and rolenames = '{role_name}';")
             mydb.commit()
-
             delfromdb: bool = True
         elif result[0] == 0:
             delfromdb: bool = True
@@ -310,6 +337,7 @@ class LevelSystem(commands.Cog):
             await ctx.send(f"The role **{role_name}** couldn't be deleted due to an error. If this continues to happen please refer this to our discord server")
         dbhelper.close()
 
+    # selfrole command
     @commands.command(name = 'selfrole')
     async def selfrole(self, ctx, *, role_name: str):
         dbhelper = DbHelper()
