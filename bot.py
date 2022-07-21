@@ -60,6 +60,7 @@ async def on_ready():
     print('Servers connected to:')
     for guild in bot.guilds:
         print(guild.name)
+    await bot.change_presence(activity = discord.Activity(type = discord.ActivityType.listening, name = f'too many users typing D:'))
 
 @bot.event
 async def on_guild_join(guild):
