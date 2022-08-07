@@ -108,12 +108,10 @@ class LevelSystem(commands.Cog):
                 doloop = True
                 while doloop:
                     for x in range(result[0]):
-                        print('for')
                         if level < int(str(reachlevels[x]).replace("'", "").replace("(", "").replace(")", "").replace(",", "")):
-                            print('if')
                             index = x-1
                             role = discord.utils.get(message.guild.roles, name = str(rolenames[index]).replace("'", "").replace("(", "").replace(")", "").replace(",", ""))
-                            print(str(rolenames[index]).replace("'", "").replace("(", "").replace(")", "").replace(",", ""))
+                            # print(str(rolenames[index]).replace("'", "").replace("(", "").replace(")", "").replace(",", ""))
                             if role:
                                 await message.author.add_roles(role)
                                 doloop = False

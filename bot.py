@@ -4,22 +4,22 @@
 #              #
 ################
 
+from configparser import InterpolationSyntaxError
 import os
 
 import discord
 
 from dotenv import load_dotenv
+from discord import Client
 from discord.ext import commands
 import discord.utils
+import asyncio
 
 from utils.dbhelper import DbHelper
 
 # Initializing variables from .env file
 load_dotenv()
 TOKEN = os.getenv('bot_token')
-
-# Prefix setup
-# client = commands.Bot(command_prefix = 'i.') # not using the client
 
 def get_prefix(bot, message):
     guildid = message.guild.id
@@ -45,7 +45,10 @@ def get_prefix(bot, message):
     dbhelper.close()
     return prefix
 
-bot = commands.Bot(command_prefix = (get_prefix), intents = discord.Intents().all())
+# Prefix setup
+# client = commands.Client(command_prefix = (get_prefix), intents = discord.Intents().all()) # not using the client
+intents = discord.Intents().all()
+bot = commands.Bot(command_prefix = (get_prefix), intents = intents, description = 'ducc')
 
 # cogs loading
 for filename in os.listdir('./cogs'): #loads all files (*.py)
@@ -115,4 +118,4 @@ async def on_guild_remove(guild):
     dbhelper.close()
 
 # bot.run
-bot.run(TOKEN)
+bot.run(TOKEN)     # comment cause bad
