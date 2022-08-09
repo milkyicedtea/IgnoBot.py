@@ -149,14 +149,21 @@ class Music(commands.Cog):
     
     @commands.command()
     async def pause(self, ctx):
-        self.was_paused = True
-        voice = ctx.voice_client
         voice.pause()
+        if self.was_paused is False:
+            self.was_paused = True
+            voice = ctx.voice_client
+        else:
+            await ctx.send(f'The player is already paused')
 
     @commands.command()
     async def resume(self, ctx):
         voice = ctx.voice_client
-        voice.resume()
+        if self.was_paused is True:
+            voice.resume()
+            self.was_paused = False
+        else:
+            await ctx.send(f'The player is not paused')
 
     @commands.command()
     async def stop(self, ctx):
