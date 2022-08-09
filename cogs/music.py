@@ -97,9 +97,10 @@ class Music(commands.Cog):
                     print('voice.play')
 
             if not ctx.voice_client.is_playing():
-                if self.is_looping == False and self.was_paused == False:
+                if self.is_looping is False:
                     return
-                else: self.stream_music(ctx = ctx, url = self.url)
+                else:
+                    self.stream_music(ctx = ctx, url = self.url)
 
     # Makes the bot join a channel
     @commands.command(name = 'join')
