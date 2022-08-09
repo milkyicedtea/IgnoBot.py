@@ -4,6 +4,7 @@
 #               #
 #################
 
+from logging import BufferingFormatter
 import os
 
 import discord
@@ -20,6 +21,7 @@ discord.opus.load_opus(find_opus)
 
 youtube_dl.utils.bug_reports_message = lambda: ''
 
+# YTDL settings
 ytdl_format_options = {
     'format': 'bestaudio/best',
     'restrictfilenames': True,
@@ -33,6 +35,7 @@ ytdl_format_options = {
     'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
 }
 
+# FFMPEG settings
 ffmpeg_options = {
     'options': '-vn',
     "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
@@ -48,6 +51,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.title = data.get('title')
         self.url = ""
 
+    # Not used but OwO
     @classmethod
     async def from_url(cls, url, *, loop=None, stream=False):
         loop = loop or asyncio.get_event_loop()
@@ -63,7 +67,40 @@ class YTDLSource(discord.PCMVolumeTransformer):
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.is_looping = False
+        
+        self.url = self.url
 
+    # Cool function :sunglus:
+    async def stream_music(self, ctx, url):
+
+        ctx = ctx
+
+        if not ctx.voice_client.is_connected:
+            channel = ctx.message.author.voice.channel
+            channel.connect()
+
+        while ctx.voice_client.is_connected:
+            print('heloooooooooo')
+            print(ctx.voice_client.is_playing())
+            if not ctx.voice_client.is_playing():
+                voice = ctx.voice_client
+                with youtube_dl.YoutubeDL(ytdl_format_options) as ydl:
+                    print('with')
+                    info = ydl.extract_info(url, download=False)
+                    print('info')
+                    url2 = info['formats'][0]['url']
+                    print('url2')
+
+                    await voice.play(discord.FFmpegPCMAudio(url2, **ffmpeg_options))
+                    print('voice.play')
+
+            if not ctx.voice_client.is_playing():
+                if self.is_looping == False:
+                    return
+                else: self.stream_music(ctx = ctx, url = self.url)
+
+    # Makes the bot join a channel
     @commands.command(name = 'join')
     async def join_channel(self, ctx, *, channel: discord.VoiceChannel = None):
         if channel == None:
@@ -80,7 +117,8 @@ class Music(commands.Cog):
         else:
             print('channel is none')
 
-    @commands.command()
+    # Plays from local (disabled for now)
+    # @commands.command()
     async def play(self, ctx, *, query):
         """Plays a file from the local filesystem"""
 
@@ -89,40 +127,12 @@ class Music(commands.Cog):
 
         await ctx.send(f'Now playing: {query}')
 
+    # Streams from a url without predownloading
     @commands.command()
     async def stream(self, ctx, *, url):
-        """Streams from a url (same as yt, but doesn't predownload)"""
 
-        """if ctx.message.author.voice.channel:   # both bools
-                channel = ctx.message.author.voice.channel  # find member's vc
-        elif not ctx.message.author.voice.channel:
-            await ctx.send(f'You are not in a voice channel', mention_author=False)
-
-        if channel is not None:
-            print('channel is not none')
-            #await ctx.voice_client.change_voice_state(channel)
-            #await ctx.voice_client.connect()
-            await channel.connect()
-            print('channel.connect()')"""
-
-        if not ctx.voice_client.is_connected:
-            channel = ctx.message.author.voice.channel
-            channel.connect()
-
-
-        print('heloooooooooo')
-        print(ctx.voice_client.is_playing())
-        if not ctx.voice_client.is_playing():
-            voice = ctx.voice_client
-            with youtube_dl.YoutubeDL(ytdl_format_options) as ydl:
-                print('with')
-                info = ydl.extract_info(url, download=False)
-                print('info')
-                url2 = info['formats'][0]['url']
-                print('url2')
-
-                voice.play(discord.FFmpegPCMAudio(url2, **ffmpeg_options))
-                print('voice.play')
+        self.url = url
+        self.stream_music(ctx = ctx, url = self.url)
 
     """
     @commands.command(name = 'volume')
@@ -143,20 +153,29 @@ class Music(commands.Cog):
     @commands.command()
     async def resume(self, ctx):
         voice = ctx.voice_client
-        await voice.resume()
+        voice.resume()
 
     @commands.command()
     async def stop(self, ctx):
         if ctx.voice_client:
             await ctx.voice_client.disconnect()
         else:
-            await ctx.reply(f'Not connected to a voice channel.', mention_author = False)
+            await ctx.send(f'Not connected to a voice channel.')
+
+    @commands.command()
+    async def loop(self, ctx):
+        if ctx.voice_client.is_playing():
+            self.is_looping = not self.is_looping
+            await ctx.send(f'Looping the current song.')
+        else:
+            await ctx.send(f'Not connected to a voice channel.')
 
     @play.before_invoke
     @stream.before_invoke
     @pause.before_invoke
     @resume.before_invoke
     @stop.before_invoke
+    @loop.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
@@ -168,4 +187,4 @@ class Music(commands.Cog):
             ctx.voice_client.stop()
 
 def setup(bot):
-    bot.add_cog(Music(bot)) 
+    bot.add_cog(Music(bot))
