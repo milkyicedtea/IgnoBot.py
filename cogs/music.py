@@ -68,12 +68,13 @@ class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.is_looping = False
+        self.was_paused:bool = self.was_paused
         
         self.url = self.url
 
     # Cool function :sunglus:
     async def stream_music(self, ctx, url):
-
+        self.was_paused = False
         ctx = ctx
 
         if not ctx.voice_client.is_connected:
@@ -96,7 +97,7 @@ class Music(commands.Cog):
                     print('voice.play')
 
             if not ctx.voice_client.is_playing():
-                if self.is_looping == False:
+                if self.is_looping == False and self.was_paused == False:
                     return
                 else: self.stream_music(ctx = ctx, url = self.url)
 
@@ -147,6 +148,7 @@ class Music(commands.Cog):
     
     @commands.command()
     async def pause(self, ctx):
+        self.was_paused = True
         voice = ctx.voice_client
         voice.pause()
 
