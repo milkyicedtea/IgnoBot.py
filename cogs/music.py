@@ -170,17 +170,21 @@ class Music(commands.Cog):
 
     @commands.command()
     async def loop(self, ctx):
-        if ctx.voice_client.is_playing is True:
-            print('if')
-            self.is_looping = not self.is_looping
-            print(f'self.is_looping: {self.is_looping}')
-            if self.is_looping is True:
-                await ctx.send(f'Looping the current song.')
-            elif self.is_looping is False:
-                await ctx.send(f'Stopped looping.')
-        else:
-            print('else')
+        if ctx.voice_client.is_connected is True:
+            if ctx.voice_client.is_playing is True:
+                print('if')
+                self.is_looping = not self.is_looping
+                print(f'self.is_looping: {self.is_looping}')
+                if self.is_looping is True:
+                    await ctx.send(f'Looping the current song.')
+                elif self.is_looping is False:
+                    await ctx.send(f'Stopped looping.')
+            elif ctx.voice_client.is_playing is False:
+                print('else')
+                await ctx.send(f'Not playing any song.')
+        elif ctx.voice_client.is_connected is False:
             await ctx.send(f'Not connected to a voice channel.')
+            
 
     # @play.before_invoke   (Bruh)
     @stream.before_invoke
