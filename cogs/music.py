@@ -179,7 +179,7 @@ class Music(commands.Cog):
         else:
             await ctx.send(f'Not connected to a voice channel.')
 
-    @play.before_invoke
+    # @play.before_invoke   (Bruh)
     @stream.before_invoke
     @pause.before_invoke
     @resume.before_invoke
