@@ -99,7 +99,7 @@ class Music(commands.Cog):
                 return
 
     # Makes the bot join a channel (disabled because unnecessary)
-    # @commands.command(name = 'join')
+    @commands.command(name = 'join')
     async def join_channel(self, ctx, *, channel: discord.VoiceChannel = None):
         if channel == None:
             if ctx.message.author.voice.channel:   # both bools
