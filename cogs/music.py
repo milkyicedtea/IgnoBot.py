@@ -95,7 +95,7 @@ class Music(commands.Cog):
                     await voice.play(discord.FFmpegPCMAudio(url2, **ffmpeg_options))
                     print('voice.play')
 
-            if not ctx.voice_client.is_playing():
+            if ctx.voice_client.is_playing() == False:
                 if self.is_looping is False:
                     return
                 else:
