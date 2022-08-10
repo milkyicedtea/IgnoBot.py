@@ -94,12 +94,14 @@ class Music(commands.Cog):
 
                     await voice.play(discord.FFmpegPCMAudio(url2, **ffmpeg_options))
                     print('voice.play')
-
+                    
+        """
             if ctx.voice_client.is_playing() == False:
                 if self.is_looping is False:
                     return
                 else:
                     self.stream_music(ctx = ctx, url = self.url)
+        """
 
     # Makes the bot join a channel
     @commands.command(name = 'join')
@@ -148,10 +150,10 @@ class Music(commands.Cog):
     
     @commands.command()
     async def pause(self, ctx):
-        voice.pause()
+        voice = ctx.voice_client
         if self.was_paused is False:
             self.was_paused = True
-            voice = ctx.voice_client
+            voice.pause()
         else:
             await ctx.send(f'The player is already paused')
 
@@ -171,6 +173,7 @@ class Music(commands.Cog):
         else:
             await ctx.send(f'Not connected to a voice channel.')
 
+    """
     @commands.command()
     async def loop(self, ctx):
         if ctx.voice_client():
@@ -181,6 +184,7 @@ class Music(commands.Cog):
         else:
             print('else')
             await ctx.send(f'Not connected to a voice channel.')
+    """
 
     # @play.before_invoke   (Bruh)
     @stream.before_invoke
