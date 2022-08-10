@@ -69,7 +69,7 @@ class Music(commands.Cog):
         self.is_looping = False
         self.was_paused = False
         
-        self.url = self.url
+        self.url:str
 
     # Cool function :sunglus:
     async def stream_music(self, ctx, url):
