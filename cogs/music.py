@@ -70,12 +70,10 @@ class Music(commands.Cog):
         self.was_paused = False
         
         self.url:str
-        self.voice
 
     # Cool function :sunglus:
     async def stream_music(self, ctx, url):
         self.was_paused = False
-        # ctx = ctx
 
         if not ctx.voice_client.is_connected:
             channel = ctx.message.author.voice.channel
@@ -83,7 +81,7 @@ class Music(commands.Cog):
 
         print('heloooooooooo')
         print(ctx.voice_client.is_playing)
-        self.voice = ctx.voice_client
+        voice = ctx.voice_client
         with youtube_dl.YoutubeDL(ytdl_format_options) as ydl:
             print('with')
             info = ydl.extract_info(url, download=False)
@@ -91,10 +89,10 @@ class Music(commands.Cog):
             url2 = info['formats'][0]['url']
             print('url2')
 
-            await self.voice.play(discord.FFmpegPCMAudio(url2, **ffmpeg_options))
+            await voice.play(discord.FFmpegPCMAudio(url2, **ffmpeg_options))
             print('voice.play')
 
-        if self.voice.is_playing is False:
+        if ctx.voice_channel.is_playing is False:
             if self.is_looping is True:
                 await self.stream_music(ctx = ctx, url = self.url)
             elif self.is_looping is False:
@@ -147,7 +145,7 @@ class Music(commands.Cog):
     
     @commands.command()
     async def pause(self, ctx):
-        voice = self.voice
+        voice = ctx.voice_client
         if self.was_paused is False:
             self.was_paused = True
             voice.pause()
@@ -156,7 +154,7 @@ class Music(commands.Cog):
 
     @commands.command()
     async def resume(self, ctx):
-        voice = self.voice
+        voice = ctx.voice_client
         if self.was_paused is True:
             voice.resume()
             self.was_paused = False
@@ -165,14 +163,14 @@ class Music(commands.Cog):
 
     @commands.command()
     async def stop(self, ctx):
-        if self.voice:
-            await self.voice.disconnect()
+        if ctx.voice_client:
+            await ctx.voice_client.disconnect()
         else:
             await ctx.send(f'Not connected to a voice channel.')
 
     @commands.command()
     async def loop(self, ctx):
-        if self.voice.is_playing is True:
+        if ctx.voice_client.is_playing is True:
             print('if')
             self.is_looping = not self.is_looping
             print(f'self.is_looping: {self.is_looping}')
@@ -188,14 +186,14 @@ class Music(commands.Cog):
     @stream.before_invoke
     @stop.before_invoke
     async def ensure_voice(self, ctx):
-        if self.voice is None:
+        if ctx.voice_client is None:
             if ctx.author.voice:
                 await ctx.author.voice.channel.connect()
             else:
                 await ctx.send("You are not connected to a voice channel.")
                 raise commands.CommandError("Author not connected to a voice channel.")
-        elif self.voice.is_playing():
-            self.voice.stop()
+        elif ctx.voice_client.is_playing():
+            ctx.voice_client.stop()
 
 def setup(bot):
     bot.add_cog(Music(bot))
