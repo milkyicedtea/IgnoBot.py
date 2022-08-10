@@ -80,28 +80,24 @@ class Music(commands.Cog):
             channel = ctx.message.author.voice.channel
             channel.connect()
 
-        while ctx.voice_client.is_connected:
-            print('heloooooooooo')
-            print(ctx.voice_client.is_playing())
-            if not ctx.voice_client.is_playing():
-                voice = ctx.voice_client
-                with youtube_dl.YoutubeDL(ytdl_format_options) as ydl:
-                    print('with')
-                    info = ydl.extract_info(url, download=False)
-                    print('info')
-                    url2 = info['formats'][0]['url']
-                    print('url2')
+        print('heloooooooooo')
+        print(ctx.voice_client.is_playing)
+        voice = ctx.voice_client
+        with youtube_dl.YoutubeDL(ytdl_format_options) as ydl:
+            print('with')
+            info = ydl.extract_info(url, download=False)
+            print('info')
+            url2 = info['formats'][0]['url']
+            print('url2')
 
-                    await voice.play(discord.FFmpegPCMAudio(url2, **ffmpeg_options))
-                    print('voice.play')
-                    
-        """
-            if ctx.voice_client.is_playing() == False:
-                if self.is_looping is False:
-                    return
-                else:
-                    self.stream_music(ctx = ctx, url = self.url)
-        """
+            await voice.play(discord.FFmpegPCMAudio(url2, **ffmpeg_options))
+            print('voice.play')
+
+        if ctx.voice_channel.is_playing is False:
+            if self.is_looping is True:
+                await self.stream_music(ctx = ctx, url = self.url)
+            elif self.is_looping is False:
+                return
 
     # Makes the bot join a channel
     @commands.command(name = 'join')
@@ -173,18 +169,19 @@ class Music(commands.Cog):
         else:
             await ctx.send(f'Not connected to a voice channel.')
 
-    """
     @commands.command()
     async def loop(self, ctx):
-        if ctx.voice_client():
+        if ctx.voice_client.is_connected is True and ctx.voice_client.is_playing is True:
             print('if')
             self.is_looping = not self.is_looping
             print(f'self.is_looping: {self.is_looping}')
-            await ctx.send(f'Looping the current song.')
+            if self.is_looping is True:
+                await ctx.send(f'Looping the current song.')
+            elif self.is_looping is False:
+                await ctx.send(f'Stopped looping.')
         else:
             print('else')
             await ctx.send(f'Not connected to a voice channel.')
-    """
 
     # @play.before_invoke   (Bruh)
     @stream.before_invoke
