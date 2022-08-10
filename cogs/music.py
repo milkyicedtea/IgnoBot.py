@@ -173,7 +173,7 @@ class Music(commands.Cog):
 
     @commands.command()
     async def loop(self, ctx):
-        if ctx.voice_client.is_playing():
+        if ctx.voice_client():
             self.is_looping = not self.is_looping
             await ctx.send(f'Looping the current song.')
         else:
