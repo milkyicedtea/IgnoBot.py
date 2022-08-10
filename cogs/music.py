@@ -184,10 +184,7 @@ class Music(commands.Cog):
 
     # @play.before_invoke   (Bruh)
     @stream.before_invoke
-    @pause.before_invoke
-    @resume.before_invoke
     @stop.before_invoke
-    @loop.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
