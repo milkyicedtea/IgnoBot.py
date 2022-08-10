@@ -67,7 +67,7 @@ class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.is_looping = False
-        self.was_paused:bool = self.was_paused
+        self.was_paused = False
         
         self.url = self.url
 
