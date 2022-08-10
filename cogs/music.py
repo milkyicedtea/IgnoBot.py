@@ -133,7 +133,7 @@ class Music(commands.Cog):
     async def stream(self, ctx, *, url):
 
         self.url = url
-        self.stream_music(ctx = ctx, url = self.url)
+        await self.stream_music(ctx = ctx, url = self.url)
 
     """
     @commands.command(name = 'volume')
