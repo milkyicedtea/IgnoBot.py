@@ -4,7 +4,6 @@
 #               #
 #################
 
-from logging import BufferingFormatter
 import os
 
 import discord
