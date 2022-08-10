@@ -174,9 +174,12 @@ class Music(commands.Cog):
     @commands.command()
     async def loop(self, ctx):
         if ctx.voice_client():
+            print('if')
             self.is_looping = not self.is_looping
+            print(f'self.is_looping: {self.is_looping}')
             await ctx.send(f'Looping the current song.')
         else:
+            print('else')
             await ctx.send(f'Not connected to a voice channel.')
 
     # @play.before_invoke   (Bruh)
