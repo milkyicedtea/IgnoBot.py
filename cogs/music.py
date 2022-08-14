@@ -15,8 +15,8 @@ import youtube_dl
 import ctypes
 import ctypes.util
 
-"""find_opus = ctypes.util.find_library('opus')
-discord.opus.load_opus(find_opus)"""
+find_opus = ctypes.util.find_library('opus')
+discord.opus.load_opus(find_opus)
 
 youtube_dl.utils.bug_reports_message = lambda: ''
 
