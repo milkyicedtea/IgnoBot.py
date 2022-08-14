@@ -15,8 +15,8 @@ import youtube_dl
 import ctypes
 import ctypes.util
 
-find_opus = ctypes.util.find_library('opus')
-discord.opus.load_opus(find_opus)
+"""find_opus = ctypes.util.find_library('opus')
+discord.opus.load_opus(find_opus)"""
 
 youtube_dl.utils.bug_reports_message = lambda: ''
 
@@ -68,8 +68,9 @@ class Music(commands.Cog):
         self.bot = bot
         self.is_looping = False
         self.was_paused = False
+        self.can_loop = False
         
-        self.url:str
+        self.url: str
 
     # Cool function :sunglus:
     async def stream_music(self, ctx, url):
@@ -80,7 +81,7 @@ class Music(commands.Cog):
             channel.connect()
 
         print('heloooooooooo')
-        print(ctx.voice_client.is_playing)
+        print(ctx.voice_client.is_playing())
         voice = ctx.voice_client
         with youtube_dl.YoutubeDL(ytdl_format_options) as ydl:
             print('with')
@@ -89,14 +90,14 @@ class Music(commands.Cog):
             url2 = info['formats'][0]['url']
             print('url2')
 
-            await voice.play(discord.FFmpegPCMAudio(url2, **ffmpeg_options))
+            voice.play(discord.FFmpegPCMAudio(url2, **ffmpeg_options))
             print('voice.play')
 
-        if ctx.voice_channel.is_playing is False:
-            if self.is_looping is True:
-                await self.stream_music(ctx = ctx, url = self.url)
-            elif self.is_looping is False:
-                return
+            """while voice.is_playing and self.is_looping:
+                print('first while')
+                while not voice.is_playing and self.is_looping:
+                    print('second while')
+                    await self.stream_music(ctx = ctx, url = self.url)"""
 
     # Makes the bot join a channel (disabled because unnecessary)
     @commands.command(name = 'join')
@@ -128,7 +129,7 @@ class Music(commands.Cog):
     # Streams from a url without predownloading
     @commands.command()
     async def stream(self, ctx, *, url):
-
+        print("i.stream")
         self.url = url
         await self.stream_music(ctx = ctx, url = self.url)
 
@@ -168,22 +169,28 @@ class Music(commands.Cog):
         else:
             await ctx.send(f'Not connected to a voice channel.')
 
+
+    """ This Works but i need to see stream_music()
     @commands.command()
     async def loop(self, ctx):
-        if ctx.voice_client.is_connected is True:
-            if ctx.voice_client.is_playing is True:
+        print('i.loop')
+        if ctx.voice_client.is_connected:
+            print('ctx.voice_client.is_connected is True')
+            if ctx.voice_client.is_playing:
                 print('if')
                 self.is_looping = not self.is_looping
-                print(f'self.is_looping: {self.is_looping}')
-                if self.is_looping is True:
+                if self.is_looping:
                     await ctx.send(f'Looping the current song.')
-                elif self.is_looping is False:
+                    print(f'self.is_looping {self.is_looping}')
+                elif not self.is_looping:
                     await ctx.send(f'Stopped looping.')
-            elif ctx.voice_client.is_playing is False:
+                    print(f'self.is_looping {self.is_looping}')
+            elif not ctx.voice_client.is_playing:
                 print('else')
                 await ctx.send(f'Not playing any song.')
-        elif ctx.voice_client.is_connected is False:
-            await ctx.send(f'Not connected to a voice channel.')
+        else:
+            print('ctx.voice_client.is_connected is False')
+            await ctx.send(f'Not connected to a voice channel.')"""
             
 
     # @play.before_invoke   (Bruh)

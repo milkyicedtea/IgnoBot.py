@@ -42,7 +42,7 @@ class Welcome(commands.Cog):
             await channel.send(custom_message)
         dbhelper.close()
 
-    @commands.command(name = 'set-welcome-channel', aliases = ['setwelcomechannel', 'welcomechannel', 'welcome-channel'], help = 'Use this to set the channel in which the bot will send the welcome message. The welcome message will not be sent if this is not configured')
+    @commands.command(name = 'set-welcome-channel', aliases = ['setwelcomechannel', 'welcomechannel', 'welcome-channel'])
     async def set_welcome_channel(self, ctx, welcome_channel = None):
         dbhelper = DbHelper()
 
@@ -72,7 +72,7 @@ class Welcome(commands.Cog):
             dbhelper.close()
 
 
-    @commands.command(name = 'set-welcome', help = 'Used to set your welcome message when a user joins. Use "default" to set your welcome message to default. Use %mention_user% to mention the joining user.')
+    @commands.command(name = 'set-welcome')
     @commands.has_permissions(manage_guild = True)
     async def set_welcome(self, ctx,* , message = None):
         dbhelper = DbHelper()

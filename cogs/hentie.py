@@ -23,7 +23,7 @@ class Hentie(commands.Cog):
     def __init__(self, bot):
         self.bot = bot 
 
-    @commands.command(name = 'kayo', help = 'Get download links and useful information for the given anime')
+    @commands.command()
     async def kayo(self, ctx, *, anime_name):
         anime = get_anime_info(query = anime_name)
         if anime is None:
@@ -47,7 +47,7 @@ class Hentie(commands.Cog):
         await ctx.send(embed = embed)
 
     # actual hentie command OwO (don't try at home)
-    @commands.command(name = 'hentai')
+    @commands.command()
     @commands.is_nsfw()     # channel must be marked as 18+
     async def hentai(self, ctx, number_to_send: int = None, tag: str = None):
         if number_to_send == None:

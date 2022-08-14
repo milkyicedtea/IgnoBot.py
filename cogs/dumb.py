@@ -19,31 +19,31 @@ class Dumb(commands.Cog):
         self.bot = bot
 
     # beep command
-    @commands.command(name = 'beep', help = 'Literally just says beep.')
+    @commands.command()
     async def beep(self, ctx):
         response = '**Beep!**'
         await ctx.send(response)
 
     # bad command
-    @commands.command(name = 'bad', help = 'Literally just says bad.')
+    @commands.command()
     async def bad(self, ctx):
         response = '**Bad**'
         await ctx.send(response)
 
     # Am i cool command
-    @commands.command(name = 'am-i-cool', help = 'Find out if you are cool.')
+    @commands.command(name = 'am-i-cool')
     async def amicool(self, ctx):
         amicoolquotes = ['You are so cool, how do even you do that?', 'No, you are not cool at all.']
         response = random.choice(amicoolquotes)
         await ctx.send(response)
 
     # uwuduck command
-    @commands.command(name = 'uwuduck', help = 'uwuduck')
+    @commands.command()
     async def uwuduck(self, ctx):
         await ctx.send('<:uwuduck:916404134821904435>')
 
     # anni?
-    @commands.command(name = 'anni', aliases = ['anni?'], help = 'Dice quanti sono gli anni')
+    @commands.command(name = 'anni', aliases = ['anni?'])
     async def anniqty(self, ctx):
         annirange = int(random.choice(range(-100,100+1)))
         if annirange <= 0:
@@ -52,48 +52,48 @@ class Dumb(commands.Cog):
             await ctx.send(f'{annirange}')
 
     # mof?
-    @commands.command(name = 'mof', help = 'mof')
+    @commands.command()
     async def mof(self, ctx):
         mof_string = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
         mof = random.choice(mof_string)
         await ctx.send(mof)
 
     # no u
-    @commands.command(name = 'no-u', help = 'No u')
+    @commands.command(name = 'no-u')
     async def nou(self, ctx):
         nourange = ['no u', 'yes me']
         response = random.choice(nourange)
         await ctx.send(response)
 
     # bastardi chiamo da reggio emilia
-    @commands.command(name = 'pronto', aliases = ['pronto?'], help = 'Bastardi chiamo da Reggio Emilia')
+    @commands.command(name = 'pronto', aliases = ['pronto?'])
     async def bastardi(self, ctx):
         response = '**Bastardi**, chiamo da Reggio Emilia, sono un assassino di **meridionali**. Vi ammazzo tutti *bastardi pezzi di merda*.'
         await ctx.send(response)
 
     # paytowin paytowin paytowin
-    @commands.command(name = 'fennec', help = 'paytowin paytowin paytowin..')
+    @commands.command()
     async def fennec(self, ctx):
         paytowinrange = int(random.choice(range(1,5+1)))
         for x in range(paytowinrange):
             await ctx.send(f'pay to win')
 
     # anni anni anni anni
-    @commands.command(name = 'annispam', help = 'anni anni anni anni anni..')
+    @commands.command()
     async def annispam(self, ctx):
         annispamrange = int(random.choice(range(1,5+1)))
         for x in range(annispamrange):
             await ctx.send('anni')
 
     # CRUNCH CRUNCH CRUNCH
-    @commands.command(name = 'silvio', help = '*crunch crunch crunch*')
+    @commands.command()
     async def silvio(self,ctx):
         crunchspamrange = int(random.choice(range(1,5+1)))
         for x in range(crunchspamrange):
             await ctx.send('***crunch***')
 
     # sexy
-    @commands.command(name = 'sexy', help = 'SCONOSCIUTO SEXY A 2 METRI DA TE')
+    @commands.command()
     async def sexy(self, ctx):
         guildidcompare = int(os.getenv('guild_id'))
         guild = ctx.guild.id
@@ -132,36 +132,36 @@ class Dumb(commands.Cog):
     async def osuskins(self, ctx):
         await ctx.send('https://github.com/ignorance-uwu/Osu-Skins')
 
-    @commands.command(name = 'shid', help = 'i just shidded and farded +HDDT')
+    @commands.command()
     async def shid(self, ctx):
         await ctx.send('omg bro')
-        await ctx.send('https://cdn.discordapp.com/attachments/933336707825295369/943248934531387452/E3j-LAlj-VEAQz1f8.jpg')
+        await ctx.send('https://pbs.twimg.com/media/E3jLAljVEAQz1f8?format=jpg&name=large')
 
-    @commands.command(name = 'python', help = 'python python python..')
+    @commands.command(name = 'python')
     async def pythonspam(self, ctx):
         pythonspamrange = int(random.choice(range(1,5+1)))
         for x in range(pythonspamrange):
             await ctx.send('***python***')
 
-    @commands.command(name = 'duckimage', help = 'Shows you a cute duck image')
+    @commands.command()
     async def duckimage(self, ctx):
         duck_image = await duckAPI.get_image()
         x = random.choice(range(len(duck_image)))
         await ctx.send(duck_image[x])
 
-    @commands.command(name = 'duckvideo', help = 'Shows you a cute duck video')
+    @commands.command()
     async def duckvideo(self, ctx):
         duck_video = await duckAPI.get_video()
         x = random.choice(range(len(duck_video)))
         await ctx.send(duck_video[x])
 
-    @commands.command(name = 'catimage', help = 'Shows you a cute cat image')
+    @commands.command()
     async def catimage(self, ctx):
         cat_image = await catAPI.get_image()
         x = random.choice(range(len(cat_image)))
         await ctx.send(cat_image[x])
 
-    @commands.command(name = 'catvideo', help = 'Shows you a cute cat video')
+    @commands.command()
     async def catvideo(self, ctx):
         cat_video = await catAPI.get_video()
         x = random.choice(range(len(cat_video)))

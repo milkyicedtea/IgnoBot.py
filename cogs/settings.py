@@ -14,7 +14,7 @@ class Settings(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name = 'setprefix', help = 'Sets the prefix for the bot in the current server')
+    @commands.command()
     async def setprefix(self, ctx, prefix:str = None):
         guildid = ctx.guild.id
 

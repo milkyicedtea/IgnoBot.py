@@ -15,21 +15,21 @@ class Moderation(commands.Cog):
         self.bot = bot 
 
     # Kick command
-    @commands.command(name = 'kick', help = 'Kicks a user from the server')
+    @commands.command()
     @commands.has_permissions(kick_members = True)
     async def kick(self, ctx, member:discord.Member, *, reason = None):
         await member.kick(reason = reason)
         await ctx.send(f'User {member.mention} has been kicked from the server.\nResponsible mod: **{ctx.author}**\nReason: {reason}')
 
     # Ban command
-    @commands.command(name = 'ban', help = 'Bans a member.')
+    @commands.command()
     @commands.has_permissions(ban_members = True)
     async def ban(self, ctx, member:discord.Member, *, reason = None):
         await member.ban(reason = reason)
         await ctx.send(f'User {member.mention} has been banned from the server.\nResponsible mod: **{ctx.author}**\nReason: {reason}')
 
     # Unban command
-    @commands.command(name = 'unban', help = 'Unbans a previously banned member.')
+    @commands.command()
     @commands.has_permissions(ban_members = True)
     async def unban(self, ctx,* , member):
         banned_users = await ctx.guild.bans()
@@ -44,7 +44,7 @@ class Moderation(commands.Cog):
                 return
 
     # Purge command
-    @commands.command(name = 'purge', help = 'Deletes multiple messages.')
+    @commands.command(name = 'purge')
     @commands.has_permissions(manage_messages = True)
     async def purge_messages(self, ctx, amount_to_delete: int = 0):
         if amount_to_delete < 1 or amount_to_delete > 100:
@@ -53,7 +53,7 @@ class Moderation(commands.Cog):
             await ctx.channel.purge(limit = amount_to_delete + 1)
 
     # Creating a new channel
-    @commands.command(name = 'create-channel', help = 'Creates a new channel.')
+    @commands.command()
     @commands.has_permissions(manage_channels = True)
     async def create_channel(self, ctx, channel_name = None):
         guild = ctx.guild
@@ -70,7 +70,7 @@ class Moderation(commands.Cog):
                 await ctx.send(f'Created a channel named {channel_name}')
 
     # Join date command
-    @commands.command(name = 'joindate', help = 'Shows the date when a member joined.')
+    @commands.command(name = 'joindate')
     async def join_date(self, ctx, member: discord.Member = None):
         if member == None:
             member = ctx.message.author
@@ -78,7 +78,7 @@ class Moderation(commands.Cog):
         await ctx.send(f'{member.mention} joined on {joined_at}.')
 
     # Avatar command
-    @commands.command(name = 'avatar', help = 'Gets you the avatar of a user')
+    @commands.command()
     async def avatar(self, ctx, member: discord.Member = None):
         if member == None:
             member = ctx.message.author
@@ -90,7 +90,7 @@ class Moderation(commands.Cog):
         await ctx.send(embed = embedVar)
 
     # Server image command
-    @commands.command(name = 'servericon', help = 'Gets you the icon of the server')
+    @commands.command()
     async def servericon(self, ctx):
         guildraw = ctx.guild
         guildname = guildraw.name.replace("'", "")
@@ -101,7 +101,7 @@ class Moderation(commands.Cog):
         await ctx.send(embed = embedVar)
 
     # Patch command
-    @commands.command(name = 'patchnotes', help = 'Shows the most recent patch')
+    @commands.command(name = 'patchnotes')
     async def patch(self, ctx):
         url = 'https://github.com/ignorance-uwu/IgnoBot.py/commits/main'
         await ctx.send(url)
@@ -113,7 +113,6 @@ class Moderation(commands.Cog):
         if role:
             await member.add_roles(role)
             await ctx.send(f'The role **{role_name}** has been assigned to {member._user}')
-
 
 def setup(bot):
     bot.add_cog(Moderation(bot))

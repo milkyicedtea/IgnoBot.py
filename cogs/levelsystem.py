@@ -12,8 +12,6 @@ from discord.ext import commands
 
 import random
 
-from numpy import size
-
 from utils.dbhelper import DbHelper
 
 class LevelSystem(commands.Cog):
@@ -124,7 +122,7 @@ class LevelSystem(commands.Cog):
         dbhelper.close()
 
     # show an embed with level
-    @commands.command(name = 'level', help = 'Shows your current level')
+    @commands.command(name = 'level')
     async def level_embed(self, ctx, member: discord.Member = None):
 
         dbhelper = DbHelper()
@@ -177,7 +175,7 @@ class LevelSystem(commands.Cog):
         dbhelper.close()
 
     # show a list of all the roles in the guild
-    @commands.command(name = 'roles')
+    @commands.command()
     async def roles(self, ctx):
        
         dbhelper = DbHelper()
@@ -297,7 +295,7 @@ class LevelSystem(commands.Cog):
         dbhelper.close()
 
     # remove role from guild
-    @commands.command(name = 'removerole')
+    @commands.command()
     @commands.has_permissions(manage_roles = True)
     async def removerole(self, ctx, *, role_name: str):
         dbhelper = DbHelper()
@@ -336,7 +334,7 @@ class LevelSystem(commands.Cog):
         dbhelper.close()
 
     # selfrole command
-    @commands.command(name = 'selfrole')
+    @commands.command()
     async def selfrole(self, ctx, *, role_name: str):
         dbhelper = DbHelper()
         mydb = dbhelper.open()

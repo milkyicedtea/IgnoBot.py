@@ -4,7 +4,6 @@
 #              #
 ################
 
-from configparser import InterpolationSyntaxError
 import os
 
 import discord

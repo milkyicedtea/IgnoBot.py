@@ -14,7 +14,7 @@ class Decoder(commands.Cog):
     def __init__(self, bot):
         self.bot = bot 
 
-    @commands.command(name = 'encode', help = 'Encodes your message and DMs the base64 result')
+    @commands.command()
     async def encode(self, ctx, *, string):
         string_bytes = string.encode('UTF-8')
         print(string_bytes)
@@ -25,7 +25,7 @@ class Decoder(commands.Cog):
         await ctx.author.send(f'Original message: {string}\nEncoded string: {base64_string}')
         await ctx.send(':white_check_mark:')
 
-    @commands.command(name = 'decode', help = 'Decodes your base64 string and DMs the result')
+    @commands.command()
     async def decode(self,ctx, *, string):
         string_bytes = string.encode('UTF-8')
         decode_bytes = base64.b64decode(string_bytes)
