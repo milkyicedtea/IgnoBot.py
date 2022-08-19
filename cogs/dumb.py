@@ -167,6 +167,32 @@ class Dumb(commands.Cog):
         x = random.choice(range(len(cat_video)))
         await ctx.send(cat_video[x])
 
+    @commands.command()
+    async def cattos(self, ctx):
+        guild_id = ctx.guild.id
+        if guild_id == int(os.getenv('guild_id')) or guild_id == int(os.getenv('private_guild')) or guild_id == int(os.getenv('varg_guild')) or guild_id == int(os.getenv('extra_guild')):
+            cattos = os.getenv(random.choice([  'catto0',
+                                                'catto1',
+                                                'catto2',
+                                                'catto3',
+                                                'catto4',
+                                                'catto5',
+                                                'catto6',
+                                                'catto7',
+                                                'catto8',
+                                                'catto9',
+                                                'catto10',
+                                                'catto11',
+                                                'catto12',
+                                                'catto13',
+                                                'catto14',
+                                                'catto15',
+                                                'catto16',
+                                                'catto17',
+                                                'catto18',
+                                                'catto19']))
+            await ctx.send(cattos)
+
     # listeners
     @commands.Cog.listener()
     async def on_message(self, msg):
