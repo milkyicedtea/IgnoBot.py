@@ -106,7 +106,11 @@ class LevelSystem(commands.Cog):
                 doloop = True
                 while doloop:
                     for x in range(result[0]):
-                        if level < int(str(reachlevels[x]).replace("'", "").replace("(", "").replace(")", "").replace(",", "")):
+                        # print('dum')
+                        reachlevel = int(str(reachlevels[x]).replace("'", "").replace("(", "").replace(")", "").replace(",", ""))
+                        # print(f'level = {level}, reachlevel = {reachlevel}')
+                        if level >= reachlevel:
+                            # print('if')
                             index = x-1
                             role = discord.utils.get(message.guild.roles, name = str(rolenames[index]).replace("'", "").replace("(", "").replace(")", "").replace(",", ""))
                             # print(str(rolenames[index]).replace("'", "").replace("(", "").replace(")", "").replace(",", ""))
