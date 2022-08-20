@@ -103,24 +103,20 @@ class LevelSystem(commands.Cog):
                 rolenames = cursor.fetchmany(size = result[0])
                 cursor.execute(f"select reachlevels from roles where guildid = {guildid} and guildname = '{guildname}';")
                 reachlevels = cursor.fetchmany(size = result[0])
-                doloop = True
-                while doloop:
-                    for x in range(result[0]):
-                        # print('dum')
-                        reachlevel = int(str(reachlevels[x]).replace("'", "").replace("(", "").replace(")", "").replace(",", ""))
-                        # print(f'level = {level}, reachlevel = {reachlevel}')
-                        if level >= reachlevel:
-                            # print('if')
-                            index = x-1
-                            role = discord.utils.get(message.guild.roles, name = str(rolenames[index]).replace("'", "").replace("(", "").replace(")", "").replace(",", ""))
-                            # print(str(rolenames[index]).replace("'", "").replace("(", "").replace(")", "").replace(",", ""))
-                            if role:
-                                await message.author.add_roles(role)
-                                doloop = False
-                            else:
-                                realrole = str(rolenames[index]).replace("'", "").replace("(", "").replace(")", "").replace(",", "")
-                                await message.channel.send(f"There was an error while assigning the role **{realrole}**. Please report this to our discord.")
-                                doloop = False
+                for x in range(result[0]):
+                    #print('dum')
+                    reachlevel = int(str(reachlevels[x]).replace("'", "").replace("(", "").replace(")", "").replace(",", ""))
+                    #print(f'level = {level}, reachlevel = {reachlevel}')
+                    if level >= reachlevel:
+                        # print('if')
+                        index = x-1
+                        role = discord.utils.get(message.guild.roles, name = str(rolenames[index]).replace("'", "").replace("(", "").replace(")", "").replace(",", ""))
+                        # print(str(rolenames[index]).replace("'", "").replace("(", "").replace(")", "").replace(",", ""))
+                        if role:
+                            await message.author.add_roles(role)
+                        else:
+                            realrole = str(rolenames[index]).replace("'", "").replace("(", "").replace(")", "").replace(",", "")
+                            await message.channel.send(f"There was an error while assigning the role **{realrole}**. Please report this to our discord.")
             else:
                 print('no roles')
         dbhelper.close()
