@@ -69,10 +69,10 @@ class YTDLSource(discord.PCMVolumeTransformer):
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.is_looping = False
-        self.was_paused = False
-        self.can_loop = False
-        
+        self.is_looping: bool = False
+        self.was_paused: bool = False
+        self.can_loop: bool = False
+
         self.url: str
 
     # Cool function :sunglus:
@@ -83,18 +83,17 @@ class Music(commands.Cog):
             channel = ctx.message.author.voice.channel
             channel.connect()
 
-        print('heloooooooooo')
         print(ctx.voice_client.is_playing())
         voice = ctx.voice_client
-        with youtube_dl.YoutubeDL(ytdl_format_options) as ydl:
-            print('with')
-            info = ydl.extract_info(url, download=False)
-            print('info')
-            url2 = info['formats'][0]['url']
-            print('url2')
 
+        with youtube_dl.YoutubeDL(ytdl_format_options) as ydl:
+            try:
+                info = ydl.extract_info(f'ytsearch:{url}', download = False)['entries'][0]
+            except:
+                info = ydl.extract_info(url, download = False)
+            url2 = info['formats'][0]['url']
             voice.play(discord.FFmpegPCMAudio(url2, **ffmpeg_options))
-            print('voice.play')
+            print('play started')
 
             """while voice.is_playing and self.is_looping:
                 print('first while')
