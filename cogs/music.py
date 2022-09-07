@@ -120,19 +120,18 @@ class Music(commands.Cog):
             print('channel is none')
 
     # Plays from local (disabled for now)
-    # @commands.command()
-    async def play(self, ctx, *, query):
+    #@commands.command()
+    async def localplay(self, ctx, *, query):
         """Plays a file from the local filesystem"""
 
         source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(query))
-        ctx.voice_client.play(source, after=lambda e: print(f'Player error: {e}') if e else None)
+        ctx.voice_client.play(source, after = lambda e: print(f'Player error: {e}') if e else None)
 
         await ctx.send(f'Now playing: {query}')
 
     # Streams from a url without predownloading
     @commands.command()
     async def stream(self, ctx, *, url):
-        print("i.stream")
         self.url = url
         await self.stream_music(ctx = ctx, url = self.url)
 
