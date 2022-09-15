@@ -12,3 +12,25 @@ __pycache__
 
 #ignore test file(s)
 utils/bad.py
+
+#test file
+tests.py
+
+#pyvenv.cfg
+pyvenv.cfg
+
+#youtube-dl
+share
+etc
+
+#venv Scripts
+Scripts
+
+#venv Lib
+Lib
+
+#venv Include
+Include
+
+#old requirements.txt
+requirements.txt.old

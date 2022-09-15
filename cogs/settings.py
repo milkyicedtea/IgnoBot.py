@@ -46,5 +46,5 @@ class Settings(commands.Cog):
         await ctx.send(f"The bot's prefix is now set to {prefix}")
         dbhelper.close()
 
-def setup(bot):
-    bot.add_cog(Settings(bot))
+async def setup(bot):
+    await bot.add_cog(Settings(bot))

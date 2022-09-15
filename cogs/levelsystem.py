@@ -376,5 +376,5 @@ class LevelSystem(commands.Cog):
             print('Something went wrong')
         dbhelper.close()
 
-def setup(bot):
-    bot.add_cog(LevelSystem(bot))
+async def setup(bot):
+    await bot.add_cog(LevelSystem(bot))

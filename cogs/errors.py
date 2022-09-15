@@ -21,5 +21,5 @@ class Errors(commands.Cog):
         if isinstance(error, commands.errors.NSFWChannelRequired):
             await ctx.send("You need to be in an NSFW channel to use this command")
 
-def setup(bot):
-    bot.add_cog(Errors(bot))
+async def setup(bot):
+    await bot.add_cog(Errors(bot))

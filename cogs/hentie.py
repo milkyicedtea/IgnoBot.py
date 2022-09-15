@@ -68,5 +68,5 @@ class Hentie(commands.Cog):
             print(images[0].file_url)
             await asyncio.sleep(1)
 
-def setup(bot):
-    bot.add_cog(Hentie(bot))
+async def setup(bot):
+    await bot.add_cog(Hentie(bot))

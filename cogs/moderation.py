@@ -114,5 +114,5 @@ class Moderation(commands.Cog):
             await member.add_roles(role)
             await ctx.send(f'The role **{role_name}** has been assigned to {member._user}')
 
-def setup(bot):
-    bot.add_cog(Moderation(bot))
+async def setup(bot):
+    await bot.add_cog(Moderation(bot))

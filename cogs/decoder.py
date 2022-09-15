@@ -33,5 +33,5 @@ class Decoder(commands.Cog):
         await ctx.author.send(f'Non-decoded message: {string}.\nDecoded string: {decoded_string}')
         await ctx.send(':white_check_mark:')
 
-def setup(bot):
-    bot.add_cog(Decoder(bot))
+async def setup(bot):
+    await bot.add_cog(Decoder(bot))

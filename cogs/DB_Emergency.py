@@ -54,5 +54,5 @@ class DB_Emergency(commands.Cog):
         except psycopg2.Error as ag:
             print(f'Something went wrong: {ag}')
 
-def setup(bot):
-    bot.add_cog(DB_Emergency(bot))
+async def setup(bot):
+    await bot.add_cog(DB_Emergency(bot))

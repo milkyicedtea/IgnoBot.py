@@ -50,10 +50,12 @@ intents = discord.Intents().all()
 bot = commands.Bot(command_prefix = (get_prefix), intents = intents, description = 'ducc')
 
 # cogs loading
-for filename in os.listdir('./cogs'): #loads all files (*.py)
-    if filename.endswith('.py'):
-        bot.load_extension(f'cogs.{filename[:-3]}') #loads the file without ".py" for example: cogs.ping
-        print(f'Loaded {filename[:-3]}')    
+async def load_cogs():
+    for filename in os.listdir('./cogs'): #loads all files (*.py)
+        if filename.endswith('.py'):
+            await bot.load_extension(f'cogs.{filename[:-3]}') #loads the file without ".py" for example: cogs.ping
+            print(f'Loaded {filename[:-3]}')  
+
 
 # Bot login event
 @bot.event
@@ -117,4 +119,9 @@ async def on_guild_remove(guild):
     dbhelper.close()
 
 # bot.run
-bot.run(TOKEN)     # comment cause bad
+async def main():
+    async with bot:
+        await load_cogs()
+        await bot.start(TOKEN)     # comment cause bad
+
+asyncio.run(main())

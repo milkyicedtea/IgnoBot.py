@@ -71,5 +71,5 @@ class Test(commands.Cog):
     async def getroletest(self, ctx, *, role_name):
         print(discord.utils.get(ctx.guild.roles, name = role_name))
 
-def setup(bot):
-    bot.add_cog(Test(bot))
+async def setup(bot):
+    await bot.add_cog(Test(bot))

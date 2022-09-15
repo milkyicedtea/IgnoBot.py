@@ -232,5 +232,5 @@ class Dumb(commands.Cog):
         if msg.content == 'Was für eine parade!':
             await msg.reply('Danke!')
 
-def setup(bot):
-    bot.add_cog(Dumb(bot))
+async def setup(bot):
+    await bot.add_cog(Dumb(bot))
