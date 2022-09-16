@@ -9,7 +9,6 @@ import os
 import discord
 
 from dotenv import load_dotenv
-from discord import Client
 from discord.ext import commands
 import discord.utils
 import asyncio
