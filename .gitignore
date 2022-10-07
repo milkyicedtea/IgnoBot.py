@@ -25,6 +25,8 @@ etc
 
 #venv Scripts
 Scripts
+bot.bat
+bot.ps1
 
 #venv Lib
 Lib

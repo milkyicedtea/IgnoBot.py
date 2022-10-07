@@ -83,7 +83,7 @@ class Moderation(commands.Cog):
         if member == None:
             member = ctx.message.author
 
-        avatar_url = member.avatar_url
+        avatar_url = member.avatar
         embedVar = discord.Embed(title = f"{member}'s profile image", color = discord.Colour.random())
         embedVar.set_image(url = avatar_url)
 
@@ -94,7 +94,7 @@ class Moderation(commands.Cog):
     async def servericon(self, ctx):
         guildraw = ctx.guild
         guildname = guildraw.name.replace("'", "")
-        server_icon = guildraw.icon_url
+        server_icon = guildraw.icon
         embedVar = discord.Embed(title = guildname, color = discord.Colour.random())
         embedVar.set_image(url = server_icon)
 

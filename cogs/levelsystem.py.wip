@@ -4,8 +4,8 @@
 #                      #
 ########################
 
-from dataclasses import dataclass
 import os
+from dataclasses import dataclass
 
 import discord
 from discord.ext import commands
@@ -13,6 +13,7 @@ from discord.ext import commands
 import random
 
 from utils.dbhelper import DbHelper
+from utils.levelhelper import LevelHelper
 
 class LevelSystem(commands.Cog):
     def __init__(self, bot):
@@ -22,10 +23,6 @@ class LevelSystem(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
 
-        dbhelper = DbHelper()
-        mydb = dbhelper.open()
-        cursor = dbhelper.get_cursor()
-
         guildid = message.guild.id
         guildraw = message.guild.name
         guildname = guildraw.replace("'", "")
@@ -33,93 +30,24 @@ class LevelSystem(commands.Cog):
         usernameraw = message.author.name
         username = usernameraw.replace("'", "")
 
-        # guild check and update
-        cursor.execute(f"select count(*) from guildinfo where guildid = {guildid} and guildname = '{guildname}';")
-        result = cursor.fetchone()
-        if result[0] == 0:
-            cursor.execute(f'select count(*) from guildinfo where guildid = {guildid};')
-            result = cursor.fetchone()
-            if result[0] == 0:
-                cursor.execute(f"insert into guildinfo(guildid, guildname) values({guildid}, '{guildname}');")
-                mydb.commit()
-                if result[0] == 0:
-                    cursor.execute(f"update guildinfo set guildname = '{guildname}' where guildid = {guildid};")
-                    mydb.commit()
-                    print(f'updated guild {guildid} with new name: {guildname}')
-                else:
-                    print(f'guild {guildid} with name {guildname} is already in the database')
-
-        # user check and update
-        cursor.execute(f"select count(*) from guildinfo where guildid = {guildid} and guildname = '{guildname}';")
-        result = cursor.fetchone()
-        if result[0] == 0:
-            cursor.execute(f'select count(*) from leveling where userid = {userid};')
-            result = cursor.fetchone()
-            if result[0] != 0:
-                cursor.execute(f"select count(*) from leveling where username = '{username}';")
-                result = cursor.fetchone()
-                if result[0] == 0:
-                    cursor.execute(f"update leveling set username = '{username}' where userid = {userid};")
-                    mydb.commit()
-                    print(f'updated user {userid} with new name: {username}')
+        #guild check and update
+        LevelHelper.guild_check(message = message)
 
         # search for user in the db
-        cursor.execute(f'select count(*) from leveling where userid = {userid} and guildid = {guildid};')
-        result = cursor.fetchone()
-
-        if result[0] == 0:          # user is not in the db so we add him first and then give
-            xptodb = 0
-            leveltodb = 0
-            cursor.execute(f"insert into leveling(guildid, userid, username, xpvalue, levelvalue) values({guildid}, {userid}, '{username}', 0, 0);")
-            print(f'new user {username} added')
-            mydb.commit()
+        LevelHelper.user_check(message = message)
 
         # xp giving
-        xprange = random.choice(range(1, 20+1))
-        cursor.execute(f'select xpvalue from leveling where userid = {userid} and guildid = {guildid};')            # getting xp
-        result = cursor.fetchone()
-        xpfromdb = result[0]
-        xptodb = xpfromdb + xprange
-        cursor.execute(f'select levelvalue from leveling where guildid = {guildid} and userid = {userid}')          # getting level
-        result = cursor.fetchone()
-        level = result[0]
-        if level == 0:
-            neededtolvl = 100
-        else:
-            neededtolvl = level * level * 100           # determines how much xp is needed to level up
-        if xpfromdb >= neededtolvl:
-            level += 1
-        cursor.execute(f'update leveling set xpvalue = {xptodb} where guildid = {guildid} and userid = {userid};')
-        cursor.execute(f'update leveling set levelvalue = {level} where guildid = {guildid} and userid = {userid};')
-        mydb.commit()
+        LevelHelper.give_xp(message = message)
 
         # implement giving role on message (kinda dumb way) (or?)
-        user = message.author
-        if not user.bot:    # checks if user is bot
-            cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}';")
-            result = cursor.fetchone()
-            if result[0] > 0:
-                cursor.execute(f"select rolenames from roles where guildid = {guildid} and guildname = '{guildname}';")
-                rolenames = cursor.fetchmany(size = result[0])
-                cursor.execute(f"select reachlevels from roles where guildid = {guildid} and guildname = '{guildname}';")
-                reachlevels = cursor.fetchmany(size = result[0])
-                for x in range(result[0]):
-                    #print('dum')
-                    reachlevel = int(str(reachlevels[x]).replace("'", "").replace("(", "").replace(")", "").replace(",", ""))
-                    #print(f'level = {level}, reachlevel = {reachlevel}')
-                    if level >= reachlevel:
-                        # print('if')
-                        index = x-1
-                        role = discord.utils.get(message.guild.roles, name = str(rolenames[index]).replace("'", "").replace("(", "").replace(")", "").replace(",", ""))
-                        # print(str(rolenames[index]).replace("'", "").replace("(", "").replace(")", "").replace(",", ""))
-                        if role:
-                            await message.author.add_roles(role)
-                        else:
-                            realrole = str(rolenames[index]).replace("'", "").replace("(", "").replace(")", "").replace(",", "")
-                            await message.channel.send(f"There was an error while assigning the role **{realrole}**. Please report this to our discord.")
-            # else:
-                # print('no roles')
-        dbhelper.close()
+        print(LevelHelper.give_role(message = message)[1])
+        give_role_result = await LevelHelper.give_role(message = message)
+        if give_role_result[0] == True:
+            await message.author.add_roles(give_role_result[1])
+        elif give_role_result[0] == False:
+            await message.channel.send(f"There was an error while assigning the role **{give_role_result[1]}**. Please report this to our discord.")
+
+        await self.bot.process_command(message)
 
     # show an embed with level
     @commands.command(name = 'level')
@@ -189,29 +117,14 @@ class LevelSystem(commands.Cog):
         usernameraw = ctx.author.name
         username = usernameraw.replace("'", "")
 
-        @dataclass
-        class roles:
-            rolename:str
-            reachlevel:int
-
         # guild check and update
-        cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}';")
-        result = cursor.fetchone()
-        if result[0] == 0:
-            cursor.execute(f'select count(*) from roles where guildid = {guildid};')
-            result = cursor.fetchone()
-            if result[0] == 0:
-                cursor.execute(f"insert into roles(guildid, guildname) values({guildid}, '{guildname}');")
-                mydb.commit()
-                if result[0] == 0:
-                    cursor.execute(f"update roles set guildname = '{guildname}' where guildid = {guildid};")
-                    mydb.commit()
-                    print(f'updated guild {guildid} with new name: {guildname}')                    
-                else:
-                    print(f'guild {guildid} with name {guildname} is already in the database')
+        print('pp2')
+        LevelHelper.guild_check(message = ctx)
 
         # select number of role guild has
+        print('pp')
         cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}';")
+        print('cursor')
         result = cursor.fetchone()
         print(result[0])
         if result[0] == 0:
@@ -225,7 +138,7 @@ class LevelSystem(commands.Cog):
             reachleveldb = cursor.fetchmany(size = result[0])
 
             embedVar = discord.Embed(title = 'Guild roles', color = discord.Colour.random())
-            for x in range(result[0]):
+            async for x in range(result[0]):
                 rolename = str(rolenamedb[x]).replace("'", "").replace("(", "").replace(")", "").replace(",", "")
                 reachlevel = str(reachleveldb[x]).replace("'", "").replace("(", "").replace(")", "").replace(",", "")
                 embedVar.add_field(name = f'{rolename}', value = f'Reached at level {reachlevel}') # REPLACE ROLENAME[X] WITH THE ROLE PING WITHOUT PINGING THAT ROLE IF POSSIBLE
