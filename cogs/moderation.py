@@ -103,7 +103,7 @@ class Moderation(commands.Cog):
     # Patch command
     @commands.command(name = 'patchnotes')
     async def patch(self, ctx):
-        url = 'https://github.com/ignorance-uwu/IgnoBot.py/commits/main'
+        url = 'https://github.com/milkyicedtea/IgnoBot.py/commits/main'
         await ctx.send(url)
 
     @commands.command(name = 'assignrole')
