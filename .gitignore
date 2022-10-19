@@ -28,10 +28,10 @@ Scripts
 bot.bat
 bot.ps1
 
-#venv Lib
+#venv Libs
 Lib
 
-#venv Include
+#venv Include (empty)
 Include
 
 #old requirements.txt
