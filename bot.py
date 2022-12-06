@@ -48,6 +48,7 @@ def get_prefix(bot, message):
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix = (get_prefix), intents = intents, description = 'ducc')
 
+
 # cogs loading
 async def load_cogs():
     for filename in os.listdir('./cogs'): #loads all files (*.py)
@@ -62,7 +63,8 @@ async def on_ready():
     print(f'{bot.user} has logged in.')
     print('Servers connected to:')
     for guild in bot.guilds:
-        print(guild.name)
+        print(guild.name, " ", guild.id )
+        # await bot.tree.sync(guild = discord.Object(id = guild.id))
     await bot.change_presence(activity = discord.Activity(type = discord.ActivityType.listening, name = f'too many users typing D:'))
 
 @bot.event
