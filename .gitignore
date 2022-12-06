@@ -1,5 +1,6 @@
 #ignore .env (tokens and stuff)
 .env
+env backup
 
 #ignore err.log (it's not even there anymore what)
 err.log
