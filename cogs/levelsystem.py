@@ -75,13 +75,17 @@ class LevelSystem(commands.Cog):
         if member == None:
             member = usernameraw
         else:
-            member = member.display_name
+            if member.bot is True:
+                embedVar = discord.Embed(title = "No levels for bots :P", color = (colorValue))
+                await ctx.reply(embed = embedVar, mention_author = False)
+                return
+        
 
         # search for user in the db
-        DbChecks.userCheck(cursor, mydb, guildid, guildname, username, userid, user)
+        DbChecks.userCheck(cursor, mydb, guildid, guildname, member.name, member.id, member)
 
         # embed setup
-        embedVar = discord.Embed(title = "Level and XP for {}".format(member), color = (colorValue))
+        embedVar = discord.Embed(title = "Level and XP for {}".format(member.display_name), color = (colorValue))
 
         # fetch xpvalue
         cursor.execute(f'select xpvalue from leveling where guildid = {guildid} and userid = {userid};')
