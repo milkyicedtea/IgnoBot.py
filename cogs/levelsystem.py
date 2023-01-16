@@ -4,7 +4,6 @@
 #                      #
 ########################
 
-from dataclasses import dataclass
 import os
 
 import discord
@@ -115,11 +114,9 @@ class LevelSystem(commands.Cog):
         userid = ctx.author.id
         usernameraw = ctx.author.name
         username = usernameraw.replace("'", "")
-
-        @dataclass
-        class roles:
-            rolename:str
-            reachlevel:int
+    
+        rolename:str
+        reachlevel:int
 
         # guild check and update
         cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}';")
