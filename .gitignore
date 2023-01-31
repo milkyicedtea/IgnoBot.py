@@ -35,5 +35,8 @@ Lib
 #venv Include (empty)
 Include
 
+#visual studio files
+.vscode
+
 #old requirements.txt
 requirements.txt.old
