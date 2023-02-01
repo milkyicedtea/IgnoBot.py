@@ -27,7 +27,7 @@ def get_prefix(bot, message):
     mydb = dbhelper.open()
     cursor = dbhelper.get_cursor()
 
-    cursor.execute(f'select count(*) from guildsettings where guildid = {guildid};')
+    cursor.execute(f"select count(*) from guildsettings where guildid = {guildid};")
     result = cursor.fetchone()
     if result[0] == 0:
         prefix = 'i.'
