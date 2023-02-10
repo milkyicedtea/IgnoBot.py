@@ -49,12 +49,15 @@ intents = discord.Intents().all()
 bot = commands.Bot(command_prefix = (get_prefix), intents = intents, description = 'ducc')
 
 
-# cogs loading
+# cogs loading and command counting
 async def load_cogs():
+
     for filename in os.listdir('./cogs'): #loads all files (*.py)
         if filename.endswith('.py'):
             await bot.load_extension(f'cogs.{filename[:-3]}') #loads the file without ".py" for example: cogs.ping
             print(f'Loaded {filename[:-3]}')  
+
+    print(f'Total number of commands: {len(list(bot.walk_commands()))}')
 
 
 # Bot login event
