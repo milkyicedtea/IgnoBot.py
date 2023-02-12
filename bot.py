@@ -60,11 +60,7 @@ async def load_cogs():
             print(f'Loaded {filename[:-3]}')
 
     print(f'Total number of commands: {len(list(bot.walk_commands()))}')
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
-
+    
 # Bot login event
 @bot.event
 async def on_ready():
