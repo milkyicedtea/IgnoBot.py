@@ -1,3 +1,5 @@
+# わああああああああああああああああああああああああああああああああああああああああ
+
 ################
 #              #
 #     Main     #
@@ -34,7 +36,6 @@ def get_prefix(bot, message):
         cursor.execute(f"insert into guildsettings(guildid) values({guildid});")
         cursor.execute(f"insert into guildsettings(prefix) values('i.');")
         mydb.commit()
-
     
     cursor.execute(f'select prefix from guildsettings where guildid = {guildid};')
     result = cursor.fetchone()
@@ -55,10 +56,13 @@ async def load_cogs():
     for filename in os.listdir('./cogs'): #loads all files (*.py)
         if filename.endswith('.py'):
             await bot.load_extension(f'cogs.{filename[:-3]}') #loads the file without ".py" for example: cogs.ping
-            print(f'Loaded {filename[:-3]}')  
+            print(f'Loaded {filename[:-3]}')
 
     print(f'Total number of commands: {len(list(bot.walk_commands()))}')
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 
 # Bot login event
 @bot.event
@@ -68,7 +72,7 @@ async def on_ready():
     for guild in bot.guilds:
         print(guild.name, " ", guild.id )
         # await bot.tree.sync(guild = discord.Object(id = guild.id))
-    await bot.change_presence(activity = discord.Activity(type = discord.ActivityType.listening, name = f'too many users typing D:'))
+    await bot.change_presence(activity = discord.Activity(type = discord.ActivityType.watching, name = f'ducks at the park \U0001f986'))
 
 @bot.event
 async def on_guild_join(guild):

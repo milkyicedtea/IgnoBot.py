@@ -38,5 +38,8 @@ Include
 #visual studio files
 .vscode
 
+#pycharm files
+.idea
+
 #old requirements.txt
 requirements.txt.old
