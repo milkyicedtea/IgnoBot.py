@@ -30,15 +30,15 @@ def get_prefix(bot, message):
     mydb = dbhelper.open()
     cursor = dbhelper.get_cursor()
 
-    cursor.execute(f"select count(*) from guildsettings where guildid = {guildid};")
+    cursor.execute(f"select count(*) from guildsettings where guildid = {guildid}")
     result = cursor.fetchone()
     if result[0] == 0:
         prefix = 'i.'
-        cursor.execute(f"insert into guildsettings(guildid) values({guildid});")
-        cursor.execute(f"insert into guildsettings(prefix) values('i.');")
+        cursor.execute(f"insert into guildsettings(guildid) values({guildid})")
+        cursor.execute(f"insert into guildsettings(prefix) values('i.')")
         mydb.commit()
     
-    cursor.execute(f'select prefix from guildsettings where guildid = {guildid};')
+    cursor.execute(f'select prefix from guildsettings where guildid = {guildid}')
     result = cursor.fetchone()
     prefix = result[0]
 
@@ -85,16 +85,16 @@ async def on_guild_join(guild):
     cursor = dbhelper.cursorget_cursor()
     
     # do stuff in guildinfo
-    cursor.execute(f"insert into guildinfo(guildid, guildname) values({guildid}, '{guildname}');")
+    cursor.execute(f"insert into guildinfo(guildid, guildname) values({guildid}, '{guildname}')")
 
     # do stuff in guildsettings
-    cursor.execute(f"insert into guildsettings(guildid, prefix) values({guildid}, 'i.');")
+    cursor.execute(f"insert into guildsettings(guildid, prefix) values({guildid}, 'i.')")
 
     # do stuff in welcome
     welcomedef_channel = discord.utils.get(guild.channels, name = 'general')
     welcomedef_channel_id = welcomedef_channel.id
     welcomedef_message = 'Hey %mention_user%! Welcome to {}!'.format(guildname)
-    cursor.execute(f"insert into welcome(channel_id, guildid, welcome_message) values({welcomedef_channel_id}, {guildid}, '{welcomedef_message}');")
+    cursor.execute(f"insert into welcome(channel_id, guildid, welcome_message) values({welcomedef_channel_id}, {guildid}, '{welcomedef_message}')")
     mydb.commit()
 
     dbhelper.close()
@@ -109,19 +109,19 @@ async def on_guild_remove(guild):
     cursor = dbhelper.cursorget_cursor()
     
     # do stuff in guildsettings
-    cursor.execute(f'delete from guildsettings where guildid = {guildid};')
+    cursor.execute(f'delete from guildsettings where guildid = {guildid}')
     mydb.commit()
 
     #do stuff in welcome
-    cursor.execute(f'delete from welcome where guildid = {guildid};')
+    cursor.execute(f'delete from welcome where guildid = {guildid}')
     mydb.commit()
 
     #do stuff in leveling
-    cursor.execute(f'delete from leveling where guildid = {guildid};')
+    cursor.execute(f'delete from leveling where guildid = {guildid}')
     mydb.commit()
 
     # do stuff in guildinfo
-    cursor.execute(f"delete from guildinfo where guildid = {guildid};")
+    cursor.execute(f"delete from guildinfo where guildid = {guildid}")
     mydb.commit()
 
     print(f'deleted every information relative to guild {guildname} with id {guildid} from the database')
