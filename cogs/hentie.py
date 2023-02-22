@@ -26,18 +26,18 @@ class Hentie(commands.Cog):
     @commands.command()
     async def kayo(self, ctx, *, anime_name):
         anime = get_anime_info(query = anime_name)
-        print(anime)
+        # print(anime)
         if anime is None:
             print('anime is none')
             embed = discord.Embed(description = f"**An error occurred**", color = discord.Colour.random())
             embed.add_field(name = 'Error description:', value = f"Couldn't find the requested anime")
             return await ctx.send(embed = embed)
         
-        print('anime is not none')
+        # print('anime is not none')
         
         base64_bytes = base64.b64encode(anime.download.encode('UTF-8'))
         base64_string = base64_bytes.decode('UTF-8')
-        print('anime.download encoded')
+        # print('anime.download encoded')
 
         '''
         print(anime.episodes)
@@ -83,11 +83,11 @@ class Hentie(commands.Cog):
         if number_to_send == None:
             number_to_send = 1
 
-        print('checking how many to fetch')
+        # print('checking how many to fetch')
         if number_to_send > 20:
             number_to_send = 20
 
-        print('checking tag')
+        # print('checking tag')
         if tag == None:
             tag = 'vanilla'
 
@@ -104,7 +104,7 @@ class Hentie(commands.Cog):
         """
 
         if images is not None:
-            print('images is not none')
+            # print('images is not none')
             for x in range(number_to_send):
 
                 """

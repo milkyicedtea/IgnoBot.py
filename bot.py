@@ -16,6 +16,7 @@ from discord.ext import commands
 import discord.utils
 import asyncio
 
+from utils.dbchecks import DbChecks
 from utils.dbhelper import DbHelper
 
 # Initializing variables from .env file
@@ -23,6 +24,7 @@ load_dotenv()
 TOKEN = os.getenv('bot_token')
 
 def get_prefix(bot, message):
+    # print('get prefix')
     guildid = message.guild.id
 
     dbhelper = DbHelper()
@@ -30,17 +32,19 @@ def get_prefix(bot, message):
     mydb = dbhelper.open()
     cursor = dbhelper.get_cursor()
 
+    # DbChecks.guildCheck(cursor, mydb, guildid, guildname = message.guild.name)
+
     cursor.execute(f"select count(*) from guildsettings where guildid = {guildid}")
     result = cursor.fetchone()
     if result[0] == 0:
-        prefix = 'i.'
         cursor.execute(f"insert into guildsettings(guildid) values({guildid})")
-        cursor.execute(f"insert into guildsettings(prefix) values('i.')")
+        # print(f'guild {guildid} added to settings')
         mydb.commit()
     
     cursor.execute(f'select prefix from guildsettings where guildid = {guildid}')
     result = cursor.fetchone()
     prefix = result[0]
+    # print(prefix)
 
     dbhelper.close()
     return prefix
@@ -78,7 +82,7 @@ async def on_guild_join(guild):
     
     dbhelper = DbHelper()
     mydb = dbhelper.open()
-    cursor = dbhelper.cursorget_cursor()
+    cursor = dbhelper.get_cursor()
     
     # do stuff in guildinfo
     cursor.execute(f"insert into guildinfo(guildid, guildname) values({guildid}, '{guildname}')")
@@ -102,19 +106,19 @@ async def on_guild_remove(guild):
     
     dbhelper = DbHelper()
     mydb = dbhelper.open()
-    cursor = dbhelper.cursorget_cursor()
+    cursor = dbhelper.get_cursor()
     
-    # do stuff in guildsettings
+    #guildsettings
     cursor.execute(f'delete from guildsettings where guildid = {guildid}')
-    mydb.commit()
 
-    #do stuff in welcome
+    #welcome
     cursor.execute(f'delete from welcome where guildid = {guildid}')
-    mydb.commit()
 
-    #do stuff in leveling
+    #leveling
     cursor.execute(f'delete from leveling where guildid = {guildid}')
-    mydb.commit()
+
+    #roles
+    cursor.execute(f'delete from roles where guildid = {guildid}')
 
     # do stuff in guildinfo
     cursor.execute(f"delete from guildinfo where guildid = {guildid}")
