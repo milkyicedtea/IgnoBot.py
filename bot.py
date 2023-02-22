@@ -9,6 +9,8 @@
 
 import os
 
+import sys
+
 import discord
 
 from dotenv import load_dotenv
@@ -18,6 +20,10 @@ import asyncio
 
 from utils.dbchecks import DbChecks
 from utils.dbhelper import DbHelper
+
+print('python verion is:')
+print(sys.version)
+print(sys.version_info)
 
 # Initializing variables from .env file
 load_dotenv()
