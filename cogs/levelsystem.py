@@ -10,7 +10,6 @@ import discord
 from discord.ext import commands
 
 import random
-import asyncio
 
 from utils.dbhelper import DbHelper
 from utils.dbchecks import DbChecks
@@ -120,7 +119,20 @@ class LevelSystem(commands.Cog):
         reachlevel:int
 
         # guild check and update
-        DbChecks.guildCheck(cursor, mydb, guildid, guildname)
+        cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}';")
+        result = cursor.fetchone()
+        if result[0] == 0:
+            cursor.execute(f'select count(*) from roles where guildid = {guildid};')
+            result = cursor.fetchone()
+            if result[0] == 0:
+                cursor.execute(f"insert into roles(guildid, guildname) values({guildid}, '{guildname}');")
+                mydb.commit()
+                if result[0] == 0:
+                    cursor.execute(f"update roles set guildname = '{guildname}' where guildid = {guildid};")
+                    mydb.commit()
+                    print(f'updated guild {guildid} with new name: {guildname}')                    
+                else:
+                    print(f'guild {guildid} with name {guildname} is already in the database')
 
         # select number of role guild has
         cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}' and rolenames is not NULL;")
@@ -147,8 +159,8 @@ class LevelSystem(commands.Cog):
 
     # set roles to give for every levels
     @commands.command(name = 'setrole')
-    @commands.has_guild_permissions(manage_roles = True)
-    async def set_roles(self, ctx ,reach_level: int, *, role_name:str):
+    @commands.has_permissions(manage_roles = True)
+    async def set_roles(self, ctx, reach_level: int, *, role_name:str):
         dbhelper = DbHelper()
         mydb = dbhelper.open()
         cursor = dbhelper.get_cursor()
@@ -200,38 +212,16 @@ class LevelSystem(commands.Cog):
             print("role just created")
         
         if role_exists_db and role_exists_guild:
-            await ctx.send(f"The role **{role_name}** was already present and no changes were made")
+            await ctx.send(f"The role **{role_name}** was already present and no changed were made")
 
         elif not role_exists_db or not role_exists_guild:
             await ctx.send(f"The role **{role_name}** has been added to the guild! People will receive it when they reach level **{reach_level}**")
         dbhelper.close()
 
-    @commands.command()
-    @commands.has_guild_permissions(manage_roles = True)
-    async def unsetrole(self, ctx, *, role_name: str):
-        dbhelper = DbHelper()
-        mydb = dbhelper.open()
-        cursor = dbhelper.get_cursor()
-
-        guildid = ctx.guild.id
-        guildraw = ctx.guild.name
-        guildname = guildraw.replace("'", "")
-        usernameraw = ctx.author.name
-        username = usernameraw.replace("'", "")
-        colorValue = discord.Colour.random()
-
-        cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}' and rolenames = '{role_name}';")
-        result = cursor.fetchone()
-        if result[0] > 0:
-            cursor.execute(f"delete from roles where guildid = {guildid} and guildname = '{guildname}' and rolenames = '{role_name}';")
-            mydb.commit()
-        
-        await ctx.send(f"The role **{role_name}** will no more be assigned")
-
     # remove role from guild
     @commands.command()
-    @commands.has_guild_permissions(manage_roles = True)
-    async def deleterole(self, ctx, *, role_name: str):
+    @commands.has_permissions(manage_roles = True)
+    async def removerole(self, ctx, *, role_name: str):
         dbhelper = DbHelper()
         mydb = dbhelper.open()
         cursor = dbhelper.get_cursor()
@@ -269,7 +259,7 @@ class LevelSystem(commands.Cog):
 
     # selfrole command
     @commands.command()
-    async def selfrole(self, ctx, action, *, role_name: str = None):
+    async def selfrole(self, ctx, *, role_name: str):
         dbhelper = DbHelper()
         mydb = dbhelper.open()
         cursor = dbhelper.get_cursor()
@@ -281,142 +271,33 @@ class LevelSystem(commands.Cog):
         username = usernameraw.replace("'", "")
         colorValue = discord.Colour.random()
 
+        member: discord.Member = ctx.message.author
+
         exists_in_db: bool = False
         exists_in_guild: bool = False
 
-        if action == "list":
-            print('list')
-            embed = discord.Embed(title = "\U0001f9fe Selfrole list", color = colorValue)
-            embed.add_field(name = "", value = "**These are the available selfroles in the server.**", inline = False)
-            cursor.execute(f"select * from roles where guildid = {guildid} and guildname = '{guildname}' and is_selfrole = 1;")
-            fetch = cursor.fetchall()
-
-            for x in range(len(fetch)):
-                role = discord.utils.get(ctx.guild.roles, name = fetch[x][1])
-                embed.add_field(name = "", value = f"{x+1}: **<@&{role.id}>**", inline = False)
-
-            embed.set_footer(text = "Use the command `selfrole give` to give yourself the role")
-            
-            await ctx.send(embed = embed)
-
-
-        elif action == "remove":
-            print('remove')
-            if role_name is None:
-                await ctx.reply(f'No role specified', delete_after = 5, mention_author = False)
-                await asyncio.sleep(5)
-                await ctx.message.delete()
-
-            else:
-                print(ctx.message.author.guild_permissions.manage_roles)
-                if ctx.message.author.guild_permissions.manage_roles:
-                    print('has perms')
-                    cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}' and rolenames = '{role_name}' and is_selfrole = 1;")
-                    if cursor.fetchone()[0] == 0:
-                        await ctx.reply(f"An error occured: the role was not previously added as a selfrole!", delete_after = 5, mention_author = False)
-                        await asyncio.sleep(5)
-                        await ctx.message.delete()
-
-                    else:
-                        cursor.execute(f"delete from roles where guildid = {guildid} and guildname = '{guildname}' and rolenames = '{role_name}' and is_selfrole = 1;")
-                        mydb.commit()
-                        for discord.Member.id in guildid:
-                            role = discord.utils.get(ctx.guild.roles, name = role_name)
-                            if role in discord.Member.id.roles:
-                                await discord.Member.id.remove_roles(role)
-                            
-                        await ctx.send(f'The role **{role_name}** was removed from every user and is no longer self-assignable')
-                else:
-                    print('no perms??')
-                    raise commands.MissingPermissions()
-
-        elif action == "add":
-            print('add')
-            if not ctx.message.author.guild_permissions.manage_roles:
-                raise commands.MissingPermissions
-                
-            else:
-                if role_name is not None:
-                    role = discord.utils.get(ctx.guild.roles, name = role_name)
-                    print(role_name)
-                    print(role)
-                    if discord.utils.get(ctx.guild.roles, name = role_name):
-                        cursor.execute(f"insert into roles (guildid, guildname, rolenames, is_selfrole) values ({guildid}, '{guildname}', '{role_name}', 1)")
-                        mydb.commit()
-                        await ctx.reply(f"The role **{role_name}** is now self-assignable!")
-                    else:
-                        await ctx.reply(f"This role doesn't exist!", delete_after = 5, mention_author = False)
-                        await asyncio.sleep(5)
-                        await ctx.message.delete()
-                else:
-                    await ctx.reply(f'No role specified', delete_after = 5, mention_author = False)
-                    await asyncio.sleep(5)
-                    await ctx.message.delete()
-
-        elif action == "give":
-            print('give')
-            if role_name is None:
-                await ctx.reply(f'No role specified', delete_after = 5, mention_author = False)
-                await asyncio.sleep(5)
-                await ctx.message.delete()
-
-            else:
-                #check if role is present in db and guild
-                role = discord.utils.get(ctx.guild.roles, name = role_name)
-                if role:
-                    exists_in_guild = True
-                else:
-                    await ctx.reply('The role specified does not exist.', delete_after = 5, mention_author = False)
-                    await asyncio.sleep(5)
-                    await ctx.message.delete()
-
-                
-                cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}' and rolenames = '{role_name}';")
-                result = cursor.fetchone()
-                if result[0] > 0:
-                    exists_in_db = True
-                else:
-                    await ctx.reply('The role specified was not added to selfroles.', delete_after = 5, mention_author = False)
-                    await asyncio.sleep(5)
-                    await ctx.message.delete()
-
-                if exists_in_db and exists_in_guild:
-                    await ctx.message.author.add_roles(role)
-                    await ctx.reply(f"The role **{role_name}** has been assigned to you", mention_author = False)
-
-        elif action == "leave":
-            if role_name is None:
-                await ctx.reply(f'No role specified', delete_after = 5, mention_author = False)
-                await asyncio.sleep(5)
-                await ctx.message.delete()
-
-            else:
-                #check if role is present in db and guild
-                role = discord.utils.get(ctx.guild.roles, name = role_name)
-                if role:
-                    exists_in_guild = True
-                else:
-                    await ctx.reply('The role specified does not exist.', delete_after = 5, mention_author = False)
-                    await asyncio.sleep(5)
-                    await ctx.message.delete()
-
-                cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}' and rolenames = '{role_name}';")
-                result = cursor.fetchone()
-                if result[0] > 0:
-                    exists_in_db = True
-                else:
-                    await ctx.reply('The role specified was not added to selfroles.', delete_after = 5, mention_author = False)
-                    await asyncio.sleep(5)
-                    await ctx.message.delete()
-
-                if exists_in_db and exists_in_guild:
-                    await ctx.message.author.remove_roles(role)
-                    await ctx.reply(f"The role **{role_name}** has been removed from your current roles", mention_author = False)
-
-
+        #check if role is present in db and guild
+        cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}' and rolenames = '{role_name}'")
+        result = cursor.fetchone()
+        if result[0] > 0:
+            exists_in_db = True
         else:
-            await ctx.send(f'The action specified was not valid: try with `give` or `leave`')
+            print('role is not in db')
 
+        role = discord.utils.get(ctx.message.guild.roles, name = role_name)
+
+        if role:
+            exists_in_guild = True
+            print('role is in guild')
+        else:
+            print('role is not in guild')
+
+        if exists_in_db and exists_in_guild:
+            print('test')
+            await member.add_roles(role)
+            await ctx.send(f'The role **{role_name}** has been assigned to you')
+        else:
+            print('Something went wrong')
         dbhelper.close()
 
 async def setup(bot):

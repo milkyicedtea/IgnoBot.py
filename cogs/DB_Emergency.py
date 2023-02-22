@@ -18,7 +18,7 @@ class DB_Emergency(commands.Cog):
 
     # Add-guild command
     @commands.command(name = 'add-guild', help = "ONLY USE THIS COMMANDS IF SOMETHING BREAKS **PLEASE**.")
-    @commands.has_guild_permissions(manage_guild = True)
+    @commands.has_permissions(manage_guild = True)
     async def addguild(self, ctx):
         try:
             dbhelper = DbHelper()

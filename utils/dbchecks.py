@@ -106,13 +106,3 @@ class DbChecks():
                             await message.channel.send(f"There was an error while assigning the role **{realrole}**. Please report this to our discord.")
             # else:
                 # print('no roles')
-
-    async def guildHasLogs(cursor, mydb, guildid, guildname):
-        cursor.execute(f"select wantslogs from guildinfo where guildid = {guildid} and guildname = '{guildname}'")
-        wantslogs = int(cursor.fetchone())
-        if wantslogs > 0:
-            cursor.execute(f"select logchannel from settings where guildid = {guildid} and guildname = '{guildname}'")
-            logchannel = str(cursor.fetchone())
-            return True, logchannel
-        else:
-            return False

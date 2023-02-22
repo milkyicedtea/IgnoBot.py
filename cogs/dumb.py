@@ -125,7 +125,7 @@ class Dumb(commands.Cog):
             if catturato == sexy:
                 await ctx.send('CATTURATO IN 16K UHD 1298037HZ HDR69420+ 87BIT')
         else:
-            await ctx.send("You tried, but you don't have the original links anyways :)")
+            print('bad')
 
     # osu skins repo
     # @commands.command(name = 'osuskins', help = 'Brings up my osu skins repository')
@@ -192,8 +192,6 @@ class Dumb(commands.Cog):
                                                 'catto18',
                                                 'catto19']))
             await ctx.send(cattos)
-        else:
-            await ctx.send("You tried, but you don't have the original links anyways :)")
 
     # listeners
     @commands.Cog.listener()
@@ -205,33 +203,33 @@ class Dumb(commands.Cog):
             await msg.reply(response)
 
     # vado on message
-        elif msg.content == 'vado' or msg.content == 'io vado' or msg.content == 'bella' or msg.content == 'a domani':
+        if msg.content == 'vado' or msg.content == 'io vado' or msg.content == 'bella' or msg.content == 'a domani':
             response = 'ok a domani a domani a domani'
             await msg.reply(response)
 
     # bimbo dingo
-        elif msg.content == 'rocket league' or msg.content == 'dingo':
+        if msg.content == 'rocket league' or msg.content == 'dingo':
             response = 'bimbo dingo'
             bimbodingospamrange = int(random.choice(range(1,5+1)))
             for x in range(bimbodingospamrange):
                 await msg.reply(response)
         
     # sconosciuto
-        elif msg.content == 'sconosciuto':
+        if msg.content == 'sconosciuto':
             response = random.choice(['Hai fatto incazzare la persona sbagliata. Non hai futuro.', 'Mi hai fregato la macchina! Sarai mangime per vermi, pezzo di merda.'])
             await msg.reply(response)
 
     # python bad
-        elif msg.content == 'python?':
+        if msg.content == 'python?':
             response = 'bad'
             await msg.reply(response)
 
     # O RAZZIATORE???
-        elif msg.content == 'o razziatore' or msg.content == 'razziatore' or msg.content == 'o razziatore?':
+        if msg.content == 'o razziatore' or msg.content == 'razziatore' or msg.content == 'o razziatore?':
             await msg.reply('https://cdn.discordapp.com/attachments/933336707825295368/936916126594633779/Immagine_2022-01-27_221310.png')
 
     # Was für eine parade!
-        elif msg.content == 'Was für eine parade!':
+        if msg.content == 'Was für eine parade!':
             await msg.reply('Danke!')
 
 async def setup(bot):
