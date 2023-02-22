@@ -8,7 +8,9 @@ import os
 
 import discord
 from discord.ext import commands
-import re
+
+from utils.dbhelper import DbHelper
+from utils.dbchecks import DbChecks
 
 class Moderation(commands.Cog):
     def __init__(self, bot):
@@ -113,6 +115,35 @@ class Moderation(commands.Cog):
         if role:
             await member.add_roles(role)
             await ctx.send(f'The role **{role_name}** has been assigned to {member._user}')
+
+    """@commands.command(name = 'dev')
+    async def dev(self, ctx):
+        links: list = []
+        dev_site: str = 'https://milkyicedtea.epizy.com'
+        github_link: str = 'https://github.com/milkyicedtea'
+        bot_repository: str = 'https://github.com/milkyicedtea/IgnoBot.py'
+        twitch_link: str = 'https://twitch.tv/'
+        links.append(dev_site)
+        links.append(github_link)
+        links.append(bot_repository)
+        links.append(twitch_link)
+        print(links)
+        for x in range(len(links)):
+            await ctx.send(links[x])"""
+
+    @commands.Cog.listener()
+    async def on_message_delete(self, message):
+        dbhelper = DbHelper()
+        mydb = dbhelper.open()
+        cursor = dbhelper.get_cursor()
+
+        DbChecks.guildCheck(cursor, mydb, guildid = message.guild.id, guildname = message.guild.name)
+        has_logs = DbChecks.guildHasLogs(cursor, mydb, guildid = message.guild.id, guildname = message.guild.name)
+        if has_logs[0]:
+            channel = has_logs[1]
+            embed = discord.Embed(title = f"Deleted message from {message.author.display_name}", color = discord.Color.random(), icon_url = message.author.avatar)
+            embed.add_field(name = '', value = message)
+            await channel.send(embed = embed)
 
 async def setup(bot):
     await bot.add_cog(Moderation(bot))
