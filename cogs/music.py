@@ -13,7 +13,6 @@ from discord.ext import commands
 import asyncio
 import youtube_dl
 
-import ctypes
 import ctypes.util
 
 print(platform.system())
@@ -74,32 +73,89 @@ class Music(commands.Cog):
         self.can_loop: bool = False
 
         self.url: str
+        self.first_song: bool = True
+
+        #nuovo da provare
+        self.emptyList: list = []
+        self.playlist: list = []
+        self.playlistIndex: int = 1
+        self.duration: list = []
+        self.names: list = []
 
     # Cool function :sunglus:
+    #da provare
     async def stream_music(self, ctx, url):
         self.was_paused = False
+        voice = ctx.voice_client
 
-        if not ctx.voice_client.is_connected:
+        # print(voice.is_connected())
+        if not voice.is_connected:
             channel = ctx.message.author.voice.channel
             channel.connect()
 
-        print(ctx.voice_client.is_playing())
-        voice = ctx.voice_client
-
+        # print(f'voice.is_playing: {voice.is_playing()}')
+        index = self.playlistIndex
         with youtube_dl.YoutubeDL(ytdl_format_options) as ydl:
             try:
                 info = ydl.extract_info(f'ytsearch:{url}', download = False)['entries'][0]
             except:
                 info = ydl.extract_info(url, download = False)
             url2 = info['formats'][0]['url']
-            voice.play(discord.FFmpegPCMAudio(url2, **ffmpeg_options))
-            print('play started')
+            # print(f'url2 is {url2}')
+            songDuration = info['duration']
+            print(f'songDuration is {songDuration}')
+            songName = info['title']
+            print(f'songName is {songName}')
+            self.duration.append(songDuration)
+            self.names.append(songName)
+
+            print(f'voice.is_playing: {voice.is_playing()}')
+            if voice.is_playing() is True:
+                print('voice is playing')
+                self.playlist.append(url2)
+                return
+            elif voice.is_playing() is False:
+                print('voice not playing')
+                self.playlist.append(url2)
+                self.first_song = False
+                while index <= len(self.playlist):
+                    print(voice.is_playing())
+                    if voice.is_playing() == False:
+                        voice.play(discord.PCMVolumeTransformer((discord.FFmpegPCMAudio(self.playlist[index-1], **ffmpeg_options))))
+                        print('play started')
+                        index += 1
+                        if index > len(self.playlist):
+                            break
+                index = 1
+                self.names = []
+                self.duration = []
+                self.playlist = []
+                self.first_song = True
 
             """while voice.is_playing and self.is_looping:
                 print('first while')
                 while not voice.is_playing and self.is_looping:
                     print('second while')
                     await self.stream_music(ctx = ctx, url = self.url)"""
+
+    @commands.command()
+    async def printpl(self, ctx):
+        await ctx.send(self.playlist)
+
+    #da provare
+    @commands.command()
+    async def queue(self, ctx):
+        voice = discord.utils.get(self.bot.voice_clients, guild = ctx.guild)
+        colorValue = discord.Colour.random()
+        if voice is None:
+            await ctx.send("I'm not playing anything at the moment.")
+        elif voice is not None and voice.is_playing:
+            embedVar = discord.Embed(title = "Queue", color = (colorValue))
+
+            for x in range(len(self.playlist)):
+                embedVar.add_field(name = "Position in playlist: {}".format(x+1), value = "Song title: {}".format(self.names[x]), inline = False)
+
+            await ctx.send(embed = embedVar)
 
     # Makes the bot join a channel (disabled because unnecessary)
     @commands.command(name = 'join')
