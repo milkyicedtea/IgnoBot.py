@@ -12,14 +12,14 @@ from dataclasses import dataclass
 
 @dataclass
 class AnimeInfo:
-    title: str      = 'Unknown'
-    genres: str     = 'Unknown'
-    episodes: str   = 'Unknown'
-    rating: str     = 'Unkwown'
-    duration: str   = 'Unknown'
-    aired: str      = 'Unknown'
-    thumbnail: str  = 'Unknown'
-    download: str   = 'Unknown'
+    title: str = 'Unknown'
+    genres: str = 'Unknown'
+    episodes: str = 'Unknown'
+    rating: str = 'Unkwown'
+    duration: str = 'Unknown'
+    aired: str = 'Unknown'
+    thumbnail: str = 'Unknown'
+    download: str = 'Unknown'
 
 
 def get_anime_info(query: str) -> Optional[AnimeInfo]:

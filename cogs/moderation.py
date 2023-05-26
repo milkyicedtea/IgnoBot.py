@@ -5,205 +5,213 @@
 ######################
 
 import os
+import json
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
-from utils.dbhelper import DbHelper
 from utils.dbchecks import DbChecks
+from utils.dbhelper import DbHelper
 
 class Moderation(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot 
+	def __init__(self, bot):
+		self.bot = bot
 
-    # Kick command
-    @commands.command(name = 'kick')
-    @commands.has_guild_permissions(kick_members = True)
-    async def kick(self, ctx, member:discord.Member, *, reason = None):
-        await member.kick(reason = reason)
-        await ctx.send(f'User {member.mention} has been kicked from the server.\nResponsible mod: **{ctx.author}**\nReason: {reason}')
+	# moderationGroup = app_commands.Group(name = 'moderation', description = 'Moderation related commands')
+	channel = app_commands.Group(name = 'channel', description = 'Channel related commands')
+	roleGroup = app_commands.Group(name = 'role', description = 'Roles related commands')
+	server = app_commands.Group(name = 'server', description = 'Server related commands', guild_only = True)
 
-    # Ban command
-    @commands.command(name = 'ban')
-    @commands.has_guild_permissions(ban_members = True)
-    async def ban(self, ctx, member:discord.Member, *, reason = None):
-        await member.ban(reason = reason)
-        await ctx.send(f'User {member.mention} has been banned from the server.\nResponsible mod: **{ctx.author}**\nReason: {reason}')
+	application_check = app_commands.checks.has_permissions
 
-    # Unban command
-    @commands.command(name = 'unban')
-    @commands.has_guild_permissions(ban_members = True)
-    async def unban(self, ctx,* , member):
-        banned_users = await ctx.guild.bans()
-        member_name, member_discriminator = member.split("#")
 
-        for ban_entry in banned_users:
-            user = ban_entry.user
+	# Kicks user
+	@app_commands.command(name = 'kick', description = "Kicks a user")
+	@application_check(kick_members = True)
+	async def kick(self, interaction: discord.Interaction, member: discord.Member, reason: str = None):
+		await member.kick(reason = reason)
+		await interaction.response.send_message(f'User {member.mention} has been kicked from the server.\nResponsible mod: **{interaction.user}**\nReason: {reason}')
 
-            if (user.name, user.discriminator) == (member_name, member_discriminator):
-                await ctx.guild.unban(user)
-                await ctx.send(f'Unbanned {user.mention}')
-                return
 
-    # Purge command
-    @commands.command(name = 'purge')
-    @commands.has_guild_permissions(manage_messages = True)
-    async def purge_messages(self, ctx, amount_to_delete: int = 0):
-        if amount_to_delete < 1 or amount_to_delete > 100:
-            await ctx.send('You need to enter a value between 1 and 100')
-        else:
-            await ctx.channel.purge(limit = amount_to_delete + 1)
+	# Bans user
+	@app_commands.command(name = 'ban', description = "Bans a user")
+	@application_check(ban_members = True)
+	async def ban(self, interaction: discord.Interaction, member: discord.Member, reason: str = None):
+		await member.ban(reason = reason)
+		embed = discord.Embed(title = "", color = discord.Colour.random())
+		embed.set_author(name = interaction.user.display_name, icon_url = interaction.user.avatar)
+		embed.add_field(name = "New ban:", value = f"User {member.mention} has been banned")
+		embed.add_field(name = "Responsible mod:", value = interaction.user)
+		embed.add_field(name = "Reason:", value = reason)
+		await interaction.response.send_message(embed = embed)
 
-    # Creating a new channel
-    @commands.command(name = 'create_channel')
-    @commands.has_guild_permissions(manage_channels = True)
-    async def create_channel(self, ctx, channel_name = None):
-        guild = ctx.guild
-        existing_channel = discord.utils.get(guild.channels, name = channel_name)
-        if existing_channel:
-            await ctx.send(f'A channel named "{channel_name}" already exists. Please delete or rename that channel before using this command.')
-        if not existing_channel:
-            if channel_name != None:
-                channel_name = 'new-channel'
-                await guild.create_text_channel(channel_name)
-                await ctx.send(f'Created a channel named {channel_name}')
-            else:
-                await guild.create_text_channel(channel_name)
-                await ctx.send(f'Created a channel named {channel_name}')
 
-    # Join date command
-    @commands.command(name = 'joindate')
-    async def join_date(self, ctx, member: discord.Member = None):
-        if member == None:
-            member = ctx.message.author
-        joined_at = member.joined_at
-        await ctx.send(f'{member.mention} joined on {joined_at}.')
+	# Unbans users
+	@app_commands.command(name = 'unban', description = "Unbans a user")
+	@application_check(ban_members = True)
+	async def unban(self, interaction: discord.Interaction, member: discord.Member):
+		banned_users = await interaction.guild.bans()
 
-    # Avatar command
-    @commands.command(name = 'avatar')
-    async def avatar(self, ctx, member: discord.Member = None):
-        if member == None:
-            member = ctx.message.author
+		for ban_entry in banned_users:
+			user = ban_entry.user
 
-        avatar_url = member.avatar
-        embedVar = discord.Embed(title = f"{member}'s profile image", color = discord.Colour.random())
-        embedVar.set_image(url = avatar_url)
+			if (user.name, user.discriminator) == (member.name, member.discriminator):
+				await interaction.guild.unban(user)
+				embed = discord.Embed(title="", color=discord.Colour.random())
+				embed.set_author(name = interaction.user.display_name, icon_url = interaction.user.avatar)
+				embed.add_field(name = "New unban:", value = f"User {member.mention} has been unbanned")
+				embed.add_field(name = "Responsible mod:", value = interaction.user)
+				await interaction.response.send_message(embed = embed)
+				return
 
-        await ctx.send(embed = embedVar)
 
-    # Server image command
-    @commands.command(name = 'servericon')
-    async def servericon(self, ctx):
-        guildraw = ctx.guild
-        guildname = guildraw.name.replace("'", "")
-        server_icon = guildraw.icon
-        embedVar = discord.Embed(title = guildname, color = discord.Colour.random())
-        embedVar.set_image(url = server_icon)
+	# Purges x messages
+	@app_commands.command(name = 'purge')
+	@application_check(manage_messages = True)
+	async def purge_messages(self, interaction: discord.Interaction, amount_to_delete: int = 0):
+		if amount_to_delete < 1 or amount_to_delete > 100:
+			await interaction.response.send_message('You need to enter a value between 1 and 100', ephemeral = True, delete_after = 10)
+		else:
+			await interaction.response.send_message(f'Purged {amount_to_delete} messages!', ephemeral = True, delete_after = 10)
+			await interaction.channel.purge(limit = amount_to_delete)
 
-        await ctx.send(embed = embedVar)
 
-    # Patch command
-    @commands.command(name = 'patchnotes')
-    async def patch(self, ctx):
-        url = 'https://github.com/milkyicedtea/IgnoBot.py/commits/main'
-        await ctx.send(url)
+	# Creates a new channel
+	@channel.command(name = 'create')
+	@application_check(manage_channels = True)
+	async def create_channel(self, interaction: discord.Interaction, channel_name: str = None, category: discord.CategoryChannel = None, ):
+		guild = interaction.guild
+		existing_channel = discord.utils.get(guild.channels, name = channel_name)
+		if existing_channel:
+			await interaction.response.send_message(f'A channel named "{channel_name}" already exists. Please delete or rename that channel before using this command.')
+		if not existing_channel:
+			if channel_name is None:
+				channel_name = 'new-channel'
+			await guild.create_text_channel(channel_name, category = category)
+			channel = discord.utils.get(interaction.guild.channels , name = channel_name)
+			await interaction.response.send_message(f'Channel <#{channel.id}> was succesfully created')
 
-    @commands.command(name = 'assignrole')
-    @commands.has_guild_permissions(manage_roles = True)
-    async def giverole(self, ctx, member: discord.Member, *, role_name):
-        role = discord.utils.get(ctx.message.guild.roles, name = role_name)
-        if role:
-            await member.add_roles(role)
-            await ctx.send(f'The role **{role_name}** has been assigned to {member._user}')
 
-    @commands.command(name = 'dev')
-    async def dev(self, ctx):
-        links: list = []
-        dev_site: str = 'https://milkyicedtea.epizy.com'
-        github_link: str = 'https://github.com/milkyicedtea'
-        bot_repository: str = 'https://github.com/milkyicedtea/IgnoBot.py'
-        twitch_link: str = 'https://twitch.tv/'
-        links.append(dev_site)
-        links.append(github_link)
-        links.append(bot_repository)
-        links.append(twitch_link)
-        print(links)
-        for x in range(len(links)):
-            await ctx.send(links[x])
+	# Deletes a channel
+	@channel.command(name = 'delete')
+	@application_check(manage_channels = True)
+	async def delete_channel(self, interaction: discord.Interaction, channel: discord.TextChannel):
+		if interaction.channel == channel:
+			interaction.response.send_message(f"You can't request to delete a channel while you're in it!", ephemeral = True, delete_after = 10)
+		else:
+			await channel.delete()
+			await interaction.response.send_message(f"Channel **{channel.name}** was succesfully deleted")
 
-    @commands.command(name = 'memberlist')
-    @commands.is_owner()
-    async def memberlist(self, ctx):
-        #print(ctx.guild.members)
-        for member in ctx.guild.members:
-            #print(member.name)
-            print((member.name + member.discriminator))
-            if (member.name + '#' + member.discriminator) == 'ignorance#1928':
-                print(member.roles[1].name)
-                print(type(member.roles[1]))
-                if member.roles[1].name == 'GOD':
-                    print('igor god')
 
-    @commands.command(name = 'createrole')
-    @commands.has_guild_permissions(manage_roles = True)
-    async def create_role(self, ctx, role_color:str, *, role_name: str):
-        print(discord.Colour.from_str(f'#{role_color}'))
-        color = discord.Colour.from_str(f'#{role_color}')
-        await ctx.guild.create_role(name = role_name, color = color)
-        await ctx.reply(f'The role **{role_name}** has been created!')
+	# Returns member list as json file
+	@server.command(name='memberlist')
+	@application_check(administrator=True)
+	async def memberlist(self, interaction: discord.Interaction):
+		mList: list = [member for member in interaction.guild.members]
+		dictionary = {
+			"members": [
 
-    @commands.command(name = 'deleterole')
-    @commands.has_guild_permissions(manage_roles = True)
-    async def delete_role(self, ctx, *, role_name: str):
-        role = discord.utils.get(ctx.guild, name = role_name)
-        print(ctx.message.author)
-        await role.delete(reason = f'Delete from command. Issued by: {ctx.message.author}')
-            
-    @commands.command(name = 'addlogs')
-    async def addLogs(self, ctx, channel_id):
-        dbhelper = DbHelper()
-        mydb = dbhelper.open()
-        cursor = dbhelper.get_cursor()
+			]
+		}
 
-        guildid = ctx.guild.id
-        guildraw = ctx.guild.name
-        guildname = guildraw.replace("'", "")
-        userid = ctx.author.id
-        usernameraw = ctx.author.name
-        username = usernameraw.replace("'", "")
+		for member in mList:
+			# if not member.bot:
+			new_dictionary = {
+				"name": f"{member.name}",
+				"mention": f"{member.mention}",
+				"roles": f"{[role for role in member.roles]}, ",
+				"created_at": f"{member.created_at}",
+				"is_bot": f"{member.bot}"
+			}
+			dictionary["members"].append(new_dictionary)
 
-        DbChecks.guildCheck(cursor, mydb, guildid, guildname)
+		print('opening file')
 
-        channel_id = int(channel_id.replace("<", "").replace(">", "").replace("#", ""))
-        channel = self.bot.get_channel(channel_id)
+		with open('memberList.json', "w") as outfile:
+			print('dumping')
+			json.dump(dictionary, outfile, indent=1)
+			outfile.close()
+			await interaction.response.send_message("Check your DMs!", ephemeral = True)
+			await interaction.user.send(content="", file=discord.File("memberList.json"))
+			os.remove("memberList.json")
 
-        cursor.execute(f"update guildsettings set wantslogs = 'true' where guildid = {guildid}")
-        cursor.execute(f"update guildsettings set logchannel = {channel_id} where guildid = {guildid}")
-        mydb.commit()
-        await ctx.send(f"Your logs channel was updated to <#{channel_id}>.")
-        await channel.send(f"This is the start of your logs.")
-        dbhelper.close()
 
-    @commands.Cog.listener()
-    async def on_message_delete(self, message):
-        dbhelper = DbHelper()
-        mydb = dbhelper.open()
-        cursor = dbhelper.get_cursor()
+	# Gets server banner
+	@server.command(name = 'banner')
+	async def serverbanner(self, interaction: discord.Interaction):
+		guildraw = interaction.guild
+		embed = discord.Embed(title = "", color = discord.Colour.random())
+		if guildraw.banner is not None:
+			server_banner = guildraw.banner
+			embed.set_image(url=server_banner)
+		else:
+			embed.add_field(name = "An error occurred!", value = "This server does not have a banner!")
 
-        DbChecks.guildCheck(cursor, mydb, guildid = message.guild.id, guildname = message.guild.name)
+		await interaction.response.send_message(embed = embed)
 
-        has_logs = DbChecks.checkGuildLogs(cursor, mydb, guildid = message.guild.id)
-        if has_logs[0] is True:
-            channel_id = int(str(has_logs[1]).replace("(", "").replace(")", "").replace(",", ""))
-            channel = self.bot.get_channel(channel_id)
 
-            embed = discord.Embed(color = discord.Colour.random())
-            embed.set_author(name = f"Message deleted from\n<@&{message.author.id}>:", icon_url = message.author.avatar)
-            embed.add_field(name = '', value = message.clean_content, inline = False)
-            await channel.send(embed = embed)
-        dbhelper.close()
+	# Gets server image
+	@server.command(name = 'icon')
+	async def servericon(self, interaction: discord.Interaction):
+		guildraw = interaction.guild
+		embed = discord.Embed(title="", color=discord.Colour.random())
+		if guildraw.icon is None:
+			embed.add_field(name="An error occurred!", value="This server does not have an icon!")
+		else:
+			server_icon = guildraw.icon
+			embed.set_image(url = server_icon)
 
-        # {message.author.display_name}#{message.author.discriminator}
+		await interaction.response.send_message(embed = embed)
+
+
+	# Assigns role to member
+	@roleGroup.command(name = 'assign')
+	@application_check(manage_roles = True)
+	async def assign_role(self, interaction: discord.Interaction, member: discord.Member, role: discord.Role):
+		await member.add_roles(role)
+		await interaction.response.send_message(f'The role **<@&{role.id}>** has been assigned to <@{member.id}>', silent = True)
+
+
+	# Unassigns role from member
+	@roleGroup.command(name = "unassign")
+	@application_check(manage_roles = True)
+	async def unassign_role(self, interaction: discord.Interaction, member: discord.Member, role: discord.Role):
+		await member.remove_roles(role)
+		await interaction.response.send_message(f'The role **<@&{role.id}>** has been removed from <@{member.id}>', silent = True)
+
+
+	@app_commands.command(name = 'dev')
+	async def dev(self, interaction: discord.Interaction):
+		await interaction.response.send_message('https://milkyicedtea.epizy.com')
+
+
+	# Patch command
+	@app_commands.command(name = 'patchnotes')
+	async def patch(self, interaction: discord.Interaction):
+		await interaction.response.send_message('https://github.com/milkyicedtea/IgnoBot.py/commits/main')
+
+
+	# Creates role
+	@roleGroup.command(name = 'create')
+	@application_check(manage_roles = True)
+	async def create_role(self, interaction: discord.Interaction, role_name: str, role_color: str = None):
+		print('here1')
+		color = discord.Colour.random() if role_color is None else discord.Colour.from_str(role_color)
+		print('here2')
+		await interaction.guild.create_role(name = role_name, color = color, reason = f'Create from command. Issued by: {interaction.user}')
+		await interaction.response.send_message(f'The role **{role_name}** has been created!')
+
+
+	# Deletes role
+	@roleGroup.command(name = 'delete')
+	@commands.has_guild_permissions(manage_roles = True)
+	async def delete_role(self, interaction: discord.Interaction, role_name: str):
+		role = discord.utils.get(interaction.guild, name = role_name)
+		print(interaction.user)
+		await role.delete(reason = f'Deleted from command. Issued by: {interaction.user}')
+
+
 
 async def setup(bot):
-    await bot.add_cog(Moderation(bot))
+	await bot.add_cog(Moderation(bot))

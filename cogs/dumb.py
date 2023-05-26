@@ -7,10 +7,12 @@
 import os
 
 import discord
+from discord import app_commands
 from discord.ext import commands
+from discord.ext.commands import bot
+
 import random
 
-from discord.ext.commands import bot
 from utils.APIs import duckAPI
 from utils.APIs import catAPI
 
@@ -18,82 +20,110 @@ class Dumb(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    # beep command
-    @commands.command()
-    async def beep(self, ctx):
-        response = '**Beep!**'
-        await ctx.send(response)
+    test = app_commands.Group(name = 'test', description = 'Test group')
+    fun = app_commands.Group(name = 'fun', description = 'fun misc group')
+    animal = app_commands.Group(name = 'animal', description = 'Animal images/videos')
 
-    # bad command
-    @commands.command()
-    async def bad(self, ctx):
-        response = '**Bad**'
-        await ctx.send(response)
+    application_check = app_commands.checks.has_permissions
+
+    #new bad slash command
+    @test.command(name = 'bad')
+    async def bad(self, interaction: discord.Interaction):
+        await interaction.response.send_message('**Bad**', ephemeral = True)
+
+    # beep command
+    @test.command(name = 'beep')
+    async def beep(self, interaction: discord.Interaction):
+        await interaction.response.send_message('**Beep!**', ephemeral = True)
 
     # Am i cool command
-    @commands.command(name = 'am-i-cool')
-    async def amicool(self, ctx):
+    @fun.command(name = 'am-i-cool')
+    async def amicool(self, interaction: discord.Interaction):
         amicoolquotes = ['You are so cool, how do even you do that?', 'No, you are not cool at all.']
         response = random.choice(amicoolquotes)
-        await ctx.send(response)
+        await interaction.response.send_message(response)
 
     # uwuduck command
-    @commands.command()
-    async def uwuduck(self, ctx):
-        await ctx.send('<:uwuduck:916404134821904435>')
+    @fun.command(name = 'uwuduck')
+    async def uwuduck(self, interaction: discord.Interaction):
+        await interaction.response.send_message('<:uwuduck:916404134821904435>')
+
+    # Dice simulation
+    @fun.command(name = 'diceroll')
+    async def roll(self, interaction: discord.Interaction, dices_to_roll: int, number_of_sides: int):
+        if number_of_sides > 20 or number_of_sides <= 0:
+            await interaction.response.send_message('The number must be in a range from 1 to 20', ephemeral = True)
+            print(f'bad diceroll')
+        else:
+            dice = [
+                str(random.choice(range(1, number_of_sides + 1)))
+                for _ in range(dices_to_roll)
+            ]
+            await interaction.response.send_message(', '.join(dice))
 
     # anni?
-    @commands.command(name = 'anni', aliases = ['anni?'])
-    async def anniqty(self, ctx):
+    @fun.command(name = 'anni')
+    async def anniqty(self, interaction: discord.Interaction):
         annirange = int(random.choice(range(-100,100+1)))
         if annirange <= 0:
-            await ctx.send(f'Anni:{annirange}\nNon puoi farlo ha solo {annirange} anni')
+            await interaction.response.send_message(f'Anni:{annirange}\nNon puoi farlo ha solo {annirange} anni')
         else:
-            await ctx.send(f'{annirange}')
+            await interaction.response.send_message(f'{annirange}')
 
     # mof?
-    @commands.command()
-    async def mof(self, ctx):
+    @fun.command(name = 'mof')
+    async def mof(self, interaction: discord.Interaction):
         mof_string = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
         mof = random.choice(mof_string)
-        await ctx.send(mof)
+        await interaction.response.send_message(mof)
 
     # no u
-    @commands.command(name = 'no-u')
-    async def nou(self, ctx):
+    @fun.command(name = 'no-u')
+    async def nou(self, interaction: discord.Interaction):
         nourange = ['no u', 'yes me']
         response = random.choice(nourange)
-        await ctx.send(response)
+        await interaction.response.send_message(response)
 
     # bastardi chiamo da reggio emilia
-    @commands.command(name = 'pronto', aliases = ['pronto?'])
+    @commands.command(name = 'bastardi')
+    @commands.is_owner()
     async def bastardi(self, ctx):
         response = '**Bastardi**, chiamo da Reggio Emilia, sono un assassino di **meridionali**. Vi ammazzo tutti *bastardi pezzi di merda*.'
         await ctx.send(response)
 
     # paytowin paytowin paytowin
-    @commands.command()
+    @commands.command(name = 'fennec')
+    @commands.is_owner()
     async def fennec(self, ctx):
         paytowinrange = int(random.choice(range(1,5+1)))
         for x in range(paytowinrange):
             await ctx.send(f'pay to win')
 
     # anni anni anni anni
-    @commands.command()
+    @commands.command(name = 'annispam')
+    @commands.is_owner()
     async def annispam(self, ctx):
         annispamrange = int(random.choice(range(1,5+1)))
         for x in range(annispamrange):
             await ctx.send('anni')
 
     # CRUNCH CRUNCH CRUNCH
-    @commands.command()
-    async def silvio(self,ctx):
-        crunchspamrange = int(random.choice(range(1,5+1)))
-        for x in range(crunchspamrange):
-            await ctx.send('***crunch***')
+    @commands.command(name = 'crunch')
+    @commands.is_owner()
+    async def crunch(self,ctx):
+        guildidcompare = int(os.getenv('guild_id'))
+        guild = ctx.guild.id
+        if guild == guildidcompare:
+            crunchspamrange = int(random.choice(range(1,5+1)))
+            for x in range(crunchspamrange):
+                await ctx.send('***crunch***')
+        else:
+            ctx.send('This command is only available in a cartain server!')
 
     # sexy
-    @commands.command()
+    # THIS WILL *NOT* RUN ON YOUR MACHINE. YOU ARE MISSING ENV FILES (and server..)
+    @commands.command(name = 'sexy')
+    @commands.is_owner()
     async def sexy(self, ctx):
         guildidcompare = int(os.getenv('guild_id'))
         guild = ctx.guild.id
@@ -125,51 +155,54 @@ class Dumb(commands.Cog):
             if catturato == sexy:
                 await ctx.send('CATTURATO IN 16K UHD 1298037HZ HDR69420+ 87BIT')
         else:
-            await ctx.send("You tried, but you don't have the original links anyways :)")
+            await ctx.send('This command is only available in a certain server!')
 
     # osu skins repo
     # @commands.command(name = 'osuskins', help = 'Brings up my osu skins repository')
     async def osuskins(self, ctx):
         await ctx.send('https://github.com/ignorance-uwu/Osu-Skins')
 
-    @commands.command()
+    @commands.command(name = 'shid')
+    @commands.is_owner()
     async def shid(self, ctx):
         await ctx.send('omg bro')
         await ctx.send('https://pbs.twimg.com/media/E3jLAljVEAQz1f8?format=jpg&name=large')
 
     @commands.command(name = 'python')
+    @commands.is_owner()
     async def pythonspam(self, ctx):
         pythonspamrange = int(random.choice(range(1,5+1)))
         for x in range(pythonspamrange):
             await ctx.send('***python***')
 
-    @commands.command()
-    async def duckimage(self, ctx):
+    @animal.command(name = 'duckimage', description = 'Sends you a cute duck image :3')
+    async def duckimage(self, interaction: discord.Interaction):
         duck_image = await duckAPI.get_image()
         x = random.choice(range(len(duck_image)))
-        await ctx.send(duck_image[x])
+        await interaction.response.send_message(duck_image[x])
 
-    @commands.command()
-    async def duckvideo(self, ctx):
+    @animal.command(name = 'duckvideo', description = 'Sends you a cute duck video :3')
+    async def duckvideo(self, interaction: discord.Interaction):
         duck_video = await duckAPI.get_video()
         x = random.choice(range(len(duck_video)))
-        await ctx.send(duck_video[x])
+        await interaction.response.send_message(duck_video[x])
 
-    @commands.command()
-    async def catimage(self, ctx):
+    @animal.command(name = 'catimage', description = 'Sends you a cute cat image :3')
+    async def catimage(self, interaction: discord.Interaction):
         cat_image = await catAPI.get_image()
         x = random.choice(range(len(cat_image)))
-        await ctx.send(cat_image[x])
+        await interaction.response.send_message(cat_image[x])
 
-    @commands.command()
-    async def catvideo(self, ctx):
+    @animal.command(name = 'catvideo', description = 'Sends you a cute cat video :3')
+    async def catvideo(self, interaction: discord.Interaction):
         cat_video = await catAPI.get_video()
         x = random.choice(range(len(cat_video)))
-        await ctx.send(cat_video[x])
+        await interaction.response.send_message(cat_video[x])
 
-    @commands.command()
-    async def cattos(self, ctx):
-        guild_id = ctx.guild.id
+    # THIS WILL *NOT* RUN ON YOUR MACHINE. YOU ARE MISSING ENV FILES (and server..)
+    @animal.command(name = 'cattos')
+    async def cattos(self, interaction: discord.Interaction):
+        guild_id = interaction.guild_id
         if guild_id == int(os.getenv('guild_id')) or guild_id == int(os.getenv('private_guild')) or guild_id == int(os.getenv('varg_guild')) or guild_id == int(os.getenv('extra_guild')):
             cattos = os.getenv(random.choice([  'catto0',
                                                 'catto1',
@@ -191,9 +224,9 @@ class Dumb(commands.Cog):
                                                 'catto17',
                                                 'catto18',
                                                 'catto19']))
-            await ctx.send(cattos)
+            await interaction.response.send_message(cattos)
         else:
-            await ctx.send("You tried, but you don't have the original links anyways :)")
+            await interaction.response.send_message("This command is only available in certain servers")
 
     # listeners
     @commands.Cog.listener()

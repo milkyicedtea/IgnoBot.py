@@ -5,6 +5,9 @@ env backup
 #ignore err.log (it's not even there anymore what)
 err.log
 
+#ignore discord logs
+discord.log
+
 #ignore cmd.bat cause useless
 cmd.bat
 
@@ -17,22 +20,14 @@ utils/bad.py
 #test file
 tests.py
 
-#pyvenv.cfg
-pyvenv.cfg
-
-#youtube-dl
+#yt-dlp / youtube-dl
 share
 etc
 
-#venv Scripts
+#venv files
+pyvenv.cfg
 Scripts
-bot.bat
-bot.ps1
-
-#venv Libs
 Lib
-
-#venv Include (empty)
 Include
 
 #visual studio files

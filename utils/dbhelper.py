@@ -8,7 +8,7 @@ import os
 
 import psycopg2
 
-class DbHelper():
+class DbHelper:
     def __init__(self):
         self.mydb = None
         self.cursor = None

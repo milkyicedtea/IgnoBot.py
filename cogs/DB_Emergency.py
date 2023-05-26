@@ -8,6 +8,8 @@ import os
 
 import discord
 from discord.ext import commands
+from discord.ext.commands import bot
+
 from utils.dbhelper import DbHelper
 
 import psycopg2
@@ -17,8 +19,10 @@ class DB_Emergency(commands.Cog):
         self.bot = bot 
 
     # Add-guild command
-    @commands.command(name = 'add-guild', help = "ONLY USE THIS COMMANDS IF SOMETHING BREAKS **PLEASE**.")
-    @commands.has_guild_permissions(manage_guild = True)
+    # THIS COMMAND CAN ONLY BE USED BY THE ACCOUNT THAT OWNS THE BOT DUE TO SECURITY/SPAM PREVENTING
+    @commands.command(name = 'add-guild')
+    @commands.is_owner()
+    @commands.guild_only()
     async def addguild(self, ctx):
         try:
             dbhelper = DbHelper()
@@ -46,7 +50,6 @@ class DB_Emergency(commands.Cog):
                         print(f'guild {guildid} with name {guildname} is already in the database')
                 elif result[0] == 0:
                     cursor.execute(f"insert into guildinfo(guildid, guildname) values ({guildid}, '{guildname}');")
-                    # auto commit is disabled so i mydb.commit()
                     mydb.commit()
                     await ctx.send(f"Guild '{guildname}' with id {guildid} was added to the database")
             dbhelper.close()

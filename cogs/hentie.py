@@ -7,6 +7,7 @@
 import os
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
 import base64
@@ -16,22 +17,23 @@ import asyncio
 
 from utils.APIs.animeAPI import get_anime_info
 
-mydb = None
-cursor = None
-
 class Hentie(commands.Cog):
     def __init__(self, bot):
-        self.bot = bot 
+        self.bot = bot
 
-    @commands.command()
-    async def kayo(self, ctx, *, anime_name):
+    anime = app_commands.Group(name = 'anime', description = 'Anime group')
+
+    application_check = app_commands.checks.has_permissions
+
+    @anime.command(name = 'search')
+    async def kayo(self, interaction: discord.Interaction, *, anime_name: str):
         anime = get_anime_info(query = anime_name)
         # print(anime)
         if anime is None:
             print('anime is none')
             embed = discord.Embed(description = f"**An error occurred**", color = discord.Colour.random())
             embed.add_field(name = 'Error description:', value = f"Couldn't find the requested anime")
-            return await ctx.send(embed = embed)
+            return await interaction.response.send_message(embed = embed)
         
         # print('anime is not none')
         
@@ -59,7 +61,7 @@ class Hentie(commands.Cog):
 
         embed = discord.Embed(color = discord.Colour.random())
         # print('author')
-        embed.set_author(name = str(anime.title), icon_url = ctx.author.avatar)
+        embed.set_author(name = str(anime.title), icon_url = interaction.user.avatar)
         # print('episodes')
         embed.add_field(name = 'Episodes', value = str(anime.episodes), inline = False)
         # print('duration')
@@ -74,26 +76,23 @@ class Hentie(commands.Cog):
         embed.add_field(name = 'Link', value = f"Decode this using i.decode *string*\n```{base64_string}```", inline = False)
 
         embed.set_image(url = anime.thumbnail)
-        await ctx.send(embed = embed)
+        await interaction.response.send_message(embed = embed, ephemeral = True)
 
     # actual hentie command OwO (don't try at home)
-    @commands.command()
-    @commands.is_nsfw()     # channel must be marked as 18+
-    async def hentai(self, ctx, tag: str = None, number_to_send: int = None):
-        if number_to_send == None:
-            number_to_send = 1
+    @app_commands.command(name = 'hentai', nsfw = True)    # channel must be marked as 18+
+    async def hentai(self, interaction: discord.Interaction, tag: str = 'vanilla', number_to_send: int = 1):
+        print('hentie')
+        await interaction.response.defer()
 
         # print('checking how many to fetch')
         if number_to_send > 20:
             number_to_send = 20
 
-        # print('checking tag')
-        if tag == None:
-            tag = 'vanilla'
-
         Rule34 = rule34.Rule34()
 
+        print('getting images')
         images = await Rule34.getImages(tag)
+        print('done')
 
         """
         print(images)
@@ -114,14 +113,14 @@ class Hentie(commands.Cog):
                 await ctx.send(embed = embed)
                 """
 
-                await ctx.send(f'|| {images[random.randint(0, int(len(images)))].file_url} ||')
+                await interaction.followup.send(f'|| {images[random.randint(0, int(len(images)))].file_url} ||')
                 #print(images[0].file_url)
                 await asyncio.sleep(1)
 
         else:
             embed = discord.Embed(description = f"**An error occurred**", color = discord.Colour.random())
             embed.add_field(name = 'Error description:', value = f"Couldn't find any images related to tag ``{tag}`` or tag is invalid. Maybe try another?")
-            await ctx.send(embed = embed)
+            await interaction.followup.send(embed = embed, ephemeral = True)
 
 async def setup(bot):
     await bot.add_cog(Hentie(bot))

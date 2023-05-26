@@ -15,16 +15,16 @@ import random
 from utils.dbhelper import DbHelper
 
 
-# guild check and update
-class DbChecks():
+class DbChecks:
+
+
+    @staticmethod
     def guildCheck(cursor, mydb, guildid, guildname):
         print('guildCheck')
         cursor.execute(f"select count(*) from guildinfo where guildid = {guildid} and guildname = '{guildname}';")
-        result = cursor.fetchone()
-        if result[0] == 0:
+        if cursor.fetchone()[0] == 0:
             cursor.execute(f'select count(*) from guildinfo where guildid = {guildid};')
-            result = cursor.fetchone()
-            if result[0] == 0:
+            if cursor.fetchone()[0] == 0:
                 cursor.execute(f"insert into guildinfo(guildid, guildname) values({guildid}, '{guildname}');")
                 mydb.commit()
                 print(f'guild {guildid} with name {guildname} has been added to the database')
@@ -35,26 +35,27 @@ class DbChecks():
         #else:
             #print(f'guild {guildid} with name {guildname} is already in the database')
 
+
+    @staticmethod
     def settingsCheck(cursor, mydb, guildid):
         print('settingsCheck')
         cursor.execute(f"select count(*) from guildsettings where guildid = {guildid};")
-        result = cursor.fetchone()
-        if result[0] == 0:
+        if cursor.fetchone()[0] == 0:
             cursor.execute(f"insert into guildsettings(guildid) values({guildid});")
             mydb.commit()
             #print(f'guild {guildid} has been added to the database')
         #else:
             #print(f'guild {guildid} is already in the database')
 
-    def checkUser(cursor, mydb, guildid, guildname, username, userid, user):
-        print('checkUser')
+
+    @staticmethod
+    def userCheck(cursor, mydb, guildid, guildname, username, userid, user):
+        print('userCheck')
         if not user.bot:
             cursor.execute(f"select count(*) from leveling where guildid = {guildid} and userid = {userid} and username = '{username}'")
-            result = cursor.fetchone()
-            if result[0] == 0:
+            if cursor.fetchone()[0] == 0:
                 cursor.execute(f"select count(*) from leveling where guildid = {guildid} and userid = {userid}")
-                result = cursor.fetchone()
-                if result[0] == 0:
+                if cursor.fetchone()[0] == 0:
                     cursor.execute(f"insert into leveling(userid, username, guildid, guildname) values({userid}, '{username}', {guildid}, '{guildname}');")
                     mydb.commit()
                     print(f'user {userid} with name {username} has been added to the database')
@@ -63,24 +64,28 @@ class DbChecks():
                     mydb.commit()
                     print(f'updated user {userid} with new name: {username}')
             # else:
-                # print(f'user {userid} with name {username} is already in the database')
-        else:
-            return
-            # print(f'this user is a bot!')
+            #     print(f'user {userid} with name {username} is already in the database')
 
+
+    @staticmethod
     def checkGuildLogs(cursor, mydb, guildid):
-        print('checkGuildLogs')
         cursor.execute(f"select wantslogs from guildsettings where guildid = {guildid}")
         wantslogs = cursor.fetchone()
         # print(f'wantslogs = {wantslogs}')
         if wantslogs:
-            cursor.execute(f"select logchannel from guildsettings where guildid = {guildid}")
-            logchannel = cursor.fetchone()
-            # print(f'logchannel is :{logchannel}')
-            return True, logchannel
+            return True
         else:
-            return False, 0
+            return False
 
+
+    @staticmethod
+    def checkLogChannel(cursor, mydb, guildid):
+        cursor.execute(f"select logchannel from guildsettings where guildid = {guildid}")
+        channel_id = cursor.fetchone()
+        return channel_id
+
+
+    @staticmethod
     def giveXp(cursor, mydb, guildid, guildname, username, userid, user):
         if not user.bot:
             cursor.execute(f"select xpvalue from leveling where userid = {userid} and guildid = {guildid};")            # getting xp
@@ -104,6 +109,8 @@ class DbChecks():
             return
             #print(f'this user is a bot')
 
+
+    @staticmethod
     async def roleOnMessage(cursor, mydb, guildid, guildname, username, userid, user, message):
         if not user.bot:    # checks if user is bot
             cursor.execute(f"select count(*) from roles where guildid = {guildid} and guildname = '{guildname}';")

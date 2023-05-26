@@ -8,30 +8,32 @@ import os
 
 import discord
 from discord.ext import commands
+from discord import app_commands
+
 from utils.dbhelper import DbHelper
 
 class Welcome(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.Cog.listener()
-    async def on_member_join(self, member):
-        dbhelper = DbHelper()
+    welcome = app_commands.Group(name = 'welcome', description = 'Welcome related commands', guild_only = True)
 
+    application_check = app_commands.checks.has_permissions
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member: discord.Member):
+        dbhelper = DbHelper()
         dbhelper.open()
         cursor = dbhelper.get_cursor()
 
         guildid = member.guild.id
         guildname = member.guild.name
+
         cursor.execute(f'select channel_id from welcome where guildid = {guildid};')
-        result = cursor.fetchone()
-        channel_id:int = result[0]
-        channel = self.bot.get_channel(id = channel_id)
-        member = member.mention
-        default_message = 'Hey {} welcome to {}!'.format(member, guildname)
+        channel = discord.utils.get(member.guild.channels , id = cursor.fetchone()[0])
+        default_message = 'Hey {} welcome to {}!'.format(member.mention, guildname)
         cursor.execute(f'select count(*) from welcome where guildid = {guildid};')
-        result = cursor.fetchone()
-        if result[0] == 0:
+        if cursor.fetchone()[0] == 0:
             await channel.send(default_message)
         else:
             cursor.execute(f'select welcome_message from welcome where guildid = {guildid};')
@@ -41,55 +43,71 @@ class Welcome(commands.Cog):
             await channel.send(custom_message)
         dbhelper.close()
 
-    @commands.command(name = 'set-welcome-channel', aliases = ['setwelcomechannel', 'welcomechannel', 'welcome-channel'])
-    async def set_welcome_channel(self, ctx, welcome_channel = None):
+    @welcome.command(name = 'setup')
+    @application_check(manage_guild = True)
+    async def set_welcome_channel(self, interaction: discord.Interaction, channel: discord.TextChannel, message: str = None):
         dbhelper = DbHelper()
-
         mydb = dbhelper.open()
         cursor = dbhelper.get_cursor()
-        if welcome_channel == None:
-            await ctx.send('You must specify a channel (Link or id)')
-        else:
-            guildid = ctx.guild.id
-            dbhelper.open()
-            welcome_channel1 = welcome_channel.replace("<", "")
-            welcome_channel2 = welcome_channel1.replace(">", "")
-            channel_id = welcome_channel2.replace("#", "")
+        
+        guildid = interaction.guild_id
+        guildname = interaction.guild.name
 
-            # check if the guild is in the welcome table
-            cursor.execute(f'select count(*) from welcome where guildid = {guildid};')
-            result = cursor.fetchone()
-            if result[0] == 0:
-                cursor.execute(f"insert into welcome(guildid) values({guildid});")          # add it if it isn't 
-                mydb.commit()
-                print(f'Added new guild {guildid} to the "welcome" table')
+        await interaction.response.defer(ephemeral = True)
 
-            # continue by updating the channel id with the selected channel
-            cursor.execute(f'update welcome set channel_id = {channel_id} where guildid = {guildid};')
+        # check if the guild is in the welcome table
+        cursor.execute(f'select count(*) from welcome where guildid = {guildid};')
+        if cursor.fetchone()[0] == 0:
+            cursor.execute(f"insert into welcome(guildid) values({guildid});")          # add it if it isn't 
             mydb.commit()
-            await ctx.send(f'The welcome channel has been set to: {welcome_channel}')
-            dbhelper.close()
+            print(f'Added new guild {guildid} to the "welcome" table')
 
-
-    @commands.command(name = 'set-welcome')
-    @commands.has_permissions(manage_guild = True)
-    async def set_welcome(self, ctx,* , message = None):
-        dbhelper = DbHelper()
-        mydb = dbhelper.open()
-        cursor = dbhelper.get_cursor()
-
-        guildname = ctx.guild.name
-        guildid = ctx.guild.id
-        if message == 'default':
+        # update welcome channel and message
+        if message == None:
             message = 'Hey %mention_user%! Welcome to {}!'.format(guildname)
 
-        await ctx.send(f'Your welcome message currently is: {message}')
-        # update the welcome_message column in the table
-        dbhelper.open()
-        cursor.execute(f"update welcome set welcome_message = '{message}' where guildid = {guildid};")
+        cursor.execute(f'update welcome set channel_id = {channel.id} where guildid = {guildid};')
+        cursor.execute(f"update welcome set welcome_message = '{message}' where guildid = {guildid}")
         mydb.commit()
-        print('Welcome message updated')
-        dbhelper.close()       
+        await interaction.followup.send(f'The welcome channel has been set to: <#{channel.id}>.\n The current welcome message is: {message}') 
+
+        dbhelper.close()
+
+
+    @welcome.command(name = 'get-channel')
+    @application_check(manage_guild = True)
+    async def get_welcome_channel(self, interaction: discord.Interaction):
+        dbhelper = DbHelper()
+        mydb = dbhelper.open()
+        cursor = dbhelper.get_cursor()
+
+        guildid = interaction.guild_id
+        cursor.execute(f'select count(*) from welcome where guildid = {guildid};')
+        if cursor.fetchone()[0] == 0:
+            await interaction.response.send_message("This server hasn't configured custom welcome messages yet")
+
+        else:
+            cursor.execute(f'select channel_id from welcome where guildid = {guildid};')
+            channel = discord.utils.get(interaction.guild.channels, id = cursor.fetchone()[0])
+            await interaction.response.send_message(f'The configured welcome channel for this server is <#{channel.id}>')
+
+    
+    @welcome.command(name = 'get-message')
+    @application_check(manage_guild = True)
+    async def get_welcome_message(self, interaction: discord.Interaction):
+        dbhelper = DbHelper()
+        mydb = dbhelper.open()
+        cursor = dbhelper.get_cursor()
+
+        guildid = interaction.guild_id
+        cursor.execute(f'select count(*) from welcome where guildid = {guildid};')
+        if cursor.fetchone()[0] == 0:
+            await interaction.response.send_message("This server hasn't configured custom welcome messages yet")
+
+        else:
+            cursor.execute(f'select welcome_message from welcome where guildid = {guildid};')
+            await interaction.response.send_message(f'The configured welcome message for this server is: {cursor.fetchone()[0]}')
+
 
 async def setup(bot):
     await bot.add_cog(Welcome(bot))

@@ -10,16 +10,18 @@
 import os
 
 import sys
+import logging
 
 import discord
 
 from dotenv import load_dotenv
 from discord.ext import commands
+from discord import app_commands
 import discord.utils
 import asyncio
 
-from utils.dbchecks import DbChecks
-from utils.dbhelper import DbHelper
+from utils.dbchecks import *
+from utils.dbhelper import *
 
 print('python verion is:')
 print(sys.version)
@@ -56,17 +58,18 @@ def get_prefix(bot, message):
     return prefix
 
 # Prefix setup
-# client = commands.Client(command_prefix = (get_prefix), intents = discord.Intents().all()) # not using the client
-intents = discord.Intents().all()
+# client = discord.Client(command_prefix = (get_prefix), intents = discord.Intents().all()) # not using the client
+intents = discord.Intents.all()
 bot = commands.Bot(command_prefix = (get_prefix), intents = intents, description = 'ducc')
+# tree = app_commands.CommandTree(bot)
 
 
 # cogs loading and command counting
 async def load_cogs():
 
-    for filename in os.listdir('./cogs'): #loads all files (*.py)
+    for filename in os.listdir('./cogs'):   # loads all files (*.py)
         if filename.endswith('.py'):
-            await bot.load_extension(f'cogs.{filename[:-3]}') #loads the file without ".py" for example: cogs.ping
+            await bot.load_extension(f'cogs.{filename[:-3]}')   # loads the file without ".py" for example: cogs.ping
             print(f'Loaded {filename[:-3]}')
 
     print(f'Total number of commands: {len(list(bot.walk_commands()))}')
@@ -74,11 +77,11 @@ async def load_cogs():
 # Bot login event
 @bot.event
 async def on_ready():
-    print(f'{bot.user} has logged in.')
-    print('Servers connected to:')
+    """print(f'{bot.user} has logged in.')
+    print('Servers connected to: ')
     for guild in bot.guilds:
-        print(guild.name, " ", guild.id )
-        # await bot.tree.sync(guild = discord.Object(id = guild.id))
+        print(guild.name, " ", guild.id)"""
+    await bot.tree.sync()
     await bot.change_presence(activity = discord.Activity(type = discord.ActivityType.watching, name = f'ducks at the park \U0001f986'))
 
 @bot.event
@@ -133,10 +136,16 @@ async def on_guild_remove(guild):
     print(f'deleted every information relative to guild {guildname} with id {guildid} from the database')
     dbhelper.close()
 
+    @bot.tree(name = 'bad')
+    async def bad(interaction):
+        await interaction.response.send_message('**Bad**')
+
 # bot.run
 async def main():
+    #handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+    #discord.utils.setup_logging(handler = handler)
     async with bot:
         await load_cogs()
-        await bot.start(TOKEN)     # comment cause bad
+        await bot.start(TOKEN)
 
 asyncio.run(main())
