@@ -8,6 +8,8 @@ import os
 
 import discord
 from discord.ext import commands
+from discord import app_commands
+
 import linecache
 import random
 import asyncio
@@ -21,6 +23,21 @@ from utils.dbhelper import DbHelper
 class Test(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    test = app_commands.Group(name='test', description='Test group')
+
+    application_check = app_commands.checks.has_permissions
+
+    # bad slash command
+    @test.command(name = 'bad')
+    async def bad(self, interaction: discord.Interaction):
+        await interaction.response.send_message('**Bad**', ephemeral = True)
+
+
+    # beep command
+    @test.command(name = 'beep')
+    async def beep(self, interaction: discord.Interaction):
+        await interaction.response.send_message('**Beep!**', ephemeral = True)
 
 
     # Embed test
@@ -82,7 +99,7 @@ class Test(commands.Cog):
 
     @commands.command(name = 'fetchtest')
     @commands.has_guild_permissions(manage_guild = True)
-    async def fetchTest(self, ctx: discord.ext.commands.Context):
+    async def fetchTest(self, interaction: discord.Interaction):
         dbhelper = DbHelper()
         mydb = dbhelper.open()
         cursor = dbhelper.get_cursor()

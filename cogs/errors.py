@@ -13,6 +13,7 @@ import asyncio
 
 from utils.dbhelper import DbHelper
 
+
 class Errors(commands.Cog):
     def __init__(self, bot):
         self.bot = bot 

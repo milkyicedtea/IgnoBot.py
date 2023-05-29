@@ -13,6 +13,7 @@ from discord import app_commands
 
 import base64
 
+
 class Decoder(commands.Cog):
     def __init__(self, bot):
         self.bot = bot 
@@ -41,6 +42,7 @@ class Decoder(commands.Cog):
         # print(decoded_string)
         await interaction.response.send_message(f'Non-decoded message: {string}.\nDecoded string: {decoded_string}', ephemeral = True)
         # await ctx.send(':white_check_mark:')
+
 
 async def setup(bot):
     await bot.add_cog(Decoder(bot))

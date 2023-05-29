@@ -76,7 +76,7 @@ class Music(commands.Cog):
         self.url: str
         self.first_song: bool = True
 
-        #nuovo da provare
+        # nuovo da provare
         self.emptyList: list = []
         self.playlist: list = []
         self.playlistIndex: int = 1
@@ -84,7 +84,7 @@ class Music(commands.Cog):
         self.names: list = []
 
     # Cool function :sunglus:
-    #da provare
+    # da provare
     async def stream_music(self, ctx, url):
         print(ctx.voice_client)
         self.was_paused = False

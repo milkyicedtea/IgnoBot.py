@@ -8,6 +8,7 @@ import os
 
 import psycopg2
 
+
 class DbHelper:
     def __init__(self):
         self.mydb = None
@@ -31,7 +32,7 @@ class DbHelper:
             self.cursor.close()
             self.mydb.close()
         except psycopg2.Error as ce:
-            print(f'Error while closing the database: {ce}')
+            print(f'Error while closing the connection: {ce}')
 
     def get_cursor(self):
         return self.cursor

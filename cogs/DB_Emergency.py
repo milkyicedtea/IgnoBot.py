@@ -8,13 +8,13 @@ import os
 
 import discord
 from discord.ext import commands
-from discord.ext.commands import bot
 
 from utils.dbhelper import DbHelper
 
 import psycopg2
 
-class DB_Emergency(commands.Cog):
+
+class DbEmergency(commands.Cog):
     def __init__(self, bot):
         self.bot = bot 
 
@@ -57,5 +57,6 @@ class DB_Emergency(commands.Cog):
         except psycopg2.Error as ag:
             print(f'Something went wrong: {ag}')
 
+
 async def setup(bot):
-    await bot.add_cog(DB_Emergency(bot))
+    await bot.add_cog(DbEmergency(bot))

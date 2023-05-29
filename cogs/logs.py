@@ -31,24 +31,18 @@ class Logs(commands.Cog):
         mydb = dbhelper.open()
         cursor = dbhelper.get_cursor()
 
-        guildid = interaction.guild_id
-        guildraw = interaction.guild.name
-        guildname = guildraw.replace("'", "")
-        userid = interaction.user.id
-        usernameraw = interaction.user.name
-        username = usernameraw.replace("'", "")
+        guild = interaction.guild
+        user = interaction.user
 
-        DbChecks.guildCheck(cursor, mydb, guildid, guildname)
+        DbChecks.guildCheck(cursor, mydb, guild)
 
         if channel is not None:
-            channel_id = channel.id
-            channel = self.bot.get_channel(channel_id)
 
-            cursor.execute(f"update guildsettings set logchannel = {channel_id} where guildid = {guildid}")
+            cursor.execute(f"update guildsettings set logchannel = {channel.id} where guildid = {guild.id}")
             mydb.commit()
-            await interaction.response.send_message(f"Your logs channel was updated to <#{channel_id}>.")
+            await interaction.response.send_message(f"Your logs channel was updated to {channel.mention}.")
         else:
-            cursor.execute(f"update guildsettings set logchannel = NULL where guildid = {guildid}")
+            cursor.execute(f"update guildsettings set logchannel = NULL where guildid = {guild.id}")
             mydb.commit()
             await interaction.response.send_message(f"Your logs channel has been updated to default. (None)", ephemeral = True)
         dbhelper.close()
@@ -62,29 +56,25 @@ class Logs(commands.Cog):
         mydb = dbhelper.open()
         cursor = dbhelper.get_cursor()
 
-        guildid = interaction.guild_id
-        guildraw = interaction.guild.name
-        guildname = guildraw.replace("'", "")
-        userid = interaction.user.id
-        usernameraw = interaction.user.name
-        username = usernameraw.replace("'", "")
+        guild = interaction.guild
+        user = interaction.user
 
-        DbChecks.guildCheck(cursor, mydb, guildid, guildname)
+        DbChecks.guildCheck(cursor, mydb, guild)
 
-        wantslogs = DbChecks.checkGuildLogs(cursor, mydb, guildid = message.guild.id)
+        wantslogs = DbChecks.checkGuildLogs(cursor, guild)
 
         if not wantslogs:     # logs are off, switch on
-            cursor.execute(f"update guildsettings set wantslogs = 'true' where guildid = {guildid}")
+            cursor.execute(f"update guildsettings set wantslogs = 'true' where guildid = {guild.id}")
             mydb.commit()
-            logchannel = DbChecks.checkLogChannel(cursor, mydb, guildid=guildid)
+            logchannel = DbChecks.checkLogChannel(cursor, guild)
             if logchannel is not None:
                 await interaction.response.send_message(f"Events logging has been turned on.\n"
-                                                        f"Events will be logged in <#{logchannel}>.")
+                                                        f"Events will be logged in {logchannel.mention}.")
             else:
                 await interaction.response.send_message(f"Events logging has been turned on, but no channel is set.\n"
                                                         f"Use ```/logs channel <channel>``` to set one.")
         else:
-            cursor.execute(f"update guildsettings set wantslogs = 'false' where guildid = {guildid}")
+            cursor.execute(f"update guildsettings set wantslogs = 'false' where guildid = {guild.id}")
             mydb.commit()
             await interaction.response.send_message("Events logging has been turned off.")
         dbhelper.close()

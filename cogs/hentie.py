@@ -17,6 +17,7 @@ import asyncio
 
 from utils.APIs.animeAPI import get_anime_info
 
+
 class Hentie(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -114,13 +115,14 @@ class Hentie(commands.Cog):
                 """
 
                 await interaction.followup.send(f'|| {images[random.randint(0, int(len(images)))].file_url} ||')
-                #print(images[0].file_url)
+                # print(images[0].file_url)
                 await asyncio.sleep(1)
 
         else:
             embed = discord.Embed(description = f"**An error occurred**", color = discord.Colour.random())
             embed.add_field(name = 'Error description:', value = f"Couldn't find any images related to tag ``{tag}`` or tag is invalid. Maybe try another?")
             await interaction.followup.send(embed = embed, ephemeral = True)
+
 
 async def setup(bot):
     await bot.add_cog(Hentie(bot))

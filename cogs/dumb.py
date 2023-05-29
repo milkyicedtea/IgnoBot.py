@@ -9,12 +9,12 @@ import os
 import discord
 from discord import app_commands
 from discord.ext import commands
-from discord.ext.commands import bot
 
 import random
 
 from utils.APIs import duckAPI
 from utils.APIs import catAPI
+
 
 class Dumb(commands.Cog):
     def __init__(self, bot):
@@ -25,16 +25,6 @@ class Dumb(commands.Cog):
     animal = app_commands.Group(name = 'animal', description = 'Animal images/videos')
 
     application_check = app_commands.checks.has_permissions
-
-    #new bad slash command
-    @test.command(name = 'bad')
-    async def bad(self, interaction: discord.Interaction):
-        await interaction.response.send_message('**Bad**', ephemeral = True)
-
-    # beep command
-    @test.command(name = 'beep')
-    async def beep(self, interaction: discord.Interaction):
-        await interaction.response.send_message('**Beep!**', ephemeral = True)
 
     # Am i cool command
     @fun.command(name = 'am-i-cool')
@@ -64,7 +54,7 @@ class Dumb(commands.Cog):
     # anni?
     @fun.command(name = 'anni')
     async def anniqty(self, interaction: discord.Interaction):
-        annirange = int(random.choice(range(-100,100+1)))
+        annirange = int(random.choice(range(-100, 100+1)))
         if annirange <= 0:
             await interaction.response.send_message(f'Anni:{annirange}\nNon puoi farlo ha solo {annirange} anni')
         else:
@@ -95,7 +85,7 @@ class Dumb(commands.Cog):
     @commands.command(name = 'fennec')
     @commands.is_owner()
     async def fennec(self, ctx):
-        paytowinrange = int(random.choice(range(1,5+1)))
+        paytowinrange = int(random.choice(range(1, 5+1)))
         for x in range(paytowinrange):
             await ctx.send(f'pay to win')
 
@@ -103,18 +93,18 @@ class Dumb(commands.Cog):
     @commands.command(name = 'annispam')
     @commands.is_owner()
     async def annispam(self, ctx):
-        annispamrange = int(random.choice(range(1,5+1)))
+        annispamrange = int(random.choice(range(1, 5+1)))
         for x in range(annispamrange):
             await ctx.send('anni')
 
     # CRUNCH CRUNCH CRUNCH
     @commands.command(name = 'crunch')
     @commands.is_owner()
-    async def crunch(self,ctx):
+    async def crunch(self, ctx):
         guildidcompare = int(os.getenv('guild_id'))
         guild = ctx.guild.id
         if guild == guildidcompare:
-            crunchspamrange = int(random.choice(range(1,5+1)))
+            crunchspamrange = int(random.choice(range(1, 5+1)))
             for x in range(crunchspamrange):
                 await ctx.send('***crunch***')
         else:
@@ -171,7 +161,7 @@ class Dumb(commands.Cog):
     @commands.command(name = 'python')
     @commands.is_owner()
     async def pythonspam(self, ctx):
-        pythonspamrange = int(random.choice(range(1,5+1)))
+        pythonspamrange = int(random.choice(range(1, 5+1)))
         for x in range(pythonspamrange):
             await ctx.send('***python***')
 
@@ -204,26 +194,26 @@ class Dumb(commands.Cog):
     async def cattos(self, interaction: discord.Interaction):
         guild_id = interaction.guild_id
         if guild_id == int(os.getenv('guild_id')) or guild_id == int(os.getenv('private_guild')) or guild_id == int(os.getenv('varg_guild')) or guild_id == int(os.getenv('extra_guild')):
-            cattos = os.getenv(random.choice([  'catto0',
-                                                'catto1',
-                                                'catto2',
-                                                'catto3',
-                                                'catto4',
-                                                'catto5',
-                                                'catto6',
-                                                'catto7',
-                                                'catto8',
-                                                'catto9',
-                                                'catto10',
-                                                'catto11',
-                                                'catto12',
-                                                'catto13',
-                                                'catto14',
-                                                'catto15',
-                                                'catto16',
-                                                'catto17',
-                                                'catto18',
-                                                'catto19']))
+            cattos = os.getenv(random.choice(['catto0',
+                                              'catto1',
+                                              'catto2',
+                                              'catto3',
+                                              'catto4',
+                                              'catto5',
+                                              'catto6',
+                                              'catto7',
+                                              'catto8',
+                                              'catto9',
+                                              'catto10',
+                                              'catto11',
+                                              'catto12',
+                                              'catto13',
+                                              'catto14',
+                                              'catto15',
+                                              'catto16',
+                                              'catto17',
+                                              'catto18',
+                                              'catto19']))
             await interaction.response.send_message(cattos)
         else:
             await interaction.response.send_message("This command is only available in certain servers")
@@ -232,40 +222,41 @@ class Dumb(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, msg):
         
-    # bastardi on message
+        # bastardi on message
         if msg.content == "pronto" or msg.content == "pronto?":
             response = '**Bastardi**, chiamo da Reggio Emilia, sono un assassino di **meridionali**. Vi ammazzo tutti *bastardi pezzi di merda*.'
             await msg.reply(response)
 
-    # vado on message
+        # vado on message
         elif msg.content == 'vado' or msg.content == 'io vado' or msg.content == 'bella' or msg.content == 'a domani':
             response = 'ok a domani a domani a domani'
             await msg.reply(response)
 
-    # bimbo dingo
+        # bimbo dingo
         elif msg.content == 'rocket league' or msg.content == 'dingo':
             response = 'bimbo dingo'
-            bimbodingospamrange = int(random.choice(range(1,5+1)))
+            bimbodingospamrange = int(random.choice(range(1, 5+1)))
             for x in range(bimbodingospamrange):
                 await msg.reply(response)
         
-    # sconosciuto
+        # sconosciuto
         elif msg.content == 'sconosciuto':
             response = random.choice(['Hai fatto incazzare la persona sbagliata. Non hai futuro.', 'Mi hai fregato la macchina! Sarai mangime per vermi, pezzo di merda.'])
             await msg.reply(response)
 
-    # python bad
+        # python bad
         elif msg.content == 'python?':
             response = 'bad'
             await msg.reply(response)
 
-    # O RAZZIATORE???
+        # O RAZZIATORE???
         elif msg.content == 'o razziatore' or msg.content == 'razziatore' or msg.content == 'o razziatore?':
             await msg.reply('https://cdn.discordapp.com/attachments/933336707825295368/936916126594633779/Immagine_2022-01-27_221310.png')
 
-    # Was für eine parade!
+        # Was für eine parade!
         elif msg.content == 'Was für eine parade!':
             await msg.reply('Danke!')
+
 
 async def setup(bot):
     await bot.add_cog(Dumb(bot))
