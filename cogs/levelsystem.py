@@ -40,55 +40,54 @@ class LevelSystem(commands.Cog):
         user = message.author
 
         # guild check and update
-        DbChecks.guildCheck(cursor, mydb, guild.id, guild.name)
+        DbChecks.guildCheck(cursor, mydb, guild)
 
         # guilsettings check and update
-        DbChecks.settingsCheck(cursor, mydb, guild.id)
+        DbChecks.settingsCheck(cursor, mydb, guild)
 
         # user check and update
         DbChecks.userCheck(cursor, mydb, guild, user)
 
         # xp giving
-        DbChecks.giveXp(cursor, mydb, guildid, guildname, username, userid, user)
+        DbChecks.giveXp(cursor, mydb, guild, user)
 
         # implement giving role on message (kinda dumb way) (or?)
-        await DbChecks.roleOnMessage(cursor, mydb, guildid, guildname, username, userid, user, message)
+        await DbChecks.roleOnMessage(cursor, mydb, user, message)
 
         dbhelper.close()
 
     # show an embed with level
     @levelGroup.command(name = 'show')
-    async def level_embed(self, interaction: discord.Interaction, member: discord.Member = None):
+    async def level_embed(self, interaction: discord.Interaction, user: discord.Member = None):
 
         dbhelper = DbHelper()
         mydb = dbhelper.open()
         cursor = dbhelper.get_cursor()
 
         guild = interaction.guild
-        user = interaction.user
         colorValue = discord.Colour.random()
         
         # getting the right user id and display name
-        if member is None:
-            member = interaction.user.id, interaction.user
+        if user is None:
+            user = interaction.user
 
-        if member.bot is True:
+        if user.bot is True:
             embedVar = discord.Embed(title = "No levels for bots :P", color = colorValue)
             await interaction.response.send_message(embed = embedVar)
             return
 
         # search for user in the db
-        DbChecks.userCheck(cursor, mydb, guild.id, guild.name, member.name, member.id, member)
+        DbChecks.userCheck(cursor, mydb, guild, user)
 
         # embed setup
-        embedVar = discord.Embed(title = "Level and XP for {}".format(member.display_name), color = colorValue)
+        embedVar = discord.Embed(title = "Level and XP for {}".format(user.display_name), color = colorValue)
 
         # fetch xpvalue
-        cursor.execute(f'select xpvalue from leveling where guildid = {guild.id} and userid = {member.id};')
+        cursor.execute(f'select xpvalue from leveling where guildid = {guild.id} and userid = {user.id};')
         embedVar.add_field(name = "Text XP", value = f"XP: {cursor.fetchone()[0]}", inline = False)
 
         # fetch levelvalue
-        cursor.execute(f'select levelvalue from leveling where guildid = {guild.id} and userid = {member.id};')
+        cursor.execute(f'select levelvalue from leveling where guildid = {guild.id} and userid = {user.id};')
         embedVar.add_field(name = "Level", value = f"Level: {cursor.fetchone()[0]}", inline = False)
         await interaction.response.send_message(embed = embedVar)
         dbhelper.close()
@@ -102,15 +101,15 @@ class LevelSystem(commands.Cog):
         cursor = dbhelper.get_cursor()
 
         guild = interaction.guild
-        user = interaction.user
 
         rolename: str
         reachlevel: int
 
         # guild check and update
-        DbChecks.guildCheck(cursor, mydb, guild.id, guild.name)
+        DbChecks.guildCheck(cursor, mydb, guild)
 
         # select number of role guild has
+        print('pp1')
         cursor.execute(f"select count(*) from roles where guildid = {guild.id} "
                        f"and guildname = '{guild.name}' "
                        f"and reachlevels is not NULL "
@@ -125,11 +124,13 @@ class LevelSystem(commands.Cog):
                            f"and guildname = '{guild.name}'  "
                            f"and reachlevels is not NULL "
                            f"and is_selfrole = 'false';")  # pulls role names from rolename column in that guild
-            roleListDb: list = list(itertools.chain(*cursor.fetchmany(size = result[0])))
+            roleListDb: list = list(itertools.chain(*cursor.fetchall()))
             roleList: list[discord.Role]
+            print(roleListDb)
             for role in roleListDb:
                 roleList.append(discord.utils.get(interaction.guild.roles, name = roleListDb[role]))
 
+            print(roleList)
             cursor.execute(f"select reachlevels from roles where guildid = {guild.id} "
                            f"and guildname = '{guild.name}' "
                            f"and rolenames is not NULL "
@@ -154,8 +155,6 @@ class LevelSystem(commands.Cog):
         cursor = dbhelper.get_cursor()
 
         guild = interaction.guild
-        user = interaction.user
-        colorValue = discord.Colour.random()
 
         # check how many role the guild has
         cursor.execute(f"select count(*) from roles where guildid = {guild.id} "
@@ -196,8 +195,6 @@ class LevelSystem(commands.Cog):
         cursor = dbhelper.get_cursor()
 
         guild = interaction.guild
-        user = interaction.user
-        colorValue = discord.Colour.random()
 
         cursor.execute(f"select count(*) from roles where guildid = {guild.id} "
                        f"and guildname = '{guild.name}' and rolenames = '{role.name}';")
@@ -210,6 +207,7 @@ class LevelSystem(commands.Cog):
         await interaction.response.send_message(f"The role **<@&{role.id}>** will no more be assigned. You can use"
                                                 f"```/role delete <role>``` to delete it if necessary.")
         dbhelper.close()
+
 
 async def setup(bot):
     await bot.add_cog(LevelSystem(bot))

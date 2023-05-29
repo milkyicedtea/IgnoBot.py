@@ -22,7 +22,6 @@ class Logs(commands.Cog):
 
     application_check = app_commands.checks.has_permissions
 
-
     # Adds logs for deleted messages
     @logsGroup.command(name = 'channel', description = "Sets the default channel where logged events go. Leave empty to clear the channel")
     @application_check(view_audit_log = True, administrator = True)
@@ -47,7 +46,6 @@ class Logs(commands.Cog):
             await interaction.response.send_message(f"Your logs channel has been updated to default. (None)", ephemeral = True)
         dbhelper.close()
 
-
     # Toggles logs to enabled/disabled
     @logsGroup.command(name = "toggle", description = "Toggles logging to enabled/disabled")
     @application_check(view_audit_log = True, administrator = True)
@@ -66,7 +64,7 @@ class Logs(commands.Cog):
         if not wantslogs:     # logs are off, switch on
             cursor.execute(f"update guildsettings set wantslogs = 'true' where guildid = {guild.id}")
             mydb.commit()
-            logchannel = DbChecks.checkLogChannel(cursor, guild)
+            logchannel = DbChecks.getLogChannel(cursor, guild)
             if logchannel is not None:
                 await interaction.response.send_message(f"Events logging has been turned on.\n"
                                                         f"Events will be logged in {logchannel.mention}.")
@@ -79,7 +77,6 @@ class Logs(commands.Cog):
             await interaction.response.send_message("Events logging has been turned off.")
         dbhelper.close()
 
-
     # Listener for deleted messages logs
     @commands.Cog.listener()
     async def on_message_delete(self, message: discord.Message):
@@ -87,15 +84,14 @@ class Logs(commands.Cog):
         mydb = dbhelper.open()
         cursor = dbhelper.get_cursor()
 
-        DbChecks.guildCheck(cursor, mydb, guildid = message.guild.id, guildname = message.guild.name)
+        DbChecks.guildCheck(cursor, mydb, guild = message.guild)
 
-        has_logs = DbChecks.checkGuildLogs(cursor, mydb, guildid = message.guild.id)
+        has_logs = DbChecks.checkGuildLogs(cursor, guild = message.guild)
 
-        if has_logs[0] is True:
-            channel_id = int(str(has_logs[1]).replace("(", "").replace(")", "").replace(",", ""))
-            channel = discord.utils.get(message.guild.channels, id = channel_id)
+        if has_logs:
+            channel = DbChecks.getLogChannel(cursor, guild = message.guild)
 
-            embed = discord.Embed(color = discord.Colour.random())
+            embed = discord.Embed(title = "Message deleted", color = discord.Colour.random())
             embed.set_author(name = message.author.name + "#" + message.author.discriminator, icon_url = message.author.display_avatar)
             embed.add_field(name = '', value = message.clean_content, inline = False)
 

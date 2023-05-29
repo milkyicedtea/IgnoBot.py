@@ -20,7 +20,6 @@ class Dumb(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    test = app_commands.Group(name = 'test', description = 'Test group')
     fun = app_commands.Group(name = 'fun', description = 'fun misc group')
     animal = app_commands.Group(name = 'animal', description = 'Animal images/videos')
 

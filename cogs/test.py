@@ -33,12 +33,10 @@ class Test(commands.Cog):
     async def bad(self, interaction: discord.Interaction):
         await interaction.response.send_message('**Bad**', ephemeral = True)
 
-
     # beep command
     @test.command(name = 'beep')
     async def beep(self, interaction: discord.Interaction):
         await interaction.response.send_message('**Beep!**', ephemeral = True)
-
 
     # Embed test
     @commands.command(name = 'embed-test')
@@ -51,7 +49,6 @@ class Test(commands.Cog):
         embedVar.add_field(name = "Field2", value = "hi2", inline = False)
         await ctx.send(embed = embedVar)
 
-
     # Read test
     @commands.command(name = 'read-test')
     @commands.has_guild_permissions(manage_guild = True)
@@ -63,7 +60,6 @@ class Test(commands.Cog):
         description = linecache.getline('./data/welcome/welcome.ini', 6)
         await ctx.send(title + color + description)
 
-
     # asyncio.sleep() test
     @commands.command(name = 'asynciosleep')
     @commands.has_guild_permissions(manage_guild = True)
@@ -72,7 +68,6 @@ class Test(commands.Cog):
         await ctx.send(f'Waiting {amount_to_sleep} seconds before sending your message.')
         await asyncio.sleep(amount_to_sleep)
         await ctx.send(f'{sentence}')
-
 
     # time.sleep() test
     @commands.command(name = 'timesleep')
@@ -83,12 +78,10 @@ class Test(commands.Cog):
         time.sleep(amount_to_sleep)
         await ctx.send(f'{sentence}')
 
-
     @commands.command(name = 'getroletest')
     @commands.has_guild_permissions(manage_guild = True)
     async def getroletest(self, ctx: discord.ext.commands.Context, *, role_name):
         print(discord.utils.get(ctx.guild.roles, name = role_name))
-
 
     @commands.command(name = 'printMention')
     @commands.has_guild_permissions(manage_guild = True)
@@ -96,18 +89,14 @@ class Test(commands.Cog):
         await ctx.send(member.mention)
         print(member.mention)
 
-
     @commands.command(name = 'fetchtest')
     @commands.has_guild_permissions(manage_guild = True)
     async def fetchTest(self, interaction: discord.Interaction):
         dbhelper = DbHelper()
-        mydb = dbhelper.open()
         cursor = dbhelper.get_cursor()
 
-        await interaction.response.send_message(f"{DbChecks.checkGuildLogs(cursor, mydb, guildid = interaction.guild.id)}, "
-                                                f"{DbChecks.checkLogChannel(cursor, mydb, guildid = interaction.guild.id)}")
-
-
+        await interaction.response.send_message(f"{DbChecks.checkGuildLogs(cursor, guild = interaction.guild)}, "
+                                                f"{DbChecks.getLogChannel(cursor, guild = interaction.guild)}")
 
 
 async def setup(bot):
