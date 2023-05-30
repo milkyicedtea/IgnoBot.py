@@ -52,7 +52,7 @@ class LevelSystem(commands.Cog):
         DbChecks.giveXp(cursor, mydb, guild, user)
 
         # implement giving role on message (kinda dumb way) (or?)
-        await DbChecks.roleOnMessage(cursor, mydb, user, message)
+        await DbChecks.roleOnMessage(cursor, guild, user, message)
 
         dbhelper.close()
 
@@ -102,46 +102,46 @@ class LevelSystem(commands.Cog):
 
         guild = interaction.guild
 
-        rolename: str
-        reachlevel: int
-
         # guild check and update
         DbChecks.guildCheck(cursor, mydb, guild)
+        guildname = guild.name.replace("'", "")
 
         # select number of role guild has
-        print('pp1')
         cursor.execute(f"select count(*) from roles where guildid = {guild.id} "
-                       f"and guildname = '{guild.name}' "
+                       f"and guildname = '{guildname}' "
                        f"and reachlevels is not NULL "
                        f"and is_selfrole = 'false';")
-        result = cursor.fetchone()
-        print(result[0])
-        if result[0] == 0:
+        if cursor.fetchone()[0] == 0:
             await interaction.response.send_message('This guild has no roles assigned to levels.')  # say this and end
 
-        elif result[0] != 0:
+        else:
             cursor.execute(f"select rolenames from roles where guildid = {guild.id} "
-                           f"and guildname = '{guild.name}'  "
+                           f"and guildname = '{guildname}'  "
                            f"and reachlevels is not NULL "
                            f"and is_selfrole = 'false';")  # pulls role names from rolename column in that guild
             roleListDb: list = list(itertools.chain(*cursor.fetchall()))
-            roleList: list[discord.Role]
-            print(roleListDb)
+            roleList: list[discord.Role] = []
             for role in roleListDb:
-                roleList.append(discord.utils.get(interaction.guild.roles, name = roleListDb[role]))
+                print(role)
+                print('appending..')
+                roleList.append(discord.utils.get(interaction.guild.roles, name = str(role)))
+                print('appended')
 
-            print(roleList)
+            print('over cursor')
             cursor.execute(f"select reachlevels from roles where guildid = {guild.id} "
-                           f"and guildname = '{guild.name}' "
+                           f"and guildname = '{guildname}' "
                            f"and rolenames is not NULL "
                            f"and is_selfrole = 'false';")  # pulls reachlevels from rolelevels column in that guild
-            reachLevelList = list(itertools.chain(*cursor.fetchmany(size = result[0])))
+            print('cursor end')
+            reachLevelList = list(itertools.chain(*cursor.fetchall()))
 
+            print('embed')
             embed = discord.Embed(title = 'Guild roles', color = discord.Colour.random())
-
+            print('embed2')
             # TO TEST
-            for role, level in roleList, reachLevelList:
-                embed.add_field(name = f'<@&{role.id}>', value = f'Reached at level {int(level)}')  # REPLACE ROLENAME[X] WITH THE ROLE PING WITHOUT PINGING THAT ROLE IF POSSIBLE
+            for role, level in zip(roleList, reachLevelList):
+                print('for')
+                embed.add_field(name = None, value = f'**{role.mention}**\nReached at level {level}')  # REPLACE ROLENAME[X] WITH THE ROLE PING WITHOUT PINGING THAT ROLE IF POSSIBLE
 
             await interaction.response.send_message(embed = embed)
         dbhelper.close()
@@ -155,10 +155,11 @@ class LevelSystem(commands.Cog):
         cursor = dbhelper.get_cursor()
 
         guild = interaction.guild
+        guildname = guild.name.replace("'", "")
 
         # check how many role the guild has
         cursor.execute(f"select count(*) from roles where guildid = {guild.id} "
-                       f"and guildname = '{guild.name}' and is_selfrole = 'false';")
+                       f"and guildname = '{guildname}' and is_selfrole = 'false';")
         if cursor.fetchone()[0] >= 10:   # tf are you doing with more than 10 leveled roles :kek:
             await interaction.response.send_message("Your server already has the maximum number of roles (10). "
                                                     "More roles will be added with future updates if needed."
@@ -168,12 +169,12 @@ class LevelSystem(commands.Cog):
         else:
             # check if the role already exists in db
             cursor.execute(f"select count(*) from roles where guildid = {guild.id} "
-                           f"and guildname = '{guild.name}' and rolenames = '{role.name}' "
+                           f"and guildname = '{guildname}' and rolenames = '{role.name}' "
                            f"and is_selfrole = 'false';")
             if cursor.fetchone()[0] == 0:
                 role_exists_db: bool = False
                 cursor.execute(f"insert into roles(guildname, guildid, rolenames, reachlevels, is_selfrole) "
-                               f"values('{guild.name}', {guild.id}, '{role.name}', {level}, 'false');")
+                               f"values('{guildname}', {guild.id}, '{role.name}', {level}, 'false');")
                 mydb.commit()
                 # print("Role doesn't exist in db")
             else:
@@ -195,13 +196,14 @@ class LevelSystem(commands.Cog):
         cursor = dbhelper.get_cursor()
 
         guild = interaction.guild
+        guildname = guild.name.replace("'", "")
 
         cursor.execute(f"select count(*) from roles where guildid = {guild.id} "
-                       f"and guildname = '{guild.name}' and rolenames = '{role.name}';")
+                       f"and guildname = '{guildname}' and rolenames = '{role.name}';")
 
         if cursor.fetchone()[0] > 0:
             cursor.execute(f"delete from roles where guildid = {guild.id} "
-                           f"and guildname = '{guild.name}' and rolenames = '{role.name}';")
+                           f"and guildname = '{guildname}' and rolenames = '{role.name}';")
             mydb.commit()
         
         await interaction.response.send_message(f"The role **<@&{role.id}>** will no more be assigned. You can use"

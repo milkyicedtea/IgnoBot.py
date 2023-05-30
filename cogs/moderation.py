@@ -206,10 +206,9 @@ class Moderation(commands.Cog):
 	# Deletes role
 	@roleGroup.command(name = 'delete')
 	@commands.has_guild_permissions(manage_roles = True)
-	async def delete_role(self, interaction: discord.Interaction, role_name: str):
-		role = discord.utils.get(interaction.guild, name = role_name)
-		print(interaction.user)
-		await role.delete(reason = f'Deleted from command. Issued by: {interaction.user}')
+	async def delete_role(self, interaction: discord.Interaction, role: discord.Role):
+		await role.delete(reason = f'Deleted using ```/delete``` command. Issued by: {interaction.user}')
+		await interaction.response.send_message(f'Role **{role.name}** has been deleted')
 
 
 
