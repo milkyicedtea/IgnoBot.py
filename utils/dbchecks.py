@@ -1,6 +1,6 @@
 ####################
 #                  #
-#     dbhelper     #
+#     dbchecks     #
 #                  #
 ####################
 
@@ -9,19 +9,19 @@ import os
 import discord
 
 import discord.utils
-import psycopg2
 
 import random
 import itertools
 
+import psycopg2
 from utils.dbhelper import DbHelper
 
 
 class DbChecks:
 
     @staticmethod
-    def guildCheck(cursor, mydb, guild: discord.Guild):
-        print('guildCheck')
+    def guild_check(cursor, mydb, guild: discord.Guild):
+        print('guild_check')
         guildname = guild.name.replace("'", "")
         print(guild.id, guild.name)
         cursor.execute(f"select count(*) from guildinfo where guildid = {guild.id} and guildname = '{guildname}';")
@@ -39,8 +39,7 @@ class DbChecks:
             # print(f'guild {guildid} with name {guildname} is already in the database')
 
     @staticmethod
-    def settingsCheck(cursor, mydb, guild: discord.Guild):
-        print('settingsCheck')
+    def settings_check(cursor, mydb, guild: discord.Guild):
         cursor.execute(f"select count(*) from guildsettings where guildid = {guild.id};")
         if cursor.fetchone()[0] == 0:
             cursor.execute(f"insert into guildsettings(guildid) values({guild.id});")
@@ -50,23 +49,32 @@ class DbChecks:
             # print(f'guild {guildid} is already in the database')
 
     @staticmethod
-    def userCheck(cursor, mydb, guild: discord.Guild, user: discord.Member):
-        print('userCheck')
-        if not user.bot:
+    def user_check(cursor, mydb, guild: discord.Guild, user: discord.User):
+        print('user_check')
+        if not user.bot and not user.system:
+            username = user.name.replace("_", "")
+            print('cursor1')
             cursor.execute(f"select count(*) from leveling where guildid = {guild.id} "
                            f"and userid = {user.id} "
-                           f"and username = '{user.name}'")
+                           f"and username = '{username}'")
             if cursor.fetchone()[0] == 0:
+                print('cursor2')
                 cursor.execute(f"select count(*) from leveling where guildid = {guild.id} "
                                f"and userid = {user.id}")
                 if cursor.fetchone()[0] == 0:
-                    guildname = guild.name.replace("'", "")
-                    cursor.execute(f"insert into leveling(userid, username, guildid, guildname) "
-                                   f"values({user.id}, '{user.name}', {guild.id}, '{guildname}');")
-                    mydb.commit()
+                    try:
+                        print('cursor3')
+                        print(user.id, username, guild.id)
+                        cursor.execute(f"insert into leveling(userid, username, guildid) "
+                                       f"values({user.id}, '{username}', {guild.id});")
+                        print('commit')
+                        mydb.commit()
+                    except psycopg2.Error as err:
+                        print(err)
                     # print(f'user {user.mention} has been added to the database')
                 else:
-                    cursor.execute(f"update leveling set username = '{user.name}' "
+                    print('cursor4')
+                    cursor.execute(f"update leveling set username = '{username}' "
                                    f"where userid = {user.id};")
                     mydb.commit()
                     # print(f'updated user {user.mention} with new name: {user.name}')
@@ -74,7 +82,7 @@ class DbChecks:
                 # print(f'user {userid} with name {username} is already in the database')
 
     @staticmethod
-    def checkGuildLogs(cursor, guild: discord.Guild) -> bool:
+    def check_guild_logs(cursor, guild: discord.Guild) -> bool:
         cursor.execute(f"select wantslogs from guildsettings where guildid = {guild.id}")
         # print(f'wantslogs = {wantslogs}')
         if cursor.fetchone()[0]:
@@ -83,14 +91,19 @@ class DbChecks:
             return False
 
     @staticmethod
-    def getLogChannel(cursor, guild: discord.Guild) -> discord.TextChannel:
+    def get_log_channel(cursor, guild: discord.Guild) -> discord.TextChannel:
         cursor.execute(f"select logchannel from guildsettings where guildid = {guild.id}")
         logchannel = discord.utils.get(guild.text_channels, id = cursor.fetchone()[0])
         return logchannel
 
     @staticmethod
-    def giveXp(cursor, mydb, guild: discord.Guild, user: discord.User):
-        print('giveXp')
+    def give_xp(cursor, mydb, guild: discord.Guild, user: discord.User):
+        DbChecks.guild_check(cursor, mydb, guild)
+
+        DbChecks.settings_check(cursor, mydb, guild)
+
+        DbChecks.user_check(cursor, mydb, guild, user)
+        print('give_xp')
         if not user.bot:
             cursor.execute(f"select xpvalue from leveling where userid = {user.id} "
                            f"and guildid = {guild.id};")            # getting xp
@@ -117,33 +130,27 @@ class DbChecks:
             mydb.commit()
 
     @staticmethod
-    async def roleOnMessage(cursor, guild: discord.Guild, user: discord.User, message: discord.Message):
-        print('roleOnMessage')
+    async def role_on_message(cursor, guild: discord.Guild, user: discord.User, message: discord.Message):
         if not user.bot:    # checks if user is bot
             guildname = guild.name.replace("'", "")
             cursor.execute(f"select rolenames from roles where guildid = {guild.id} "
-                           f"and guildname = '{guildname}';")
-            roleListDb = list(itertools.chain(*cursor.fetchall()))
+                           f"and guildname = '{guildname}' "
+                           f"and is_selfrole = 'false';")
+            role_list_db = list(itertools.chain(*cursor.fetchall()))
 
-            print('cursor2')
             cursor.execute(f"select reachlevels from roles where guildid = {guild.id} "
-                           f"and guildname = '{guildname}';")
+                           f"and guildname = '{guildname}' "
+                           f"and is_selfrole = 'false';")
             reachlevels = list(itertools.chain(*cursor.fetchall()))
 
-            roleList: list[discord.Role] = []
-            for role in roleListDb:
-                roleList.append(discord.utils.get(guild.roles, name = role))
+            role_list = [discord.utils.get(guild.roles, name = role) for role in role_list_db]
 
-            for role, level in roleList, reachlevels:
-                print(f'level = {level}, role = {role}')
-                print('cursor3')
+            for role, level in zip(role_list, reachlevels):
                 cursor.execute(f"select levelvalue from leveling where guildid = {guild.id} "
                                f"and userid = {user.id}")
                 if cursor.fetchone()[0] >= level:
-                    # print('if')
-                    # print(role)
                     try:
                         await message.author.add_roles(role)
                     except:
-                        await message.channel.send(f"There was an error while assigning the role **{role.name}**. "
+                        await message.channel.send(f"There was an error while assigning the role **{role.name}**. To {user.mention}"
                                                    f"Please report this to our discord.")

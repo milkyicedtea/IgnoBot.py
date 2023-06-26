@@ -10,15 +10,13 @@
 import os
 
 import sys
-import logging
 
-import discord
-
-from dotenv import load_dotenv
 from discord.ext import commands
-from discord import app_commands
 import discord.utils
+
 import asyncio
+import dotenv
+import builtins
 
 from utils.dbchecks import *
 from utils.dbhelper import *
@@ -28,10 +26,18 @@ print(sys.version)
 print(sys.version_info)
 
 # Initializing variables from .env file
-load_dotenv()
-TOKEN = os.getenv('bot_token')
+TOKEN = dotenv.get_key(".env", 'bot_token')
 
-def get_prefix(bot, message):
+kodama_guild: int = int(dotenv.get_key(".env", "kodama_guild"))
+chill_ignorance: int = int(dotenv.get_key(".env", "chill_ignorance"))
+# ducks_hideout: int = int(dotenv.get_key(".env", "ducks_hideout"))
+ichiban_kuji_guild: int = int(dotenv.get_key(".env", "ichiban_kuji_guild"))
+
+guildList: list[int] = [kodama_guild, chill_ignorance, ichiban_kuji_guild]
+builtins.guildList = guildList
+
+
+def get_prefix(bot: commands.Bot, message) -> str:
     # print('get prefix')
     guildid = message.guild.id
 
@@ -40,7 +46,7 @@ def get_prefix(bot, message):
     mydb = dbhelper.open()
     cursor = dbhelper.get_cursor()
 
-    # DbChecks.guildCheck(cursor, mydb, guildid, guildname = message.guild.name)
+    # DbChecks.guild_check(cursor, mydb, guildid, guildname = message.guild.name)
 
     cursor.execute(f"select count(*) from guildsettings where guildid = {guildid}")
     result = cursor.fetchone()
@@ -57,10 +63,12 @@ def get_prefix(bot, message):
     dbhelper.close()
     return prefix
 
+
 # Prefix setup
 # client = discord.Client(command_prefix = (get_prefix), intents = discord.Intents().all()) # not using the client
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix = (get_prefix), intents = intents, description = 'ducc')
+bot = commands.Bot(command_prefix = get_prefix, intents = intents, description = 'ducc')
+builtins.bot = bot
 # tree = app_commands.CommandTree(bot)
 
 
@@ -73,16 +81,20 @@ async def load_cogs():
             print(f'Loaded {filename[:-3]}')
 
     print(f'Total number of commands: {len(list(bot.walk_commands()))}')
-    
+
+
 # Bot login event
 @bot.event
 async def on_ready():
     """print(f'{bot.user} has logged in.')
-    print('Servers connected to: ')
+    print("Servers connected to: ")
     for guild in bot.guilds:
         print(guild.name, " ", guild.id)"""
     await bot.tree.sync()
+    for guild in guildList:
+        await bot.tree.sync(guild = discord.Object(id = guild))
     await bot.change_presence(activity = discord.Activity(type = discord.ActivityType.watching, name = f'ducks at the park \U0001f986'))
+
 
 @bot.event
 async def on_guild_join(guild):
@@ -108,6 +120,7 @@ async def on_guild_join(guild):
 
     dbhelper.close()
 
+
 @bot.event
 async def on_guild_remove(guild):
     guildid = guild.id
@@ -117,16 +130,16 @@ async def on_guild_remove(guild):
     mydb = dbhelper.open()
     cursor = dbhelper.get_cursor()
     
-    #guildsettings
+    # guildsettings
     cursor.execute(f'delete from guildsettings where guildid = {guildid}')
 
-    #welcome
+    # welcome
     cursor.execute(f'delete from welcome where guildid = {guildid}')
 
-    #leveling
+    # leveling
     cursor.execute(f'delete from leveling where guildid = {guildid}')
 
-    #roles
+    # roles
     cursor.execute(f'delete from roles where guildid = {guildid}')
 
     # do stuff in guildinfo
@@ -136,14 +149,15 @@ async def on_guild_remove(guild):
     print(f'deleted every information relative to guild {guildname} with id {guildid} from the database')
     dbhelper.close()
 
-    @bot.tree(name = 'bad')
-    async def bad(interaction):
-        await interaction.response.send_message('**Bad**')
+
+async def get_bot():
+    return bot
+
 
 # bot.run
 async def main():
-    #handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
-    #discord.utils.setup_logging(handler = handler)
+    # handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+    # discord.utils.setup_logging(handler = handler)
     async with bot:
         await load_cogs()
         await bot.start(TOKEN)

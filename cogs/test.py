@@ -85,18 +85,25 @@ class Test(commands.Cog):
 
     @commands.command(name = 'printMention')
     @commands.has_guild_permissions(manage_guild = True)
-    async def printMention(self, ctx: discord.ext.commands.Context, member: discord.Member):
+    async def print_mention(self, ctx: discord.ext.commands.Context, member: discord.Member):
         await ctx.send(member.mention)
         print(member.mention)
 
     @commands.command(name = 'fetchtest')
     @commands.has_guild_permissions(manage_guild = True)
-    async def fetchTest(self, interaction: discord.Interaction):
+    async def fetch_test(self, interaction: discord.Interaction):
         dbhelper = DbHelper()
         cursor = dbhelper.get_cursor()
 
-        await interaction.response.send_message(f"{DbChecks.checkGuildLogs(cursor, guild = interaction.guild)}, "
-                                                f"{DbChecks.getLogChannel(cursor, guild = interaction.guild)}")
+        await interaction.response.send_message(f"{DbChecks.check_guild_logs(cursor, guild = interaction.guild)}, "
+                                                f"{DbChecks.get_log_channel(cursor, guild = interaction.guild)}")
+
+    @app_commands.command(name = 'slashcommands')
+    @application_check(manage_guild = True)
+    async def slash_commands_get(self, interaction: discord.Interaction, guild: int):
+        for slash_command in self.bot.tree.walk_commands(discord.Object(guild)):
+            print(slash_command.name)
+        await interaction.response.send_message('slash commands are working.', ephemeral = True)
 
 
 async def setup(bot):

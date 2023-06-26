@@ -12,7 +12,7 @@ from discord.ext import commands
 
 import base64
 import random
-import cogs.rule34 as rule34
+from cogs.rule34 import Rule34
 import asyncio
 
 from utils.APIs.animeAPI import get_anime_info
@@ -27,7 +27,8 @@ class Hentie(commands.Cog):
     application_check = app_commands.checks.has_permissions
 
     @anime.command(name = 'search')
-    async def kayo(self, interaction: discord.Interaction, *, anime_name: str):
+    async def kayo(self, interaction: discord.Interaction, anime_name: str):
+        """Searches an anime and returns some infos."""
         anime = get_anime_info(query = anime_name)
         # print(anime)
         if anime is None:
@@ -79,9 +80,10 @@ class Hentie(commands.Cog):
         embed.set_image(url = anime.thumbnail)
         await interaction.response.send_message(embed = embed, ephemeral = True)
 
-    # actual hentie command OwO (don't try at home)
     @app_commands.command(name = 'hentai', nsfw = True)    # channel must be marked as 18+
+    @app_commands.rename(number_to_send = 'amount')
     async def hentai(self, interaction: discord.Interaction, tag: str = 'vanilla', number_to_send: int = 1):
+        """Sends x NSFW henti images with the selected tag"""
         print('hentie')
         await interaction.response.defer()
 
@@ -89,10 +91,8 @@ class Hentie(commands.Cog):
         if number_to_send > 20:
             number_to_send = 20
 
-        Rule34 = rule34.Rule34()
-
         print('getting images')
-        images = await Rule34.getImages(tag)
+        images = await Rule34().getImages(tag)
         print('done')
 
         """

@@ -42,7 +42,6 @@ def get_anime_info(query: str) -> Optional[AnimeInfo]:
     anime_info.download = link
     anime_info.thumbnail = imgurl
 
-
     # Get more details
     response = requests.get(link)
     soup = BeautifulSoup(response.text, 'html.parser')

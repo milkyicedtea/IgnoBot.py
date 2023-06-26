@@ -8,22 +8,20 @@
 
 import os
 import asyncpraw as apraw
-from dotenv import load_dotenv
 
-load_dotenv()
 client_id = str(os.getenv('reddit_clientID'))
 client_secret = str(os.getenv('reddit_clientSecret'))
 user_agent = str(os.getenv('reddit_user_agent'))
 password = str(os.getenv('reddit_password'))
 username = str(os.getenv('reddit_username'))
 
-
-
+# The reddit instance
 reddit = apraw.Reddit(client_id = client_id,
-                        client_secret = client_secret,
-                        password = password,
-                        user_agent = user_agent,
-                        username = username)
+                      client_secret = client_secret,
+                      password = password,
+                      user_agent = user_agent,
+                      username = username)
+
 
 async def get_image():
     # fully inizialize the list cause why not
@@ -36,7 +34,7 @@ async def get_image():
     print('getting cat images..')
     x = 0
     async for submission in target_subreddit.new(limit = 50):
-        x+=1
+        x += 1
         print(f'image number {x}')
         # put the url in a list if it ends with image extension
         if submission.url.endswith(('.jpg', '.png', '.jpeg')):
@@ -46,16 +44,10 @@ async def get_image():
     print('sending the images!')
     return url_list
 
+
 async def get_video():
     # fully inizialize the list cause why not
     url_list: list = []
-
-    # get the reddit instance
-    reddit = apraw.Reddit(client_id = client_id,
-                        client_secret = client_secret,
-                        password = password,
-                        user_agent = user_agent,
-                        username = username)
 
     # targert subreddit to get the videos from
     target_subreddit = await reddit.subreddit("cats")
@@ -76,4 +68,4 @@ async def get_video():
     return url_list
 
 if __name__ == "__main__":
-    print('You ran catAPI.py alone. Now what?')
+    print('You ran catAPI.py as standalone. Now what?')

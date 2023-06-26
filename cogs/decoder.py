@@ -8,7 +8,6 @@ import os
 
 import discord
 from discord.ext import commands
-from discord.ext.commands import bot
 from discord import app_commands
 
 import base64
@@ -22,18 +21,19 @@ class Decoder(commands.Cog):
 
     @base64.command(name = 'encode')
     async def encode(self, interaction: discord.Interaction, *, string: str):
+        """Encodes text to base64 format."""
         string_bytes = string.encode('UTF-8')
         # print(string_bytes)
         base64_bytes = base64.b64encode(string_bytes)
         # print(base64_bytes)
         base64_string = base64_bytes.decode('UTF-8')
         # print(base64_string)
-        reaction_id = interaction.id
         await interaction.response.send_message(f'Original message: {string}\nEncoded string: {base64_string}', ephemeral = True)
         # await ctx.send(':white_check_mark:')
 
     @base64.command(name = 'decode')
     async def decode(self, interaction: discord.Interaction, *, string: str):
+        """Decodes base64 format to string."""
         string_bytes = string.encode('UTF-8')
         # print(string_bytes)
         decode_bytes = base64.b64decode(string_bytes)
