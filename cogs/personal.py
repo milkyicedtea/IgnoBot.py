@@ -103,7 +103,7 @@ class Personal(commands.Cog):
     # listeners
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        if message.guild.id in guildList:
+        if type(message) is not None and (message.guild.id in guildList):
             # bastardi on message
             if message.content.lower() in ['pronto', 'pronto?']:
                 response = '**Bastardi**, chiamo da Reggio Emilia, sono un assassino di **meridionali**. Vi ammazzo tutti *bastardi pezzi di merda*.'

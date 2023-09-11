@@ -14,6 +14,7 @@ import random
 import itertools
 
 import psycopg2
+
 from utils.dbhelper import DbHelper
 
 
@@ -21,9 +22,10 @@ class DbChecks:
 
     @staticmethod
     def guild_check(cursor, mydb, guild: discord.Guild):
-        print('guild_check')
+        # print('guild_check')
+        # print(guild.name)
+        # print(guild.id, guild.name)
         guildname = guild.name.replace("'", "")
-        print(guild.id, guild.name)
         cursor.execute(f"select count(*) from guildinfo where guildid = {guild.id} and guildname = '{guildname}';")
         if cursor.fetchone()[0] == 0:
             cursor.execute(f'select count(*) from guildinfo where guildid = {guild.id};')
@@ -50,33 +52,31 @@ class DbChecks:
 
     @staticmethod
     def user_check(cursor, mydb, guild: discord.Guild, user: discord.User):
-        print('user_check')
+        # print('user_check')
         if not user.bot and not user.system:
             username = user.name.replace("_", "")
-            print('cursor1')
             cursor.execute(f"select count(*) from leveling where guildid = {guild.id} "
                            f"and userid = {user.id} "
                            f"and username = '{username}'")
             if cursor.fetchone()[0] == 0:
-                print('cursor2')
                 cursor.execute(f"select count(*) from leveling where guildid = {guild.id} "
                                f"and userid = {user.id}")
                 if cursor.fetchone()[0] == 0:
                     try:
-                        print('cursor3')
-                        print(user.id, username, guild.id)
+                        # print(user.id, username, guild.id)
                         cursor.execute(f"insert into leveling(userid, username, guildid) "
                                        f"values({user.id}, '{username}', {guild.id});")
-                        print('commit')
                         mydb.commit()
                     except psycopg2.Error as err:
                         print(err)
                     # print(f'user {user.mention} has been added to the database')
                 else:
-                    print('cursor4')
-                    cursor.execute(f"update leveling set username = '{username}' "
-                                   f"where userid = {user.id};")
-                    mydb.commit()
+                    try:
+                        cursor.execute(f"update leveling set username = '{username}' "
+                                       f"where userid = {user.id};")
+                        mydb.commit()
+                    except psycopg2.Error as err:
+                        print(err)
                     # print(f'updated user {user.mention} with new name: {user.name}')
             # else:
                 # print(f'user {userid} with name {username} is already in the database')
@@ -103,7 +103,7 @@ class DbChecks:
         DbChecks.settings_check(cursor, mydb, guild)
 
         DbChecks.user_check(cursor, mydb, guild, user)
-        print('give_xp')
+        # print('give_xp')
         if not user.bot:
             cursor.execute(f"select xpvalue from leveling where userid = {user.id} "
                            f"and guildid = {guild.id};")            # getting xp
@@ -151,6 +151,7 @@ class DbChecks:
                 if cursor.fetchone()[0] >= level:
                     try:
                         await message.author.add_roles(role)
-                    except:
+                    except Exception as err:
+                        print(err)
                         await message.channel.send(f"There was an error while assigning the role **{role.name}**. To {user.mention}"
                                                    f"Please report this to our discord.")

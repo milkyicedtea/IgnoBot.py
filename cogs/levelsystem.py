@@ -11,6 +11,7 @@ from discord.ext import commands
 from discord import app_commands
 
 import itertools
+import math
 
 from utils.dbchecks import DbChecks
 from utils.dbhelper import DbHelper
@@ -39,6 +40,7 @@ class LevelSystem(commands.Cog):
 
         guild = message.guild
         user = message.author
+        # print(f'message.guild = {message.guild}')
 
         # xp giving
         DbChecks.give_xp(cursor, mydb, guild, user)
@@ -106,25 +108,27 @@ class LevelSystem(commands.Cog):
             await interaction.response.send_message('This guild has no roles assigned to levels.')  # say this and end
 
         else:
-            cursor.execute(f"select rolenames from roles where guildid = {guild.id} "
-                           f"and guildname = '{guildname}'  "
-                           f"and reachlevels is not NULL "
-                           f"and is_selfrole = 'false';")  # pulls role names from rolename column in that guild
-            roleListDb: list = list(itertools.chain(*cursor.fetchall()))
-            roleList: list[discord.Role] = []
-            for role in roleListDb:
-                roleList.append(discord.utils.get(interaction.guild.roles, name = str(role)))
+            try:
+                cursor.execute(f"select rolenames, reachlevels from roles where guildid = {guild.id} " 
+                               f"and guildname = '{guildname}' "
+                               f"and reachlevels is not NULL "
+                               f"and is_selfrole = 'false';")
+            except psycopg2.Error as err:
+                print(err)
 
-            cursor.execute(f"select reachlevels from roles where guildid = {guild.id} "
-                           f"and guildname = '{guildname}' "
-                           f"and rolenames is not NULL "
-                           f"and is_selfrole = 'false';")  # pulls reachlevels from rolelevels column in that guild
-            reachLevelList = list(itertools.chain(*cursor.fetchall()))
+            roleListDb = cursor.fetchall()
+            roleListDb.sort(key = lambda x: x[1])
+            roleListDb = list(itertools.chain(*roleListDb))
 
-            embed = discord.Embed(title = 'Guild roles', color = discord.Colour.random())
+            roleList: list[discord.Role, int] = []
+            for index, item in enumerate(roleListDb):
+                if not index % 2:
+                    roleList.append((discord.utils.get(interaction.guild.roles, name = str(item)), roleListDb[index+1]))
 
-            for role, level in zip(roleList, reachLevelList):
-                embed.add_field(name = '', value = f'**{role.mention}**\nReached at level {level}', inline = False)
+            embed = discord.Embed(title = f'Roles for {interaction.guild.name}', color = discord.Colour.random())
+
+            for item in roleList:
+                embed.add_field(name = '', value = f'**{item[0].mention}**\nReached at level {item[1]}', inline = False)
 
             await interaction.response.send_message(embed = embed)
         dbhelper.close()
@@ -148,7 +152,6 @@ class LevelSystem(commands.Cog):
                                                     "More roles will be added with future updates if needed."
                                                     "\nIn the meantime you can remove the roles you don't need "
                                                     "with the command ``unsetrole``", ephemeral = True)
-        
         else:
             # check if the role already exists in db
             cursor.execute(f"select count(*) from roles where guildid = {guild.id} "

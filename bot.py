@@ -18,8 +18,12 @@ import asyncio
 import dotenv
 import builtins
 
+import logging
+
 from utils.dbchecks import *
 from utils.dbhelper import *
+
+
 
 print('python verion is:')
 print(sys.version)
@@ -156,8 +160,8 @@ async def get_bot():
 
 # bot.run
 async def main():
-    # handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
-    # discord.utils.setup_logging(handler = handler)
+    handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+    discord.utils.setup_logging(handler = handler)
     async with bot:
         await load_cogs()
         await bot.start(TOKEN)
