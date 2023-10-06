@@ -24,21 +24,20 @@ from utils.dbchecks import *
 from utils.dbhelper import *
 
 
-
-print('python verion is:')
+print('python version is:')
 print(sys.version)
 print(sys.version_info)
 
 # Initializing variables from .env file
 TOKEN = dotenv.get_key(".env", 'bot_token')
 
-kodama_guild: int = int(dotenv.get_key(".env", "kodama_guild"))
+"""kodama_guild: int = int(dotenv.get_key(".env", "kodama_guild"))
 chill_ignorance: int = int(dotenv.get_key(".env", "chill_ignorance"))
 # ducks_hideout: int = int(dotenv.get_key(".env", "ducks_hideout"))
 ichiban_kuji_guild: int = int(dotenv.get_key(".env", "ichiban_kuji_guild"))
 
 guildList: list[int] = [kodama_guild, chill_ignorance, ichiban_kuji_guild]
-builtins.guildList = guildList
+builtins.guildList = guildList"""
 
 
 def get_prefix(bot: commands.Bot, message) -> str:
@@ -95,8 +94,8 @@ async def on_ready():
     for guild in bot.guilds:
         print(guild.name, " ", guild.id)"""
     await bot.tree.sync()
-    for guild in guildList:
-        await bot.tree.sync(guild = discord.Object(id = guild))
+    # for guild in guildList:
+    #     await bot.tree.sync(guild = discord.Object(id = guild))
     await bot.change_presence(activity = discord.Activity(type = discord.ActivityType.watching, name = f'ducks at the park \U0001f986'))
 
 

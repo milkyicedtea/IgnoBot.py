@@ -46,8 +46,8 @@ class YTDLPCMVolumeTransformer(discord.PCMVolumeTransformer):
         'default_search': 'auto',
         'source_address': '0.0.0.0',  # bind to ipv4 since ipv6 addresses cause issues sometimes
         'postprocessors': [{  # Extract audio using ffmpeg
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'm4a',
+            'key': 'FFmpegExtractAudio'
+            # 'preferredcodec': 'm4a',
         }]
     }
 
@@ -183,38 +183,26 @@ class MusicPlayer:
     def __init__(self, bot):
         self.bot = bot
         self.voice_client = None
-        self.queue = asyncio.Queue()
-        self.playing = False
+        self.queue = []
+        self.loop = False
 
-    async def play_music(self):
-        while True:
-            song = await self.queue.get()
-            self.voice_client.play(song, after = lambda e: self.bot.loop.call_soon_threadsafe(self.queue.task_done))
-            await self.queue.join()
-
-    async def join_voice_channel(self, interaction: discord.Interaction):
-        if interaction.user.voice is None or interaction.user.voice.channel is None:
-            await interaction.response.send_message('You are not connected to a voice channel.')
-            return False
-
-        # if self.voice_client is not None and self.voice_client.is_playing():
-        #     await interaction.response.send_message('I am already playing music.')
-        #     return False
-
-        channel = interaction.user.voice.channel
-        self.voice_client = await channel.connect()
-        return True
+    def get_voice_client(self, guild: discord.Guild):
+        return discord.utils.get(self.bot.voice_clients, guild = guild)
 
     def add_song_to_queue(self, song):
-        self.queue.put_nowait(song)
+        self.queue.append(song)
 
-    def stop_music(self):
-        if self.voice_client is not None and self.voice_client.is_playing():
-            self.voice_client.stop()
+    async def play_next_song(self, error = None):
+        if self.queue:
+            song = self.queue.pop(0)
+            self.voice_client.play(song, after = self.play_next_song)
+        elif self.loop:
+            song = self.current_song
+            self.voice_client.play(song, after = self.play_next_song)
 
-    async def disconnect(self):
-        if self.voice_client is not None and self.voice_client.is_connected():
-            await self.voice_client.disconnect()
+    async def wait_for_song_end(self):
+        while self.voice_client.is_playing() or self.voice_client.is_paused():
+            await asyncio.sleep(1)
 
 
 class Music(commands.Cog):
@@ -225,21 +213,37 @@ class Music(commands.Cog):
     @app_commands.command(name = 'play')
     async def play(self, interaction: discord.Interaction, search: str):
         await interaction.response.defer(ephemeral = True, thinking = False)
-        if not await self.music_player.join_voice_channel(interaction):
+        if interaction.user.voice is None or interaction.user.voice.channel is None:
+            await interaction.response.send_message('You are not connected to a voice channel.')
             return
+        else:
+            channel = interaction.user.voice.channel
+            self.music_player.voice_client = await channel.connect()
 
+        print('creating source and song')
         song = YTDLPCMVolumeTransformer.create_source(interaction, search)
         self.music_player.add_song_to_queue(song)
 
-        if not self.music_player.playing:
-            self.music_player.playing = True
-            bot.loop.create_task(self.music_player.play_music())
-            await interaction.followup.send(f'Now playing: **{song.title}** in {interaction.user.voice.channel.mention}', ephemeral = True)
+        if not self.music_player.voice_client.is_playing():
+            await self.music_player.play_next_song()
+
+        await interaction.followup.send(f'Now playing: **{song.title}** in {interaction.user.voice.channel.mention}', ephemeral=True)
 
     @app_commands.command(name = 'stop')
     async def stop(self, interaction: discord.Interaction):
-        self.music_player.stop_music()
-        await interaction.response.send_message('Music has been stopped.', ephemeral = True)
+        if self.music_player.voice_client and self.music_player.voice_client.is_connected():
+            self.music_player.voice_client.stop()
+            await interaction.response.send_message('Music playback stopped.', ephemeral = True)
+        else:
+            await interaction.response.send_message('The bot is not connected to a voice channel.', ephemeral = True)
+
+    @app_commands.command(name = 'queue')
+    async def queue(self, interaction: discord.Interaction):
+        queue_message = '\n'.join(f'{index + 1}. {song.title}' for index, song in enumerate(self.music_player.queue))
+        if queue_message:
+            await interaction.response.send_message(f'Queue:\n{queue_message}', ephemeral = True)
+        else:
+            await interaction.response.send_message('The queue is empty.', ephemeral = True)
 
     @app_commands.command(name = 'disconnect')
     async def disconnect(self, interaction: discord.Interaction):
@@ -256,14 +260,11 @@ class Music(commands.Cog):
         self.music_player.voice_client.resume()
         await interaction.response.send_message('Music has been resumed.', ephemeral = True)
 
-    @app_commands.command(name = 'queue')
-    async def queue(self, interaction: discord.Interaction):
-        await interaction.response.send_message(embed = self.music_player.now_playing_embed())
-
     @app_commands.command(name = 'loop')
     async def loop(self, interaction: discord.Interaction):
-        self.music_player.voice_client.loop = not self.music_player.voice_client.loop
-        await interaction.response.send_message(f'Looping: {self.music_player.voice_client.loop}', ephemeral = True)
+        self.music_player.loop = not self.music_player.loop
+        loop_status = 'enabled' if self.music_player.loop else 'disabled'
+        await interaction.response.send_message(f'Looping is now {loop_status}.', ephemeral = True)
 
 
 
