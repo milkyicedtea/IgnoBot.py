@@ -192,7 +192,7 @@ class MusicPlayer:
     def add_song_to_queue(self, song):
         self.queue.append(song)
 
-    async def play_next_song(self, error = None):
+    async def play_next_song(self):
         if self.queue:
             song = self.queue.pop(0)
             self.voice_client.play(song, after = self.play_next_song)
@@ -203,6 +203,10 @@ class MusicPlayer:
     async def wait_for_song_end(self):
         while self.voice_client.is_playing() or self.voice_client.is_paused():
             await asyncio.sleep(1)
+
+    async def start_playing(self):
+        while self.queue:
+            await self.play_next_song()
 
 
 class Music(commands.Cog):
@@ -216,7 +220,7 @@ class Music(commands.Cog):
         if interaction.user.voice is None or interaction.user.voice.channel is None:
             await interaction.response.send_message('You are not connected to a voice channel.')
             return
-        else:
+        elif not self.music_player.voice_client:
             channel = interaction.user.voice.channel
             self.music_player.voice_client = await channel.connect()
 
@@ -225,7 +229,7 @@ class Music(commands.Cog):
         self.music_player.add_song_to_queue(song)
 
         if not self.music_player.voice_client.is_playing():
-            await self.music_player.play_next_song()
+            await self.music_player.start_playing()
 
         await interaction.followup.send(f'Now playing: **{song.title}** in {interaction.user.voice.channel.mention}', ephemeral=True)
 
@@ -266,7 +270,11 @@ class Music(commands.Cog):
         loop_status = 'enabled' if self.music_player.loop else 'disabled'
         await interaction.response.send_message(f'Looping is now {loop_status}.', ephemeral = True)
 
-
+    @app_commands.command(name = 'skip')
+    async def skip(self, interaction: discord.Interaction):
+        if self.music_player.voice_client and self.music_player.voice_client.is_playing():
+            self.music_player.voice_client.stop()
+            await self.music_player.play_next_song()
 
 
 
