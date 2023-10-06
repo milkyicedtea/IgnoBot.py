@@ -22,30 +22,45 @@ class Logs(commands.Cog):
 
     application_check = app_commands.checks.has_permissions
 
+    # set log channel in database
     @logsGroup.command(name = 'channel')
     @application_check(view_audit_log = True, administrator = True)
     async def set_log_channel(self, interaction: discord.Interaction, channel: discord.TextChannel = None):
-        """Sets the default channel where logged events go. Leave empty to clear the channel"""
+        """
+        Sets the default channel where logged events go.
+        Leave empty to clear the channel.
+        """
 
+        # Create a database helper instance
         dbhelper = DbHelper()
+
+        # Open the database connection
         mydb = dbhelper.open()
+
+        # Get the database cursor
         cursor = dbhelper.get_cursor()
 
+        # Get the guild object from the interaction
         guild = interaction.guild
 
+        # Check if the guild exists in the database
         DbChecks.guild_check(cursor, mydb, guild)
 
-        if channel is not None:
-
-            cursor.execute(f"update guildsettings set logchannel = {channel.id} where guildid = {guild.id}")
+        if channel:
+            # Update the log channel in the database
+            cursor.execute(f"UPDATE guildsettings SET logchannel = {channel.id} WHERE guildid = {guild.id}")
             mydb.commit()
             await interaction.response.send_message(f"Your logs channel was updated to {channel.mention}.")
         else:
-            cursor.execute(f"update guildsettings set logchannel = NULL where guildid = {guild.id}")
+            # Clear the log channel in the database
+            cursor.execute(f"UPDATE guildsettings SET logchannel = NULL WHERE guildid = {guild.id}")
             mydb.commit()
-            await interaction.response.send_message(f"Your logs channel has been updated to default. (None)", ephemeral = True)
+            await interaction.response.send_message(f"Your logs channel has been updated to default. (None)", ephemeral=True)
+
+        # Close the database connection
         dbhelper.close()
 
+    # toggle guild logs in database
     @logsGroup.command(name = "toggle")
     @application_check(view_audit_log = True, administrator = True)
     async def toggle_logs(self, interaction: discord.Interaction):
