@@ -114,9 +114,15 @@ class MusicPlayer:
         self.voice_client = None
         self.queue = []     # Inizialize an empty queue to store song
         self.loop = False
+        self.current_song = None
 
     def get_voice_client(self, guild: discord.Guild):
         return discord.utils.get(self.bot.voice_clients, guild = guild)
+
+    async def disconnect(self):
+        if self.voice_client and self.voice_client.is_connected():
+            self.voice_client.stop()
+            await self.voice_client.disconnect()
 
     def add_song_to_queue(self, song):
         self.queue.append(song)
@@ -124,10 +130,15 @@ class MusicPlayer:
     async def play_next_song(self):
         print('playing next song')
         if self.queue:
+            print('self.queue')
+            print(f'playing next song')
             song = self.queue.pop(0)
+            print(song.title)
             self.current_song = song
             self.voice_client.play(song, after = self.play_next_song)
+            await self.wait_for_song_end()
         elif self.loop:
+            print('self.loop')
             song = self.current_song
             self.voice_client.play(song, after = self.play_next_song)
 
@@ -157,7 +168,8 @@ class Music(commands.Cog):
 
         print('creating source and song')
         song = YTDLPCMVolumeTransformer.create_source(interaction, search)
-        self.music_player.add_song_to_queue(song)
+        # self.music_player.add_song_to_queue(song)
+        self.music_player.add_song_to_queue(YTDLPCMVolumeTransformer.create_source(interaction, search))
 
         if not self.music_player.voice_client.is_playing():
             await self.music_player.start_playing()
@@ -176,36 +188,39 @@ class Music(commands.Cog):
     async def queue(self, interaction: discord.Interaction):
         queue_message = '\n'.join(f'{index + 1}. {song.title}' for index, song in enumerate(self.music_player.queue))
         if queue_message:
-            await interaction.response.send_message(f'Queue:\n{queue_message}', ephemeral = True)
+            await interaction.response.send_message(f'Queue:\n{queue_message}')
         else:
-            await interaction.response.send_message('The queue is empty.', ephemeral = True)
+            await interaction.response.send_message('The queue is empty.')
 
     @app_commands.command(name = 'disconnect')
     async def disconnect(self, interaction: discord.Interaction):
         await self.music_player.disconnect()
-        await interaction.response.send_message(f'Disconnected from {interaction.user.voice.channel.mention}.', ephemeral = True)
+        await interaction.response.send_message(f'Disconnected from {interaction.user.voice.channel.mention}.')
 
     @app_commands.command(name = 'pause')
     async def pause(self, interaction: discord.Interaction):
         self.music_player.voice_client.pause()
-        await interaction.response.send_message('Music has been paused.', ephemeral = True)
+        await interaction.response.send_message('Music has been paused.')
 
     @app_commands.command(name = 'resume')
     async def resume(self, interaction: discord.Interaction):
         self.music_player.voice_client.resume()
-        await interaction.response.send_message('Music has been resumed.', ephemeral = True)
+        await interaction.response.send_message('Music has been resumed.')
 
     @app_commands.command(name = 'loop')
     async def loop(self, interaction: discord.Interaction):
         self.music_player.loop = not self.music_player.loop
         loop_status = 'enabled' if self.music_player.loop else 'disabled'
-        await interaction.response.send_message(f'Looping is now {loop_status}.', ephemeral = True)
+        await interaction.response.send_message(f'Looping is now {loop_status}.')
 
     @app_commands.command(name = 'skip')
     async def skip(self, interaction: discord.Interaction):
         if self.music_player.voice_client and self.music_player.voice_client.is_playing():
             self.music_player.voice_client.stop()
             await self.music_player.play_next_song()
+            await interaction.response.send_message('Song has been skipped.')
+        else:
+            await interaction.response.send_message('The bot is not connected to a voice channel or is not playing anything', ephemeral = True)
 
 
 async def setup(bot):
