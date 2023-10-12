@@ -82,8 +82,17 @@ class YTDLPCMVolumeTransformer(discord.PCMVolumeTransformer):
     def create_source(cls, interaction: discord.Interaction, search: str):
         print('cs')
         try:
-            print('try')
-            info = cls.ytdl.extract_info(f'ytsearch:{search}', download = False)['entries'][0]
+            domains = ["www.youtube.com/", "music.youtube.com/", "youtu.be/", "open.spotify.com/", "spotify.com/"]
+            if search.startswith('https://'):
+                for domain in domains:
+                    if search.startswith('https://' + domain):
+                        print('youtube/spotify')
+                        info = cls.ytdl.extract_info(search, download = False)['entries'][0]
+
+            else:
+                print('generic')
+                info = cls.ytdl.extract_info(f'ytsearch:{search}', download = False)['entries'][0]
+
         except YTDLError as err:
             print(err)
             return interaction.followup.send('Something went wrong during the content search!', ephemeral = True)
@@ -124,6 +133,9 @@ class MusicPlayer:
             self.voice_client.stop()
             await self.voice_client.disconnect()
 
+    async def stop(self):
+        self.voice_client.stop()
+
     def add_song_to_queue(self, song):
         self.queue.append(song)
 
@@ -158,7 +170,7 @@ class Music(commands.Cog):
 
     @app_commands.command(name = 'play')
     async def play(self, interaction: discord.Interaction, search: str):
-        await interaction.response.defer(thinking = False)
+        await interaction.response.defer()
         if interaction.user.voice is None or interaction.user.voice.channel is None:
             await interaction.followup.send('You are not connected to a voice channel.')
             return
@@ -170,17 +182,16 @@ class Music(commands.Cog):
         song = YTDLPCMVolumeTransformer.create_source(interaction, search)
         # self.music_player.add_song_to_queue(song)
         self.music_player.add_song_to_queue(YTDLPCMVolumeTransformer.create_source(interaction, search))
+        await interaction.followup.send(f'Added to the queue: **{song.title}**')
 
         if not self.music_player.voice_client.is_playing():
             await self.music_player.start_playing()
-
-        await interaction.followup.send(f'Added to the queue: **{song.title}**')
 
     @app_commands.command(name = 'stop')
     async def stop(self, interaction: discord.Interaction):
         if self.music_player.voice_client and self.music_player.voice_client.is_connected():
             self.music_player.voice_client.stop()
-            await interaction.response.send_message('Music playback stopped.', ephemeral = True)
+            await interaction.response.send_message('Music playback stopped.')
         else:
             await interaction.response.send_message('The bot is not connected to a voice channel.', ephemeral = True)
 
