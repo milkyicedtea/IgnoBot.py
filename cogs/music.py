@@ -41,9 +41,6 @@ class Music(commands.Cog):
         self.music_player = MusicPlayer(bot)
         self.bot = bot
 
-    def start_playing_in_thread(self):
-        asyncio.run(self.music_player.start_playing())
-
     async def play_youtube_search(self, interaction: discord.Interaction, search: str):
         """Generic request searches from YouTube."""
         song = YTDLPCMVolumeTransformer.create_source(interaction, search)
@@ -94,21 +91,21 @@ class Music(commands.Cog):
                     await interaction.followup.send('No tracks found in the YouTube playlist.')
                     return
 
-                await interaction.followup.send(f'Added {len(entries)} tracks from the YouTube playlist.')
+                await interaction.followup.send(f'**Found _{len(entries)}_ tracks from the YouTube playlist.**')
 
                 # Add each song in the playlist to the queue
                 for entry in entries:
                     song_url = entry['url']
                     song = YTDLPCMVolumeTransformer.create_source(interaction, song_url)
                     self.music_player.add_song_to_queue(song)
+                    print('ooooooo')
 
-                    if not self.music_player.voice_client.is_playing() and not self.music_player.voice_client.is_paused():
-                        playback_thread = threading.Thread(target = self.start_playing_in_thread)
-                        playback_thread.start()
-                        # await channel.send(f'Started playing the first track from the YouTube playlist.')
+                    if not self.music_player.playback_thread.is_alive():
+                        print('start_playback_thread')
+                        self.music_player.start_playback_thread()
 
             else:
-                await channel.send('No tracks found in the YouTube playlist.')
+                await interaction.followup.send('No tracks found in the YouTube playlist.')
 
     async def play_spotify_playlist(self, interaction: discord.Interaction, playlist_url: str):
         """Plays/Adds to the queue a Spotify playlist"""
