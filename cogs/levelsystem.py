@@ -26,6 +26,8 @@ class LevelSystem(commands.Cog):
 
     application_check = app_commands.checks.has_permissions
 
+
+
     # gives exp for every message
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):

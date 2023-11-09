@@ -13,7 +13,7 @@ All the requirements can be installed by using `pip install -r new.requirements.
 In case you're wandering, here are all the libraries used:
 
 | Command                  | Description                                                                                     | Parameters                    | Cog                                     |
-| ------------------------ | ----------------------------------------------------------------------------------------------- | ----------------------------- | --------------------------------------- |
+|--------------------------|-------------------------------------------------------------------------------------------------|-------------------------------|-----------------------------------------|
 | Encode                   | Takes a string, encodes it into b64 format and DMs it to the user.                              | - String to encode            | [decoder.py](./cogs/decoder.py)         |
 | Decode                   | Takes a string in b64 format, decodes it into the original string and DMs it to the user.       | - B64 format string to decode | [decoder.py](./cogs/decoder.py)         |
 | Beep                     | Just sends "**Beep**" in the channel it's used. Used for quick testing.                         | No parameters.                | [dumb.py](./cogs/dumb.py)               |

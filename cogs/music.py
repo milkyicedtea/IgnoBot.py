@@ -38,8 +38,23 @@ if platform.system() != 'Windows':
 
 class Music(commands.Cog):
     def __init__(self, bot):
+        self.downloading = False
         self.music_player = MusicPlayer(bot)
         self.bot = bot
+
+    async def download_and_enqueue_songs(self, interaction,  entries):
+        chunk_size = 10
+        # links_list = [entry['url'] for entry in entries[1:]]
+        for i in range(0, len(entries), chunk_size):
+            chunk = entries[1:][i:i + chunk_size]
+            print(chunk)
+            links_list = [entry['url'] for entry in chunk]
+            print(len(links_list), links_list)
+            for link in links_list:
+                song = YTDLPCMVolumeTransformer.create_source(interaction, link)
+                self.music_player.add_song_to_queue(song)
+                await asyncio.sleep(5)
+        print('finished downloading the playlist')
 
     async def play_youtube_search(self, interaction: discord.Interaction, search: str):
         """Generic request searches from YouTube."""
@@ -71,41 +86,43 @@ class Music(commands.Cog):
     async def play_youtube_playlist(self, interaction: discord.Interaction, playlist_url: str):
         """Plays/Adds to the queue a YouTube playlist"""
 
-        # Define custom YTDL options for playlist
-        playlist_ytdl_options = {
-            'format': 'bestaudio/best',
-            'quiet': True,
-            'extract_flat': True,
-            'skip_download': True  # This option skips the download step for playlists
-        }
+        # # Define custom YTDL options for playlist
+        # playlist_ytdl_options = {
+        #     'format': 'bestaudio/best',
+        #     'quiet': True,
+        #     'extract_flat': True,
+        #     'skip_download': True  # This option skips the download step for playlists
+        # }
 
         channel = interaction.channel
 
-        with yt_dlp.YoutubeDL(playlist_ytdl_options) as ydl:
-            playlist_info = ydl.extract_info(playlist_url, download = False)
+        playlist_info = YTDLPCMVolumeTransformer.extract_playlist_info(playlist_url)
 
-            if 'entries' in playlist_info:
-                entries = playlist_info['entries']
-
-                if not entries:
-                    await interaction.followup.send('No tracks found in the YouTube playlist.')
-                    return
-
-                await interaction.followup.send(f'**Found _{len(entries)}_ tracks from the YouTube playlist.**')
-
-                # Add each song in the playlist to the queue
-                for entry in entries:
-                    song_url = entry['url']
-                    song = YTDLPCMVolumeTransformer.create_source(interaction, song_url)
-                    self.music_player.add_song_to_queue(song)
-                    print('ooooooo')
-
-                    if not self.music_player.playback_thread.is_alive():
-                        print('start_playback_thread')
-                        self.music_player.start_playback_thread()
-
-            else:
+        if 'entries' in playlist_info:
+            entries = playlist_info['entries']
+            print(type(entries[0]))
+            print(type(entries))
+            print(len(entries))
+            if not entries:
                 await interaction.followup.send('No tracks found in the YouTube playlist.')
+                return
+
+            await interaction.followup.send(f'**Found _{len(entries)}_ tracks from the YouTube playlist.**')
+
+            first_entry = entries[0]
+            print(type(entries))
+            first_song_url = first_entry['url']
+            first_song = YTDLPCMVolumeTransformer.create_source(interaction, first_song_url)
+            self.music_player.add_song_to_queue(first_song)
+
+            if not self.music_player.voice_client.is_playing():
+                await self.music_player.start_playing()
+                await channel.send(f'Started playing the first track from the YouTube playlist.')
+
+            await asyncio.create_task(self.download_and_enqueue_songs(interaction, entries))
+
+        else:
+            await interaction.followup.send('No tracks found in the YouTube playlist.')
 
     async def play_spotify_playlist(self, interaction: discord.Interaction, playlist_url: str):
         """Plays/Adds to the queue a Spotify playlist"""
@@ -201,9 +218,12 @@ class Music(commands.Cog):
 
     @app_commands.command(name = 'skip')
     async def skip(self, interaction: discord.Interaction):
-        if self.music_player.voice_client and self.music_player.voice_client.is_playing():
-            self.music_player.voice_client.stop()
-            await self.music_player.play_next_song()
+        if not self.music_player.voice_client:
+            await interaction.followup.send("I'm not connected to any voice channel.")
+        elif not self.music_player.queue:
+            await interaction.followup.send('There are no songs to skip.')
+        elif self.music_player.voice_client.is_playing():
+            await self.music_player.skip()
             await interaction.response.send_message('Song has been skipped.')
         else:
             await interaction.response.send_message('The bot is not connected to a voice channel or is not playing anything', ephemeral = True)

@@ -1,10 +1,8 @@
+import asyncio
+
 import discord
 
 import yt_dlp
-
-import asyncio
-
-import threading
 
 yt_dlp.utils.bug_reports_message = lambda: ''
 ytdl_logs = False
@@ -39,6 +37,14 @@ class YTDLPCMVolumeTransformer(discord.PCMVolumeTransformer):
         'options': '-vn'
     }
 
+    # Define custom YTDL options for playlist
+    playlist_ytdl_options = {
+        'format': 'bestaudio/best',
+        'quiet': True,
+        'extract_flat': True,
+        'skip_download': True  # This option skips the download step for playlists
+    }
+
     ytdl = yt_dlp.YoutubeDL(YTDL_OPTIONS)
 
     def __init__(self, interaction: discord.Interaction, audio_source: discord.FFmpegPCMAudio, info: dict):
@@ -62,14 +68,23 @@ class YTDLPCMVolumeTransformer(discord.PCMVolumeTransformer):
 
     @classmethod
     def create_source(cls, interaction: discord.Interaction, search: str):
-        print('cs')
+        # print('create source')
         try:
-            print('try')
             info = cls.ytdl.extract_info(f'ytsearch:{search}', download = False)['entries'][0]
         except YTDLError as err:
             print(err)
             return interaction.followup.send('Something went wrong during the content search!', ephemeral = True)
         return cls(interaction, discord.FFmpegPCMAudio(info.get('url'), **cls.FFMPEG_OPTIONS), info)
+
+    @classmethod
+    def extract_playlist_info(cls, playlist_url):
+        """Extract video URLs from a YouTube playlist"""
+
+        with yt_dlp.YoutubeDL(cls.playlist_ytdl_options) as ydl:
+            playlist_info = ydl.extract_info(playlist_url, download = False)
+
+            if playlist_info:
+                return playlist_info
 
     @staticmethod
     def get_duration(duration: int):
@@ -92,43 +107,47 @@ class YTDLPCMVolumeTransformer(discord.PCMVolumeTransformer):
 
 class MusicPlayer:
     def __init__(self, bot):
-        self.playback_thread = None
         self.bot = bot
         self.voice_client = None
-        self.queue = asyncio.Queue()     # Inizialize an empty queue to store song
+        self.queue = []
         self.loop = False
         self.current_song = None
 
-        playback_thread = threading.Thread(target = self.start_playback_thread)
-        playback_thread.daemon = True
-        playback_thread.start()
+    async def skip(self):
+        if self.queue:
+            # Stop the current song and play the next one
+            self.voice_client.stop()
+        else:
+            await self.voice_client.disconnect()
 
-    def after(self, error):
+    async def play_next_song(self):
+        if self.queue:
+            # print('self.queue')
+            print(f'playing next song')
+            song = self.queue.pop(0)
+            # print(song.title)
+            self.current_song = song
+            self.voice_client.play(song, after = self.on_playback_complete)
+
+    async def start_playing(self):
+        while self.queue:
+            await self.play_next_song()
+
+    async def async_task_after_playback(self):
+        await self.play_next_song()
+
+    def on_playback_complete(self, error):
         if error:
             print(f"An error occurred: {error}")
         else:
-            # Play the next song when the current one finishes
-            self.play_next_song()
+            print("Playback completed")
+            # Use asyncio to run the async function
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(self.async_task_after_playback())
 
-    async def play_music_thread(self):
-        while True:
-            song = await self.queue.get()
-            self.current_song = song
-
-            self.voice_client.play(song, after = lambda e: self.after(e))
-            while self.voice_client.is_playing():
-                await asyncio.sleep(1)
-
-            self.queue.pop(0)
-
-    def start_playback_thread(self):
-        print('start_playback_thread')
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(self.play_music_thread())
-
-    def get_voice_client(self, guild: discord.Guild):
-        return discord.utils.get(self.bot.voice_clients, guild = guild)
+    def add_song_to_queue(self, song):
+        self.queue.append(song)
 
     async def disconnect(self):
         if self.voice_client and self.voice_client.is_connected():
@@ -137,33 +156,9 @@ class MusicPlayer:
             self.voice_client = None
             self.queue.clear()
 
+    def get_voice_client(self, guild: discord.Guild):
+        return discord.utils.get(self.bot.voice_clients, guild = guild)
+
     async def stop(self):
         self.voice_client.stop()
-
-    def add_song_to_queue(self, song):
-        self.queue.append(song)
-
-    async def play_next_song(self):
-        print('playing next song')
-        if not self.queue:
-            return
-        elif self.loop:
-            print('self.loop')
-            song = self.current_song
-            self.voice_client.play(song, after = self.play_next_song)
-        else:
-            print('self.queue')
-            print(f'playing next song')
-            song = self.queue.pop(0)
-            print(song.title)
-            self.current_song = song
-            self.voice_client.play(song, after = self.play_next_song)
-            await self.wait_for_song_end()
-
-    async def wait_for_song_end(self):
-        while self.voice_client.is_playing() or self.voice_client.is_paused():
-            await asyncio.sleep(1)
-
-    async def start_playing(self):
-        while self.queue:
-            await self.play_next_song()
+        self.queue.clear()
