@@ -6,11 +6,9 @@
 
 import os
 
-from dotenv import load_dotenv
+import dotenv
 
 import psycopg2
-
-load_dotenv(".env")
 
 
 class DbHelper:
@@ -20,7 +18,7 @@ class DbHelper:
 
     def open(self):
         try:
-            self.mydb = psycopg2.connect(host = os.getenv('dbhost'), user = os.getenv('dbuser'), password = os.getenv('dbpw'), database = os.getenv('db_db'), port = os.getenv('dbport'))
+            self.mydb = psycopg2.connect(dotenv.get_key('.env', 'DB_URL'))
         except psycopg2.Error as e:
             print(f'Error connecting to the platform (mydb): {e}')
 

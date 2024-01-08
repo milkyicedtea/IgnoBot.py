@@ -30,6 +30,7 @@ class Moderation(commands.Cog):
     @application_check(kick_members = True)
     async def kick(self, interaction: discord.Interaction, member: discord.Member, reason: str = None):
         """Kicks a user."""
+
         await member.kick(reason = reason)
         await interaction.response.send_message(f'User {member.mention} has been kicked from the server.\nResponsible mod: **{interaction.user}**\nReason: {reason}')
 
@@ -37,6 +38,7 @@ class Moderation(commands.Cog):
     @application_check(move_members = True)
     async def vkick(self, interaction: discord.Interaction, member: discord.Member, reason: str = None):
         """Kicks a user from a voice channel."""
+
         if member.voice is not None:
             vc: discord.VoiceChannel = member.voice.channel
             await member.edit(voice_channel = None, reason = reason)
@@ -48,6 +50,7 @@ class Moderation(commands.Cog):
     @application_check(ban_members = True)
     async def ban(self, interaction: discord.Interaction, member: discord.Member, reason: str = None):
         """Bans a user."""
+
         await member.ban(reason = reason)
         embed = discord.Embed(title = "", color = discord.Colour.random())
         embed.set_author(name = interaction.user.display_name, icon_url = interaction.user.avatar)
@@ -60,6 +63,7 @@ class Moderation(commands.Cog):
     @application_check(ban_members = True)
     async def unban(self, interaction: discord.Interaction, user: discord.User, reason: str = None):
         """Unbans a user."""
+
         banned_users = interaction.guild.bans()
 
         async for ban_entry in banned_users:
@@ -79,6 +83,7 @@ class Moderation(commands.Cog):
     @application_check(manage_messages = True)
     async def purge_messages(self, interaction: discord.Interaction, amount_to_delete: int = 0):
         """Purges x messages."""
+
         if amount_to_delete < 1 or amount_to_delete > 100:
             await interaction.response.send_message('You need to enter a value between 1 and 100', ephemeral = True, delete_after = 10)
         else:
@@ -89,6 +94,7 @@ class Moderation(commands.Cog):
     @application_check(manage_channels = True)
     async def create_channel(self, interaction: discord.Interaction, channel_name: str = None, category: discord.CategoryChannel = None, ):
         """Creates a new channel."""
+
         guild = interaction.guild
         existing_channel = discord.utils.get(guild.channels, name = channel_name)
         if existing_channel:
@@ -104,6 +110,7 @@ class Moderation(commands.Cog):
     @application_check(manage_channels = True)
     async def delete_channel(self, interaction: discord.Interaction, channel: discord.TextChannel):
         """Deletes a channel."""
+
         if interaction.channel == channel:
             interaction.response.send_message(f"You can't request to delete a channel while you're in it!", ephemeral = True, delete_after = 10)
         else:
@@ -114,6 +121,7 @@ class Moderation(commands.Cog):
     @application_check(administrator = True)
     async def member_list(self, interaction: discord.Interaction):
         """Returns member list as json file."""
+
         member_list: list = [member for member in interaction.guild.members]
         dictionary = {
             "members": [
@@ -145,6 +153,7 @@ class Moderation(commands.Cog):
     @server.command(name = 'banner')
     async def server_banner(self, interaction: discord.Interaction):
         """Returns the server's banner."""
+
         guildraw = interaction.guild
         embed = discord.Embed(title = "", color = discord.Colour.random())
         if guildraw.banner is not None:
@@ -158,6 +167,7 @@ class Moderation(commands.Cog):
     @server.command(name = 'icon')
     async def server_icon(self, interaction: discord.Interaction):
         """Returns the server's icon."""
+
         guildraw = interaction.guild
         embed = discord.Embed(title = "", color = discord.Colour.random())
         if guildraw.icon is None:
@@ -172,6 +182,7 @@ class Moderation(commands.Cog):
     @application_check(manage_roles = True)
     async def assign_role(self, interaction: discord.Interaction, member: discord.Member, role: discord.Role):
         """Gives a role to member."""
+
         await member.add_roles(role)
         await interaction.response.send_message(f'The role **<@&{role.id}>** has been assigned to <@{member.id}>', silent = True)
 
@@ -179,6 +190,7 @@ class Moderation(commands.Cog):
     @application_check(manage_roles = True)
     async def unassign_role(self, interaction: discord.Interaction, member: discord.Member, role: discord.Role):
         """Takes away a role from member"""
+
         await member.remove_roles(role)
         await interaction.response.send_message(f'The role **<@&{role.id}>** has been removed from <@{member.id}>', silent = True)
 

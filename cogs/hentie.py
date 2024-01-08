@@ -4,8 +4,6 @@
 #                #
 ##################
 
-import os
-
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -29,6 +27,7 @@ class Hentie(commands.Cog):
     @anime.command(name = 'search')
     async def kayo(self, interaction: discord.Interaction, anime_name: str):
         """Searches an anime and returns some infos."""
+
         anime = get_anime_info(query = anime_name)
         # print(anime)
         if anime is None:
@@ -84,6 +83,7 @@ class Hentie(commands.Cog):
     @app_commands.rename(number_to_send = 'amount')
     async def hentai(self, interaction: discord.Interaction, tag: str = 'vanilla', number_to_send: int = 1):
         """Sends x NSFW henti images with the selected tag"""
+
         print('hentie')
         await interaction.response.defer()
 

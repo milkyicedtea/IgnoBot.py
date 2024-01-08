@@ -17,6 +17,8 @@ class SelfroleHelper:
 
     @staticmethod
     async def remove_role(interaction: discord.Interaction, role: discord.Role):
+        """Revokes a role from every member in the guild"""
+
         member_list = interaction.guild.members
         for member in member_list:
             for roles in member.roles:
@@ -25,7 +27,7 @@ class SelfroleHelper:
 
     @staticmethod
     def get_selfroles_list(cursor, guild: discord.Guild) -> list:
-        guildname = guild.name.replace("'", "")
+        """Gets the available selfroles for the current guild"""
 
         cursor.execute(f"select rolenames from roles where guildid = {guild.id} "
                        f"and is_selfrole = 'true';")
@@ -34,6 +36,7 @@ class SelfroleHelper:
 
     @staticmethod
     def string_to_discord_role(roles: str | list, guild: discord.Guild) -> list[discord.Role] | None:
+        """Gets the discord role from a string or list"""
         if type(roles) is str:
             role_list = [discord.utils.get(guild.roles, name = roles)]
         elif type(roles) is list:

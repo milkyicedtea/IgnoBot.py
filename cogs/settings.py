@@ -22,6 +22,7 @@ def cooldown_checker(interaction: discord.Interaction) -> Optional[app_commands.
 class Settings(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.dbhelper = DbHelper()
 
     prefix = app_commands.Group(name = 'prefix', description = "Commands related to guild's settings")
 
@@ -35,9 +36,8 @@ class Settings(commands.Cog):
         """Sets a custom prefix for chat commands. There are little to no chat commands now."""
         guildid = interaction.guild_id
 
-        dbhelper = DbHelper()
-        mydb = dbhelper.open()
-        cursor = dbhelper.get_cursor()
+        mydb = self.dbhelper.open()
+        cursor = self.dbhelper.get_cursor()
 
         cursor.execute(f'select count(*) from guildinfo where guildid = {guildid};')
         if cursor.fetchone()[0] == 0:
@@ -55,7 +55,7 @@ class Settings(commands.Cog):
         print(cursor.rowcount)
         mydb.commit()
         await interaction.response.send_message(f"The bot's prefix is now set to {prefix}")
-        dbhelper.close()
+        self.dbhelper.close()
 
 
 async def setup(bot):

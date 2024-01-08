@@ -3,16 +3,13 @@
 #     Music     #
 #               #
 #################
-import os
+
 import platform
 import dotenv
-import threading
 
 import discord
 from discord import app_commands
 from discord.ext import commands
-
-import yt_dlp
 
 import spotipy
 from spotipy import SpotifyOAuth
@@ -43,8 +40,9 @@ class Music(commands.Cog):
         self.bot = bot
 
     async def download_and_enqueue_songs(self, interaction,  entries):
+        """Downloads songs in cunks of 10"""
+
         chunk_size = 10
-        # links_list = [entry['url'] for entry in entries[1:]]
         for i in range(0, len(entries), chunk_size):
             chunk = entries[1:][i:i + chunk_size]
             print(chunk)
@@ -58,6 +56,7 @@ class Music(commands.Cog):
 
     async def play_youtube_search(self, interaction: discord.Interaction, search: str):
         """Generic request searches from YouTube."""
+
         song = YTDLPCMVolumeTransformer.create_source(interaction, search)
         self.music_player.add_song_to_queue(song)
         await interaction.followup.send(f'Added to queue: **{song.title}**')
@@ -67,6 +66,7 @@ class Music(commands.Cog):
 
     async def play_individual_youtube_video(self, interaction: discord.Interaction, video_url: str):
         """Plays/Adds to the queue a single YouTube video"""
+
         song = YTDLPCMVolumeTransformer.create_source(interaction, video_url)
         self.music_player.add_song_to_queue(song)
         await interaction.followup.send(f'Added to the queue: **{song.title}**')
@@ -76,6 +76,7 @@ class Music(commands.Cog):
 
     async def play_individual_spotify_track(self, interaction: discord.Interaction, track_url: str):
         """Plays/Adds to the queue a single Spotify track"""
+
         song = YTDLPCMVolumeTransformer.create_source(interaction, track_url)
         self.music_player.add_song_to_queue(song)
         await interaction.followup.send(f'Added to the queue: **{song.title}**')
@@ -85,14 +86,6 @@ class Music(commands.Cog):
 
     async def play_youtube_playlist(self, interaction: discord.Interaction, playlist_url: str):
         """Plays/Adds to the queue a YouTube playlist"""
-
-        # # Define custom YTDL options for playlist
-        # playlist_ytdl_options = {
-        #     'format': 'bestaudio/best',
-        #     'quiet': True,
-        #     'extract_flat': True,
-        #     'skip_download': True  # This option skips the download step for playlists
-        # }
 
         channel = interaction.channel
 
@@ -126,6 +119,7 @@ class Music(commands.Cog):
 
     async def play_spotify_playlist(self, interaction: discord.Interaction, playlist_url: str):
         """Plays/Adds to the queue a Spotify playlist"""
+
         playlist_id = playlist_url.split('/')[-1]
         tracks = sp.playlist_items(playlist_id)
 
@@ -146,6 +140,8 @@ class Music(commands.Cog):
 
     @app_commands.command(name = 'play')
     async def play(self, interaction: discord.Interaction, search: str):
+        """The play command that redirects to other functions"""
+
         await interaction.response.defer()
         if interaction.user.voice is None or interaction.user.voice.channel is None:
             await interaction.followup.send('You are not connected to a voice channel.')
@@ -177,6 +173,8 @@ class Music(commands.Cog):
 
     @app_commands.command(name = 'stop')
     async def stop(self, interaction: discord.Interaction):
+        """Stops music playback"""
+
         if self.music_player.voice_client and self.music_player.voice_client.is_connected():
             self.music_player.voice_client.stop()
             await interaction.response.send_message('Music playback stopped.')
@@ -185,6 +183,8 @@ class Music(commands.Cog):
 
     @app_commands.command(name = 'queue')
     async def show_queue(self, interaction: discord.Interaction):
+        """Shows queue"""
+
         print("show_queue command executed")
 
         if not self.music_player.queue:
@@ -197,27 +197,37 @@ class Music(commands.Cog):
 
     @app_commands.command(name = 'disconnect')
     async def disconnect(self, interaction: discord.Interaction):
+        """Disconnects bot"""
+
         await self.music_player.disconnect()
         await interaction.response.send_message(f'Disconnected from {interaction.user.voice.channel.mention}.')
 
     @app_commands.command(name = 'pause')
     async def pause(self, interaction: discord.Interaction):
+        """Pauses playback"""
+
         self.music_player.voice_client.pause()
         await interaction.response.send_message('Music has been paused.')
 
     @app_commands.command(name = 'resume')
     async def resume(self, interaction: discord.Interaction):
+        """Resumes after pausing"""
+
         self.music_player.voice_client.resume()
         await interaction.response.send_message('Music has been resumed.')
 
     @app_commands.command(name = 'loop')
     async def loop(self, interaction: discord.Interaction):
+        """Loops the current song"""
+
         self.music_player.loop = not self.music_player.loop
         loop_status = 'enabled' if self.music_player.loop else 'disabled'
         await interaction.response.send_message(f'Looping is now {loop_status}.')
 
     @app_commands.command(name = 'skip')
     async def skip(self, interaction: discord.Interaction):
+        """Skips the current song"""
+
         if not self.music_player.voice_client:
             await interaction.followup.send("I'm not connected to any voice channel.")
         elif not self.music_player.queue:

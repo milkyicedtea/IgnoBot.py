@@ -22,6 +22,7 @@ class Decoder(commands.Cog):
     @base64.command(name = 'encode')
     async def encode(self, interaction: discord.Interaction, *, string: str):
         """Encodes text to base64 format."""
+
         string_bytes = string.encode('UTF-8')
         # print(string_bytes)
         base64_bytes = base64.b64encode(string_bytes)
@@ -34,6 +35,7 @@ class Decoder(commands.Cog):
     @base64.command(name = 'decode')
     async def decode(self, interaction: discord.Interaction, *, string: str):
         """Decodes base64 format to string."""
+
         string_bytes = string.encode('UTF-8')
         # print(string_bytes)
         decode_bytes = base64.b64decode(string_bytes)

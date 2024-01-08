@@ -4,14 +4,7 @@
 #                #
 ##################
 
-import os
-
-import discord
 from discord.ext import commands
-import discord.ext
-import asyncio
-
-from utils.dbhelper import DbHelper
 
 
 class Errors(commands.Cog):
@@ -21,12 +14,15 @@ class Errors(commands.Cog):
 # Generic error
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        """print(error)
-        print(f"NSFWChannelRequired: {isinstance(error, commands.NSFWChannelRequired)}")
-        print(f"MissingPerms: {isinstance(error, commands.MissingPermissions)}")
-        print(f"BotMissingPerms: {isinstance(error, commands.BotMissingPermissions)}")
-        print(f"CommandNotFound: {isinstance(error, commands.errors.CommandNotFound)}")
-        print(f"NotOwner: {isinstance(error, commands.errors.NotOwner)}")"""
+        """Error override"""
+
+        # print(error)
+        # print(f"NSFWChannelRequired: {isinstance(error, commands.NSFWChannelRequired)}")
+        # print(f"MissingPerms: {isinstance(error, commands.MissingPermissions)}")
+        # print(f"BotMissingPerms: {isinstance(error, commands.BotMissingPermissions)}")
+        # print(f"CommandNotFound: {isinstance(error, commands.errors.CommandNotFound)}")
+        # print(f"NotOwner: {isinstance(error, commands.errors.NotOwner)}")
+
         if isinstance(error, commands.errors.NSFWChannelRequired):
             await ctx.reply("You need to be in an NSFW (18+) channel to use this command.", delete_after = 5, mention_author = False)
             # await asyncio.sleep(5)

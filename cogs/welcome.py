@@ -16,6 +16,7 @@ from utils.dbhelper import DbHelper
 class Welcome(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.dbhelper = DbHelper()
 
     welcome = app_commands.Group(name = 'welcome', description = 'Welcome related commands', guild_only = True)
 
@@ -23,9 +24,10 @@ class Welcome(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
-        dbhelper = DbHelper()
-        dbhelper.open()
-        cursor = dbhelper.get_cursor()
+        """Triggers when a member joins to send a welcome message"""
+
+        self.dbhelper.open()
+        cursor = self.dbhelper.get_cursor()
 
         guildid = member.guild.id
         guildname = member.guild.name
@@ -42,16 +44,16 @@ class Welcome(commands.Cog):
             custom_message = result[0]
             custom_message = custom_message.replace('%mention_user%', member)
             await channel.send(custom_message)
-        dbhelper.close()
+        self.dbhelper.close()
 
     @welcome.command(name = 'setup')
     @application_check(manage_guild = True)
     @app_commands.describe(message = 'The message that will be displayed when a member joins. Use %mention_user% to mention the joining user in the message. Leave blank for default.')
     async def set_welcome_channel(self, interaction: discord.Interaction, channel: discord.TextChannel, message: str = None):
         """Sets up the welcome channel and message"""
-        dbhelper = DbHelper()
-        mydb = dbhelper.open()
-        cursor = dbhelper.get_cursor()
+
+        mydb = self.dbhelper.open()
+        cursor = self.dbhelper.get_cursor()
         
         guildid = interaction.guild_id
         guildname = interaction.guild.name
@@ -72,17 +74,16 @@ class Welcome(commands.Cog):
         cursor.execute(f'update welcome set channel_id = {channel.id} where guildid = {guildid};')
         cursor.execute(f"update welcome set welcome_message = '{message}' where guildid = {guildid}")
         mydb.commit()
-        await interaction.followup.send(f'The welcome channel has been set to: <#{channel.id}>.\n The current welcome message is: {message}') 
-
-        dbhelper.close()
+        await interaction.followup.send(f'The welcome channel has been set to: <#{channel.id}>.\n The current welcome message is: {message}')
+        self.dbhelper.close()
 
     @welcome.command(name = 'get-channel')
     @application_check(manage_guild = True)
     async def get_welcome_channel(self, interaction: discord.Interaction):
         """Returns the current channel for welcome messages"""
-        dbhelper = DbHelper()
-        mydb = dbhelper.open()
-        cursor = dbhelper.get_cursor()
+
+        self.dbhelper.open()
+        cursor = self.dbhelper.get_cursor()
 
         guildid = interaction.guild_id
         cursor.execute(f'select count(*) from welcome where guildid = {guildid};')
@@ -93,14 +94,15 @@ class Welcome(commands.Cog):
             cursor.execute(f'select channel_id from welcome where guildid = {guildid};')
             channel = discord.utils.get(interaction.guild.channels, id = cursor.fetchone()[0])
             await interaction.response.send_message(f'The configured welcome channel for this server is <#{channel.id}>')
+        self.dbhelper.close()
 
     @welcome.command(name = 'get-message')
     @application_check(manage_guild = True)
     async def get_welcome_message(self, interaction: discord.Interaction):
         """Returns the current welcome message"""
-        dbhelper = DbHelper()
-        mydb = dbhelper.open()
-        cursor = dbhelper.get_cursor()
+
+        self.dbhelper.open()
+        cursor = self.dbhelper.get_cursor()
 
         guildid = interaction.guild_id
         cursor.execute(f'select count(*) from welcome where guildid = {guildid};')
@@ -110,6 +112,7 @@ class Welcome(commands.Cog):
         else:
             cursor.execute(f'select welcome_message from welcome where guildid = {guildid};')
             await interaction.response.send_message(f'The configured welcome message for this server is: {cursor.fetchone()[0]}')
+        self.dbhelper.open()
 
 
 async def setup(bot):

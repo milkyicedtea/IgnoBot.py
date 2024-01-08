@@ -107,14 +107,12 @@ class DbChecks:
         if not user.bot:
             cursor.execute(f"select xpvalue from leveling where userid = {user.id} "
                            f"and guildid = {guild.id};")            # getting xp
-            result = cursor.fetchone()
-            newxp = random.choice(range(1, 20+1)) + result[0]
+            newxp = random.choice(range(1, 20+1)) + cursor.fetchone()[0]
             # print(f'xpfromdb is {result[0]}')
             # print(f'xptodb is {newxp}')
             cursor.execute(f"select levelvalue from leveling where guildid = {guild.id} "
                            f"and userid = {user.id}")          # getting level
-            result = cursor.fetchone()
-            level = result[0]
+            level = cursor.fetchone()[0]
             if level == 0:
                 neededtolvl = 100
             else:

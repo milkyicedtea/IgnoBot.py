@@ -29,7 +29,7 @@ print(sys.version)
 print(sys.version_info)
 
 # Initializing variables from .env file
-TOKEN = dotenv.get_key(".env", 'bot_token')
+TOKEN = dotenv.get_key(".env", 'BOT_TOKEN')
 
 """kodama_guild: int = int(dotenv.get_key(".env", "kodama_guild"))
 chill_ignorance: int = int(dotenv.get_key(".env", "chill_ignorance"))

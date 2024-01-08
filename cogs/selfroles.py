@@ -14,7 +14,6 @@ from discord import app_commands
 
 from cogs.utils.selfrole_helper import SelfroleHelper, SelfroleAssign, SelfroleLeave
 
-
 from utils.dbchecks import DbChecks
 from utils.dbhelper import DbHelper
 
@@ -22,9 +21,9 @@ from utils.dbhelper import DbHelper
 class Selfroles(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.dbhelper = DbHelper()
 
     selfrole = app_commands.Group(name = 'selfrole', description = 'Selfroles related commands')
-
     application_check = app_commands.checks.has_permissions
 
     class DropdownView(discord.ui.View):
@@ -39,9 +38,9 @@ class Selfroles(commands.Cog):
     @selfrole.command(name = 'get')
     async def select_role(self, interaction: discord.Interaction):
         """Brings up the selfrole menu to give yourself a role."""
-        dbhelper = DbHelper()
-        mydb = dbhelper.open()
-        cursor = dbhelper.get_cursor()
+
+        self.dbhelper.open()
+        cursor = self.dbhelper.get_cursor()
 
         guild = interaction.guild
 
@@ -66,14 +65,14 @@ class Selfroles(commands.Cog):
                 await interaction.response.send_message('Something went wrong! (You already have all the possible selfroles, use `/selfrole leave` to remove one!)', ephemeral = True)
         else:
             await interaction.response.send_message('Something went wrong! (The guild does not have any selfrole)', ephemeral = True)
+        self.dbhelper.close()
 
-    # prendi ruoli in user, prendi ruoli da db (converti in ruoli ds), se ruolo selezionato sta in ruoli user, rimuovi ruolo, altrimenti altro messaggio
     @selfrole.command(name = 'leave')
     async def selfrole_leave(self, interaction: discord.Interaction):
         """Brings up the selfrole menu to remove a role from yourself."""
-        dbhelper = DbHelper()
-        mydb = dbhelper.open()
-        cursor = dbhelper.get_cursor()
+
+        self.dbhelper.open()
+        cursor = self.dbhelper.get_cursor()
 
         guild = interaction.guild
 
@@ -93,18 +92,18 @@ class Selfroles(commands.Cog):
                 for index, role in enumerate(roles_to_display):
                     embed.add_field(name = "", value = f"{index + 1} {role.mention}", inline = False)
                 await interaction.response.send_message(embed = embed, view = view, ephemeral = True)
-            else: await interaction.response.send_message('Something went wrong! (You do not have any selfrole, use `/selfrole get` to get one!)', ephemeral = True)
+            else:
+                await interaction.response.send_message('Something went wrong! (You do not have any selfrole, use `/selfrole get` to get one!)', ephemeral = True)
         else:
             await interaction.response.send_message('Something went wrong! (The guild does not have any selfrole)', ephemeral = True)
-
-        dbhelper.close()
+        self.dbhelper.close()
 
     @selfrole.command(name = 'list')
     async def selfrole_list(self, interaction: discord.Interaction):
         """Shows a list with all the selfroles in the server."""
-        dbhelper = DbHelper()
-        mydb = dbhelper.open()
-        cursor = dbhelper.get_cursor()
+
+        self.dbhelper.open()
+        cursor = self.dbhelper.get_cursor()
 
         guild = interaction.guild
         color_value = discord.Colour.random()
@@ -130,16 +129,15 @@ class Selfroles(commands.Cog):
 
         embed.set_footer(text = "Use the command `/selfrole give` to give yourself the role")
         await interaction.response.send_message(embed = embed, ephemeral = True)
-
-        dbhelper.close()
+        self.dbhelper.open()
 
     @selfrole.command(name = 'add')
     @application_check(manage_roles = True)
     async def selfrole_add(self, interaction: discord.Interaction, role: discord.Role):
         """Adds a selfrole to the server's selfrole list."""
-        dbhelper = DbHelper()
-        mydb = dbhelper.open()
-        cursor = dbhelper.get_cursor()
+
+        mydb = self.dbhelper.open()
+        cursor = self.dbhelper.get_cursor()
 
         guild = interaction.guild
         guildname = guild.name.replace("'", "")
@@ -154,15 +152,15 @@ class Selfroles(commands.Cog):
         else:
             await interaction.response.send_message(f"The role **<@&{role.id}>** is already self-assignable!",
                                                     delete_after = 10, ephemeral = True)
-        dbhelper.close()
+        self.dbhelper.close()
 
     @selfrole.command(name = 'remove')
     @application_check(manage_roles = True)
     async def selfrole_remove(self, interaction: discord.Interaction, role: discord.Role):
         """Removes a selfrole to the server's selfrole list."""
-        dbhelper = DbHelper()
-        mydb = dbhelper.open()
-        cursor = dbhelper.get_cursor()
+
+        mydb = self.dbhelper.open()
+        cursor = self.dbhelper.get_cursor()
 
         guild = interaction.guild
         guildname = guild.name.replace("'", "")
@@ -182,7 +180,7 @@ class Selfroles(commands.Cog):
             mydb.commit()
             await SelfroleHelper.remove_role(interaction, role)
             await interaction.followup.send(f'The role **<@&{role.id}>** was removed from every user and is no longer self-assignable')
-        dbhelper.close()
+        self.dbhelper.close()
 
 
 async def setup(bot):

@@ -23,6 +23,7 @@ from utils.dbhelper import DbHelper
 class Test(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.dbhelper = DbHelper()
 
     test = app_commands.Group(name='test', description='Test group')
 
@@ -44,10 +45,10 @@ class Test(commands.Cog):
     @commands.is_owner()
     async def embed_test(self, ctx: discord.ext.commands.Context):
         colorvalue = discord.Colour.random()
-        embedVar = discord.Embed(title = 'Title', description = 'Desc', color = colorvalue)
-        embedVar.add_field(name = "Field1", value = "hi", inline = False)
-        embedVar.add_field(name = "Field2", value = "hi2", inline = False)
-        await ctx.send(embed = embedVar)
+        embed_var = discord.Embed(title = 'Title', description = 'Desc', color = colorvalue)
+        embed_var.add_field(name = "Field1", value = "hi", inline = False)
+        embed_var.add_field(name = "Field2", value = "hi2", inline = False)
+        await ctx.send(embed = embed_var)
 
     # Read test
     @commands.command(name = 'read-test')
@@ -92,8 +93,7 @@ class Test(commands.Cog):
     @commands.command(name = 'fetchtest')
     @commands.has_guild_permissions(manage_guild = True)
     async def fetch_test(self, interaction: discord.Interaction):
-        dbhelper = DbHelper()
-        cursor = dbhelper.get_cursor()
+        cursor = self.dbhelper.get_cursor()
 
         await interaction.response.send_message(f"{DbChecks.check_guild_logs(cursor, guild = interaction.guild)}, "
                                                 f"{DbChecks.get_log_channel(cursor, guild = interaction.guild)}")
