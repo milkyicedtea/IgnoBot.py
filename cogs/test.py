@@ -16,14 +16,13 @@ import asyncio
 import time
 
 
-from utils.dbchecks import DbChecks
-from utils.dbhelper import DbHelper
+from Utils.dbchecks import DbChecks
+from Utils.dbhelper import DbHelper as Database
 
 
 class Test(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.dbhelper = DbHelper()
 
     test = app_commands.Group(name='test', description='Test group')
 
@@ -93,10 +92,11 @@ class Test(commands.Cog):
     @commands.command(name = 'fetchtest')
     @commands.has_guild_permissions(manage_guild = True)
     async def fetch_test(self, interaction: discord.Interaction):
-        cursor = self.dbhelper.get_cursor()
+        with Database() as db:
+            cursor = db.get_cursor()
 
-        await interaction.response.send_message(f"{DbChecks.check_guild_logs(cursor, guild = interaction.guild)}, "
-                                                f"{DbChecks.get_log_channel(cursor, guild = interaction.guild)}")
+            await interaction.response.send_message(f"{DbChecks.check_guild_logs(cursor, guild = interaction.guild)}, "
+                                                    f"{DbChecks.get_log_channel(cursor, guild = interaction.guild)}")
 
     @app_commands.command(name = 'slashcommands')
     @application_check(manage_guild = True)

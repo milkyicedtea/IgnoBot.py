@@ -17,7 +17,7 @@ from spotipy import SpotifyOAuth
 import asyncio
 import ctypes.util
 
-from cogs.utils.music_helper import YTDLPCMVolumeTransformer, MusicPlayer
+from cogs.Cog_Utils.music_helper import YTDLPCMVolumeTransformer, MusicPlayer
 
 
 SPOTIPY_CLIENT_ID = dotenv.get_key('.env', 'spotify_client_id')

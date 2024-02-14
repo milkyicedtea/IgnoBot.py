@@ -15,7 +15,7 @@ cmd.bat
 __pycache__
 
 #ignore test file(s)
-utils/bad.py
+Utils/bad.py
 
 #test file
 tests.py

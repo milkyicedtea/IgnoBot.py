@@ -12,7 +12,6 @@ from discord.ext import commands
 
 import dotenv
 import json
-from builtins import bot
 
 
 class Moderation(commands.Cog):
@@ -221,7 +220,12 @@ class Moderation(commands.Cog):
         await role.delete(reason = f'Deleted using `/role delete` command. Issued by: {interaction.user}')
         await interaction.response.send_message(f'Role **{role.name}** has been deleted.')
 
-    class FeedbackModal(discord.ui.Modal, title = "Send us your Feedback!"):
+    class FeedbackModal(discord.ui.Modal):
+        def __init__(self, bot, title):
+            self.bot = bot
+            self.title = title
+            super().__init__()
+
         message_title = discord.ui.TextInput(
             style = discord.TextStyle.short,
             label = "Title",
@@ -238,7 +242,7 @@ class Moderation(commands.Cog):
         )
 
         async def on_submit(self, interaction: discord.Interaction):
-            duck_guild: discord.Guild = await bot.fetch_guild(int(dotenv.get_key('.env', 'ducks_hideout')))
+            duck_guild: discord.Guild = await self.bot.fetch_guild(int(dotenv.get_key('.env', 'ducks_hideout')))
             print(duck_guild.name)
             print(type(duck_guild))
             feedback_channel: discord.TextChannel = await duck_guild.fetch_channel(int(dotenv.get_key('.env', 'feedback_channel')))
@@ -260,7 +264,7 @@ class Moderation(commands.Cog):
     @server.command(name = 'feedback')
     async def feedback(self, interaction: discord.Interaction):
         """Sends a feedback to IgnoBot's support server. Write about any issues or suggestions!"""
-        feedback = self.FeedbackModal()
+        feedback = self.FeedbackModal(self.bot, 'Send us your feedback!')
         await interaction.response.send_modal(feedback)
 
 

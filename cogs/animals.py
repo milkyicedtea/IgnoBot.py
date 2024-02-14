@@ -11,12 +11,9 @@ from discord import app_commands
 from discord.ext import commands
 
 import random
-import dotenv
 
-from utils.APIs import duckAPI
-from utils.APIs import catAPI
-
-from builtins import guildList
+from Utils.APIs import duckAPI
+from Utils.APIs import catAPI
 
 
 class Animals(commands.Cog):
@@ -58,8 +55,9 @@ class Animals(commands.Cog):
     @animal.command(name = 'cattos')
     async def cattos(self, interaction: discord.Interaction):
         """Sends more cats images. Only works in specific servers."""
+        guild_list = __import__('builtins').guild_list
         guild_id = interaction.guild_id
-        if guild_id in guildList:
+        if guild_id in guild_list:
             cattos = os.getenv(random.choice(['catto0',
                                               'catto1',
                                               'catto2',

@@ -13,7 +13,7 @@ import random
 from cogs.rule34 import Rule34
 import asyncio
 
-from utils.APIs.animeAPI import get_anime_info
+from Utils.APIs.animeAPI import get_anime_info
 
 
 class Hentie(commands.Cog):

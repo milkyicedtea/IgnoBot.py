@@ -3,8 +3,6 @@
 #     Personal commands :3     #
 #                              #
 ################################
-import asyncio
-import os
 
 import discord
 from discord import app_commands
@@ -13,25 +11,13 @@ from discord.ext import commands
 import random
 import dotenv
 
-from builtins import guildList
-
-
-# RUNNING THIS COG ON YOUR MACHINE MAY PREVENT COMPILING DUE TO A LACK OF ENVIRONMENT KEYS.
-# IT IS NOT ESSENTIAL AND DOES NOT CONTAIN ANY IMPORTANT COMMANDS, SO FEEL FREE TO DELETE OR DISABLE IT AS NEEDED.
-# PLEASE DO NOT REQUEST ANY OTHESE KEYS. SHOULD YOU DO SO, YOUR REQUEST WILL BE DISREGARDED
 
 class Personal(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    kodama_guild: int = int(dotenv.get_key(".env", "kodama_guild"))
-    chill_ignorance: int = int(dotenv.get_key(".env", "chill_ignorance"))
-    # ducks_hideout: int = int(dotenv.get_key(".env", "ducks_hideout"))
-    ichiban_kuji_guild: int = int(dotenv.get_key(".env", "ichiban_kuji_guild"))
-
-    guildList: list[int] = [kodama_guild, chill_ignorance, ichiban_kuji_guild]
-
-    personal = app_commands.Group(name = 'personal', description = 'These commands only work in a certain guild.', guild_ids = [kodama_guild, chill_ignorance, ichiban_kuji_guild])
+    guild_list = __import__('builtins').guild_list
+    personal = app_commands.Group(name = 'personal', description = 'These commands only work in a certain guild.', guild_ids = guild_list)
 
     # anni?
     @personal.command(name = 'anni', description = 'Anni?')
@@ -59,8 +45,7 @@ class Personal(commands.Cog):
     async def bastardi(self, interaction: discord.Interaction):
         await interaction.response.send_message('**Bastardi**, chiamo da Reggio Emilia, sono un assassino di **meridionali**. Vi ammazzo tutti *bastardi pezzi di merda*.')
 
-    # sexy
-    # THIS WILL *NOT* RUN ON YOUR MACHINE (or server). YOU ARE MISSING ENV FILES
+    # THIS WILL *NOT* RUN ON YOUR MACHINE. YOU ARE MISSING ENV FILES.
     @personal.command(name = 'sexy')
     async def sexy(self, interaction: discord.Interaction):
         guildidcompare = discord.Object(id = dotenv.get_key('.env', 'kodama_guild'))
@@ -93,6 +78,8 @@ class Personal(commands.Cog):
             catturato = dotenv.get_key('.env', 'livio0')
             if catturato == sexy:
                 await interaction.followup.send('CATTURATO IN 16K UHD 1298037HZ HDR69420+ 96BITS', delete_after = 5)
+        else:
+            await interaction.response.send_message("Nah, i wouldn't.")
 
     @personal.command(name = 'shid')
     async def shid(self, interaction: discord.Interaction):
@@ -103,7 +90,7 @@ class Personal(commands.Cog):
     # listeners
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        if type(message) is not None and (message.guild.id in guildList):
+        if type(message) is not None and (message.guild.id in self.guild_list):
             # bastardi on message
             if message.content.lower() in ['pronto', 'pronto?']:
                 response = '**Bastardi**, chiamo da Reggio Emilia, sono un assassino di **meridionali**. Vi ammazzo tutti *bastardi pezzi di merda*.'

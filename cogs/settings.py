@@ -11,8 +11,8 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-from utils.dbchecks import DbChecks
-from utils.dbhelper import DbHelper
+from Utils.dbchecks import DbChecks
+from Utils.dbhelper import DbHelper as Database
 
 
 def cooldown_checker(interaction: discord.Interaction) -> Optional[app_commands.Cooldown]:
@@ -22,7 +22,6 @@ def cooldown_checker(interaction: discord.Interaction) -> Optional[app_commands.
 class Settings(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.dbhelper = DbHelper()
 
     prefix = app_commands.Group(name = 'prefix', description = "Commands related to guild's settings")
 
@@ -34,28 +33,27 @@ class Settings(commands.Cog):
     # @app_commands.checks.dynamic_cooldown(cooldown_checker)
     async def setprefix(self, interaction: discord.Interaction, prefix: str = 'i.'):
         """Sets a custom prefix for chat commands. There are little to no chat commands now."""
-        guildid = interaction.guild_id
 
-        mydb = self.dbhelper.open()
-        cursor = self.dbhelper.get_cursor()
+        with Database() as db:
+            cursor = db.get_cursor()
 
-        cursor.execute(f'select count(*) from guildinfo where guildid = {guildid};')
-        if cursor.fetchone()[0] == 0:
-            cursor.execute(f"insert into guildinfo(guildid) values({guildid});")
-            mydb.commit()
+            guildid = interaction.guild_id
+            cursor.execute(f'select count(*) from guildinfo where guildid = {guildid};')
+            if cursor.fetchone()[0] == 0:
+                cursor.execute(f"insert into guildinfo(guildid) values({guildid});")
+                db.commit()
 
-        cursor.execute(f"select count(*) from guildsettings where guildid = {guildid};")
-        if cursor.fetchone()[0] == 0:
-            cursor.execute(f"insert into guildsettings(guildid) values({guildid});")
-            mydb.commit()
+            cursor.execute(f"select count(*) from guildsettings where guildid = {guildid};")
+            if cursor.fetchone()[0] == 0:
+                cursor.execute(f"insert into guildsettings(guildid) values({guildid});")
+                db.commit()
 
-        # print(f'guildid is {guildid}')
-        # print('prefix is {}'.format(prefix))
-        cursor.execute(f"update guildsettings set prefix = '{prefix}' where guildid = {guildid};")
-        print(cursor.rowcount)
-        mydb.commit()
-        await interaction.response.send_message(f"The bot's prefix is now set to {prefix}")
-        self.dbhelper.close()
+            # print(f'guildid is {guildid}')
+            # print('prefix is {}'.format(prefix))
+            cursor.execute(f"update guildsettings set prefix = '{prefix}' where guildid = {guildid};")
+            print(cursor.rowcount)
+            db.commit()
+            await interaction.response.send_message(f"The bot's prefix is now set to {prefix}")
 
 
 async def setup(bot):

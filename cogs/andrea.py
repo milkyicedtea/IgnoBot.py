@@ -4,8 +4,6 @@
 #                   #
 #####################
 
-import os
-
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -14,21 +12,21 @@ import dotenv
 import asyncio
 import datetime
 
-from builtins import guildList
 
 # RUNNING THIS COG ON YOUR MACHINE MAY PREVENT COMPILING DUE TO A LACK OF ENVIRONMENT KEYS.
 # IT IS NOT ESSENTIAL AND DOES NOT CONTAIN ANY IMPORTANT COMMANDS, SO FEEL FREE TO DELETE OR DISABLE IT AS NEEDED.
-# PLEASE DO NOT REQUEST ANY OTHESE KEYS. SHOULD YOU DO SO, YOUR REQUEST WILL BE DISREGARDED
+# PLEASE DO NOT REQUEST ANY OF THESE KEYS. SHOULD YOU DO SO, YOUR REQUEST WILL BE DISREGARDED.
 
 
 class AndreaClass(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    andreaGroup = app_commands.Group(name = 'andrea', description = 'Questi comandi fanno qualcosa ad Andrea :3', guild_ids = guildList)
+    guild_list = __import__('builtins').guild_list
+    andreaGroup = app_commands.Group(name = 'andrea', description = 'Questi comandi fanno qualcosa ad Andrea :3', guild_ids = guild_list)
 
     andrea_id = int(dotenv.get_key('.env', 'id_andrea'))
-    # andrea_id = int   # for test purposes, you can manually an id.
+    # andrea_id = int  # for test purposes, you can manually enter an ID.
 
     @andreaGroup.command(name = 'muta')
     async def andrea_mute(self, interaction: discord.Interaction):
@@ -70,10 +68,10 @@ class AndreaClass(commands.Cog):
         else:
             await interaction.response.send_message(f"{andrea.mention} non e' in un canale vocale :(", ephemeral = True, delete_after = 10)
 
-    # Manda un dm ad andrea, inutile perche' puo' vedere da chi e' stato mandato.
+    # Manda un dm ad andrea, inutile perche' puo' vedere da chi è stato mandato.
     """@andreaGroup.command(name = 'messaggio')
     async def andrea_messaggio(self, interaction: discord.Interaction, message: str):
-        andrea: discord.Member = discord.utils.get(interaction.guild.members, id = self.andrea_id)
+        andrea: discord.Member = discord.Cog_Utils.get(interaction.guild.members, id = self.andrea_id)
         try:
             await andrea.send(message)
         except:

@@ -4,11 +4,11 @@ import discord
 from discord import components
 from discord import app_commands
 from discord.ext import commands
-from utils.dbhelper import DbHelper
+from Utils.dbhelper import DbHelper as Database
 
 
 def get_shop():
-    path = 'utils/shop_items.json'
+    path = 'Cog_Utils/shop_items.json'
     try:
         with open(path, 'r') as file:
             data = json.load(file)
@@ -23,7 +23,6 @@ def get_shop():
 class Shop(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.dbhelper = DbHelper()
         self.shop_items = get_shop()
         print(self.shop_items)
 
