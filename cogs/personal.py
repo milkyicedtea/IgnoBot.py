@@ -1,0 +1,141 @@
+################################
+#                              #
+#     Personal commands :3     #
+#                              #
+################################
+
+import discord
+from discord import app_commands
+from discord.ext import commands
+
+import dotenv
+
+import random
+
+from bot import GUILD_IDS
+
+
+class Personal(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    personal = app_commands.Group(name = 'personal', description = 'These commands only work in a certain guild.', guild_ids = GUILD_IDS[:3])
+
+    # anni?
+    @personal.command(name = 'anni', description = 'Anni?')
+    async def anniqty(self, interaction: discord.Interaction):
+        annirange = int(random.choice(range(-100, 100 + 1)))
+        if annirange <= 0:
+            await interaction.response.send_message(f'Anni:{annirange}\nNon puoi farlo ha solo {annirange} anni')
+        else:
+            await interaction.response.send_message(f'{annirange}')
+
+    # mof?
+    @personal.command(name = 'mof', description = 'mof?')
+    async def mof(self, interaction: discord.Interaction):
+        mof_string = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S',
+                      'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+        mof = random.choice(mof_string)
+        await interaction.response.send_message(mof)
+
+    # no u
+    @personal.command(name = 'no-u', description = 'no u.')
+    async def nou(self, interaction: discord.Interaction):
+        await interaction.response.send_message(random.choice(["no u", "yes me"]))
+
+    # bastardi chiamo da reggio emilia
+    @personal.command(name = 'bastardi')
+    async def bastardi(self, interaction: discord.Interaction):
+        await interaction.response.send_message('**Bastardi**, chiamo da Reggio Emilia, sono un assassino di **meridionali**. Vi ammazzo tutti *bastardi pezzi di merda*.')
+
+    # THIS WILL *NOT* RUN ON YOUR MACHINE. YOU ARE MISSING ENV FILES.
+    @personal.command(name = 'sexy')
+    async def sexy(self, interaction: discord.Interaction):
+        guildidcompare = discord.Object(id = dotenv.get_key('.env', 'KODAMA_GUILD'))
+        guild = interaction.guild
+        # remember this is on stored on the .env and server ffs
+        if guild.id == guildidcompare.id:
+            sexy = dotenv.get_key(
+                '.env',
+                random.choice(
+                    [
+                        'SCONO0',
+                        'SCONO1',
+                        'SCONO2',
+                        'SCONO3',
+                        'SCONO4',
+                        'SCONO5',
+                        'SCONO6',
+                        'SCONO7',
+                        'SCONO8',
+                        'SCONO9',
+                        'SCONO10',
+                        'SCONO11',
+                        'SCONO12',
+                        'SCONO13',
+                        'SCONO14',
+                        'SCONO15',
+                        'SCONO16',
+                        'SCONO17',
+                        'SCONO18',
+                        'SCONO19',
+                        'LIVIO0'
+                    ]
+                )
+            )
+            await interaction.response.send_message(sexy, ephemeral = True, delete_after = 5)
+            catturato = dotenv.get_key('.env', 'livio0')
+            if catturato == sexy:
+                await interaction.followup.send('CATTURATO IN 16K UHD 1298037HZ HDR69420+ 96BITS', delete_after = 5)
+        else:
+            await interaction.response.send_message("Nah, i wouldn't.")
+
+    @personal.command(name = 'shid')
+    async def shid(self, interaction: discord.Interaction):
+        embed = discord.Embed(title = "omg bro :shit:", url = "https://milkyicedtea.epizy.com/Ignobot", color = discord.Colour.from_str('#7b5804'))
+        embed.set_image(url = 'https://pbs.twimg.com/media/E3jLAljVEAQz1f8.jpg')
+        await interaction.response.send_message(embed = embed, ephemeral = True)
+
+    # listeners
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message):
+        if not message.flags.ephemeral and message.guild is not None and message.guild.id in GUILD_IDS[:3]:
+            # bastardi on message
+            if message.content.lower() in ['pronto', 'pronto?']:
+                response = '**Bastardi**, chiamo da Reggio Emilia, sono un assassino di **meridionali**. Vi ammazzo tutti *bastardi pezzi di merda*.'
+                await message.reply(response)
+
+            # vado on message
+            elif message.content.lower() in ['vado', 'io vado', 'bella', 'a domani', 'mani']:
+                response = 'k grazie mani'
+                await message.reply(response)
+
+            # bimbo dingo
+            elif message.content.lower() in ['rocket league', 'dingo']:
+                response = 'bimbo dingo'
+                bimbodingospamrange = int(random.choice(range(1, 5 + 1)))
+                for x in range(bimbodingospamrange):
+                    await message.reply(response)
+
+            # sconosciuto
+            elif message.content.lower() == 'sconosciuto':
+                response = random.choice(['Hai fatto incazzare la persona sbagliata. Non hai futuro.',
+                                          'Mi hai fregato la macchina! Sarai mangime per vermi, pezzo di merda.'])
+                await message.reply(response)
+
+            # python bad
+            elif message.content.lower() == 'python?':
+                response = 'bad'
+                await message.reply(response)
+
+            # O RAZZIATORE???
+            elif message.content.lower() in ['o razziatore', 'razziatore', 'o razziatore?']:
+                await message.reply('https://cdn.discordapp.com/attachments/933336707825295368/936916126594633779/Immagine_2022-01-27_221310.png')
+
+            # Was für eine parade!
+            elif message.content == 'Was für eine parade!':
+                await message.reply('Danke!')
+
+
+async def setup(bot):
+    await bot.add_cog(Personal(bot))

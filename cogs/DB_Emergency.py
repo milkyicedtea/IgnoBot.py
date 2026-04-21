@@ -4,55 +4,98 @@
 #                  #
 ####################
 
-import os
-
 import discord
+from discord import app_commands
 from discord.ext import commands
-from utils.dbhelper import DbHelper
 
-import psycopg2
+import psycopg
 
-class DB_Emergency(commands.Cog):
+from Utils.database.database import PgDB
+
+
+class DbEmergency(commands.Cog):
     def __init__(self, bot):
-        self.bot = bot 
+        self.bot: commands.Bot = bot
 
-    # Add-guild command
-    @commands.command(name = 'add-guild', help = "ONLY USE THIS COMMANDS IF SOMETHING BREAKS **PLEASE**.")
-    @commands.has_guild_permissions(manage_guild = True)
-    async def addguild(self, ctx):
+    # THIS COMMAND CAN ONLY BE USED BY THE ACCOUNT THAT OWNS THE BOT DUE TO SECURITY/DATABASE SPAM PREVENTING
+    @app_commands.command(name = 'add-guild')
+    @app_commands.checks.has_permissions(administrator = True)
+    async def addguild(self, interaction: discord.Interaction):
+        """Manually adds a guild (server) to the database."""
+
+        if not await self.bot.is_owner(interaction.user):
+            # If the user is not the bot owner, deny the command
+            await interaction.response.send_message("You are not authorized to use this command.", ephemeral = False) # noqa
+            return
+
         try:
-            dbhelper = DbHelper()
+            async with PgDB() as db:
+                cursor = await db.get_cursor()
 
-            mydb = dbhelper.open()
-            cursor = dbhelper.get_cursor()
+                guildid = interaction.guild.id
+                guildraw = interaction.guild.name
+                guildname = guildraw.replace("'", "")
 
-            guildid = ctx.message.guild.id
-            guildraw = ctx.guild.name
-            guildname = guildraw.replace("'", "")
-            cursor.execute(f"select count(*) from guildinfo where guildid = {guildid} and guildname = '{guildname}';")
-            result = cursor.fetchone()
-            if result[0] == 0:
-                cursor.execute(f'select count(*) from guildinfo where guildid = {guildid};')
-                result = cursor.fetchone()
-                print(f'Guildid search result is: {result}')
-                if result[0] != 0:
-                    cursor.execute(f"select count(*) from guildinfo where guildname = '{guildname}';")
-                    result = cursor.fetchone()
-                    if result[0] == 0:
-                        cursor.execute(f"update guildinfo set guildname = '{guildname}' where guildid = {guildid};")
-                        mydb.commit()
-                        print(f'updated guild {guildid} with new name: {guildname}')
-                    else:   
-                        print(f'guild {guildid} with name {guildname} is already in the database')
-                elif result[0] == 0:
-                    cursor.execute(f"insert into guildinfo(guildid, guildname) values ({guildid}, '{guildname}');")
-                    # auto commit is disabled so i mydb.commit()
-                    mydb.commit()
-                    await ctx.send(f"Guild '{guildname}' with id {guildid} was added to the database")
-            dbhelper.close()
+                await cursor.execute("""
+                    insert into guildinfo(guildid, guildname)
+                    values(%s, %s)
+                    on conflict (guildid) 
+                    do update set guildname = EXCLUDED.guildname
+                """, (guildid, guildname))
+                await db.commit()
 
-        except psycopg2.Error as ag:
-            print(f'Something went wrong: {ag}')
+                await interaction.response.send_message( # noqa
+                    f"Guild '{guildname}' with id {guildid} was added or updated in the database."
+                )
+
+        except psycopg.Error as ag:
+            print(f'Something went wrong in `add-guild` command: {ag}')
+            await interaction.response.send_message( # noqa
+                f"An error occurred: {ag}",
+                ephemeral = True
+            )
+
+    @addguild.error
+    async def addguild_error(self, interaction: discord.Interaction, error):
+        await interaction.response.send_message( # noqa
+            "Not allowed!"
+        )
+
+    # @app_commands.command(name = 'users-sync')
+    # @app_commands.checks.has_permissions(administrator = True)
+    # async def users_sync(self, interaction: discord.Interaction):
+    #     """Manually syncs users from leveling table to user table. (from old database structure)"""
+    #     if not await self.bot.is_owner(interaction.user):
+    #         await interaction.response.send_message("You are not authorized to use this command.", ephemeral = False)
+    #         return
+    #
+    #     try:
+    #         async with PgDB() as db:
+    #             cursor = await db.get_cursor()
+    #
+    #             await cursor.execute("""
+    #                 select userid
+    #                 from leveling
+    #             """)
+    #
+    #             result_dict = {userid: username for userid, username in await cursor.fetchall()}
+    #             print(result_dict)
+    #
+    #             await cursor.executemany("""
+    #                 insert into users(userid, username)
+    #                 values(%s, %s)
+    #             """, [(userid, username) for userid, username in result_dict.items()])
+    #
+    #             await db.commit()
+    #
+    #             await interaction.response.send_message("""
+    #                 Users synced.
+    #             """, ephemeral = True)
+    #
+    #     except psycopg.Error as ag:
+    #         print(f'Something went wrong in `users-sync` command: {ag}')
+    #         await interaction.response.send_message(f"An error occurred: {ag}", ephemeral = True)
+
 
 async def setup(bot):
-    await bot.add_cog(DB_Emergency(bot))
+    await bot.add_cog(DbEmergency(bot))

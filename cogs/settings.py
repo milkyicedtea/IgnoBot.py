@@ -4,47 +4,52 @@
 #                  #
 ####################
 
-import os
-
 import discord
 from discord.ext import commands
-from utils.dbhelper import DbHelper
+from discord import app_commands
+
+from Utils.database.database import PgDB 
+
+
+def cooldown_checker(interaction: discord.Interaction) -> app_commands.Cooldown:
+    return app_commands.Cooldown(1, 60)
+
 
 class Settings(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.command_enabled = {'set': False}
 
-    @commands.command()
-    async def setprefix(self, ctx, prefix:str = None):
-        guildid = ctx.guild.id
+    prefix = app_commands.Group(name = 'prefix', description = "Commands related to guild's settings")
 
-        dbhelper = DbHelper()
-        mydb = dbhelper.open()
-        cursor = dbhelper.get_cursor()
+    application_check = app_commands.checks.has_permissions
 
-        if prefix == None:
-            print('prefix is none')
-            prefix = 'i.'
+    # Refactored and works, disabled in favor of slash commands in initialization function
+    @cooldown_checker
+    @prefix.command(name = "set")
+    @application_check(administrator = True)
+    async def setprefix(self, interaction: discord.Interaction, prefix: str = "i."):
+        """Sets a custom prefix for chat commands."""
 
-        cursor.execute(f'select count(*) from guildinfo where guildid = {guildid};')
-        result = cursor.fetchone()
-        if result[0] == 0:
-            cursor.execute(f"insert into guildinfo(guildid) values({guildid});")
-            mydb.commit()
+        if not self.command_enabled['set']:
+            await interaction.response.send_message("""
+                This command is currently disabled
+            """, ephemeral = False)
 
-        cursor.execute(f"select count(*) from guildsettings where guildid = {guildid};")
-        result = cursor.fetchone()
-        if result[0] == 0:
-            cursor.execute(f"insert into guildsettings(guildid) values({guildid});")
-            mydb.commit()
+        async with PgDB() as db:
+            cursor = await db.get_cursor()
+            guildid = interaction.guild_id
 
-        print(f'guildid is {guildid}')
-        print('prefix is {}'.format(prefix))
-        cursor.execute(f"update guildsettings set prefix = '{prefix}' where guildid = {guildid};")
-        print(cursor.rowcount)
-        mydb.commit()
-        await ctx.send(f"The bot's prefix is now set to {prefix}")
-        dbhelper.close()
+            await cursor.execute("""
+                INSERT INTO guildsettings (guildid, prefix)
+                VALUES (%s, %s)
+                ON CONFLICT (guildid)
+                DO UPDATE SET prefix = EXCLUDED.prefix;
+            """, (guildid, prefix),)
+            await db.commit()
+
+            await interaction.response.send_message(f"The bot's prefix is now set to `{prefix}`.")
+
 
 async def setup(bot):
     await bot.add_cog(Settings(bot))
