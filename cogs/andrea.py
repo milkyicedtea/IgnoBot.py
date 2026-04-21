@@ -4,16 +4,20 @@
 #                   #
 #####################
 
+import asyncio
+
+import datetime
+
 import discord
 from discord import app_commands
 from discord.ext import commands
 
 import dotenv
-import asyncio
-import datetime
+
+from bot import GUILD_IDS
 
 
-# RUNNING THIS COG ON YOUR MACHINE MAY PREVENT COMPILING DUE TO A LACK OF ENVIRONMENT KEYS.
+# RUNNING THIS COG ON YOUR MACHINE MAY PREVENT RUNNING DUE TO A LACK OF ENVIRONMENT KEYS.
 # IT IS NOT ESSENTIAL AND DOES NOT CONTAIN ANY IMPORTANT COMMANDS, SO FEEL FREE TO DELETE OR DISABLE IT AS NEEDED.
 # PLEASE DO NOT REQUEST ANY OF THESE KEYS. SHOULD YOU DO SO, YOUR REQUEST WILL BE DISREGARDED.
 
@@ -22,10 +26,9 @@ class AndreaClass(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    guild_list = __import__('builtins').guild_list
-    andreaGroup = app_commands.Group(name = 'andrea', description = 'Questi comandi fanno qualcosa ad Andrea :3', guild_ids = guild_list)
+    andreaGroup = app_commands.Group(name = 'andrea', description = 'Questi comandi fanno qualcosa ad Andrea :3', guild_ids = GUILD_IDS[:3])
 
-    andrea_id = int(dotenv.get_key('.env', 'id_andrea'))
+    andrea_id = int(dotenv.get_key('.env', 'ID_ANDREA'))
     # andrea_id = int  # for test purposes, you can manually enter an ID.
 
     @andreaGroup.command(name = 'muta')

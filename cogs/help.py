@@ -9,6 +9,7 @@ class Help(commands.Cog):
 
     @app_commands.command(name = 'help')
     async def help(self, interaction: discord.Interaction):
+        """Lost with all these choices?"""
         pass
 
 

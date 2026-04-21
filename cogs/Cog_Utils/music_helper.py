@@ -49,12 +49,10 @@ class YTDLPCMVolumeTransformer(discord.PCMVolumeTransformer):
 
     def __init__(self, interaction: discord.Interaction, audio_source: discord.FFmpegPCMAudio, info: dict):
         super().__init__(audio_source)
-
         self.audio_source = audio_source
         self.requester = interaction.user
         self.channel = interaction.channel
         self.info = info
-
         self.uploader: str = info.get('uploader')
         self.title: str = info.get('title')
         self.thumbnail = info.get('thumbnail')
@@ -68,30 +66,37 @@ class YTDLPCMVolumeTransformer(discord.PCMVolumeTransformer):
 
     @classmethod
     def create_source(cls, interaction: discord.Interaction, search: str):
-        # print('create source')
+        print(f"Creating source for: {search}")
         try:
             info = cls.ytdl.extract_info(f'ytsearch:{search}', download = False)['entries'][0]
-        except YTDLError as err:
-            print(err)
-            return interaction.followup.send('Something went wrong during the content search!', ephemeral = True)
-        return cls(interaction, discord.FFmpegPCMAudio(info.get('url'), **cls.FFMPEG_OPTIONS), info)
+            print(f"Source info extracted: {info.get('title')}")
+            return cls(interaction, discord.FFmpegPCMAudio(info['url'], **cls.FFMPEG_OPTIONS), info)
+        except Exception as e:
+            print(f"Error creating source: {e}")
+            return None
 
     @classmethod
     def extract_playlist_info(cls, playlist_url):
-        """Extract video URLs from a YouTube playlist"""
+        """Extract video information from a YouTube playlist"""
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'extract_flat': True,
+            'quiet': True,
+        }
 
-        with yt_dlp.YoutubeDL(cls.playlist_ytdl_options) as ydl:
-            playlist_info = ydl.extract_info(playlist_url, download = False)
-
-            if playlist_info:
-                return playlist_info
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            try:
+                info = ydl.extract_info(playlist_url, download = False)
+                return info
+            except Exception as e:
+                print(f"Error extracting playlist info: {e}")
+                return None
 
     @staticmethod
     def get_duration(duration: int):
         minutes, seconds = divmod(duration, 60)
         hours, minutes = divmod(minutes, 60)
         days, hours = divmod(hours, 24)
-
         duration = []
         if days > 0:
             duration.append(f'{days} days')
@@ -101,7 +106,6 @@ class YTDLPCMVolumeTransformer(discord.PCMVolumeTransformer):
             duration.append(f'{minutes} minutes')
         if seconds > 0:
             duration.append(f'{seconds} seconds')
-
         return ', '.join(duration)
 
 
@@ -112,6 +116,7 @@ class MusicPlayer:
         self.queue = []
         self.loop = False
         self.current_song = None
+        self.should_play_next = True
 
     async def skip(self):
         if self.queue:
@@ -121,30 +126,42 @@ class MusicPlayer:
             await self.voice_client.disconnect()
 
     async def play_next_song(self):
-        if self.queue:
-            # print('self.queue')
-            print(f'playing next song')
-            song = self.queue.pop(0)
-            # print(song.title)
-            self.current_song = song
-            self.voice_client.play(song, after = self.on_playback_complete)
+        if not self.should_play_next:
+            print("Playback stopped")
+            return
+
+        if self.queue and self.voice_client and self.voice_client.is_connected():
+            try:
+                song = self.queue.pop(0)
+                print(f"Playing: {song.title}")
+                self.current_song = song
+                self.voice_client.play(song, after=self.on_playback_complete)
+                print("Playback started")
+            except Exception as e:
+                print(f"Error playing next song: {e}")
+                await self.play_next_song()
+        else:
+            print(f"Cannot play next song. Queue: {len(self.queue)}, Voice client connected: {self.voice_client and self.voice_client.is_connected()}")
 
     async def start_playing(self):
+        print(f"Starting to play. Queue length: {len(self.queue)}")
         while self.queue:
+            print(f"Playing next song. Remaining in queue: {len(self.queue)}")
             await self.play_next_song()
+        print("Finished playing all songs in queue")
 
     async def async_task_after_playback(self):
         await self.play_next_song()
 
     def on_playback_complete(self, error):
         if error:
-            print(f"An error occurred: {error}")
+            print(f"An error occurred during playback: {error}")
         else:
-            print("Playback completed")
-            # Use asyncio to run the async function
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(self.async_task_after_playback())
+            print("Playback completed successfully")
+        if self.should_play_next:
+            asyncio.run_coroutine_threadsafe(self.play_next_song(), self.bot.loop)
+        else:
+            print("Playback complete and stopped")
 
     def add_song_to_queue(self, song):
         self.queue.append(song)
@@ -159,6 +176,9 @@ class MusicPlayer:
     def get_voice_client(self, guild: discord.Guild):
         return discord.utils.get(self.bot.voice_clients, guild = guild)
 
-    async def stop(self):
-        self.voice_client.stop()
+    def stop(self):
+        self.should_play_next = False
+        if self.voice_client and self.voice_client.is_playing():
+            self.voice_client.stop()
         self.queue.clear()
+

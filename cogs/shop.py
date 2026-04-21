@@ -1,14 +1,12 @@
-import json
-
 import discord
-from discord import components
 from discord import app_commands
 from discord.ext import commands
-from Utils.dbhelper import DbHelper as Database
+
+import json
 
 
 def get_shop():
-    path = 'Cog_Utils/shop_items.json'
+    path = 'Utils/shop_items.json'
     try:
         with open(path, 'r') as file:
             data = json.load(file)
@@ -24,7 +22,7 @@ class Shop(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.shop_items = get_shop()
-        print(self.shop_items)
+        # print(self.shop_items)
 
     @commands.Cog.listener()
     async def on_button_click(self, button: discord.ui.Button, interaction: discord.Interaction):

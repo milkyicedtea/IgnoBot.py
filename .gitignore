@@ -11,8 +11,9 @@ discord.log
 #ignore cmd.bat cause useless
 cmd.bat
 
-#ignore pycache
+#ignore various cache
 __pycache__
+.cache
 
 #ignore test file(s)
 Utils/bad.py

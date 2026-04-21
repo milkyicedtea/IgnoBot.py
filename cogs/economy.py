@@ -2,8 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from Utils.dbchecks import DbChecks
-from Utils.dbhelper import DbHelper as Database
+from Utils.database.database import PgDB 
 
 
 class Economy(commands.Cog):
@@ -11,12 +10,12 @@ class Economy(commands.Cog):
         self.bot = bot
 
     @staticmethod
-    def get_balance(user_id):
-        with Database() as db:
-            cursor = db.get_cursor()
+    async def get_balance(user_id):
+        async with PgDB() as db:
+            cursor = await db.get_cursor()
 
-            cursor.execute("select balance from user_data where user_id = %s", user_id)
-            bal = cursor.fetchone()[0]
+            await cursor.execute("select balance from user_data where user_id = %s", (user_id,))
+            bal = await cursor.fetchone()
             return bal if bal else 0
 
     @app_commands.command(name = 'balance')

@@ -4,25 +4,23 @@
 #              #
 ################
 
-import os
+import asyncio
 
 import discord
 from discord.ext import commands
 from discord import app_commands
 
 import linecache
-import random
-import asyncio
+
 import time
 
-
-from Utils.dbchecks import DbChecks
-from Utils.dbhelper import DbHelper as Database
+from Utils.db_checks import DbChecks
+from Utils.database.database import PgDB 
 
 
 class Test(commands.Cog):
     def __init__(self, bot):
-        self.bot = bot
+        self.bot: commands.Bot = bot
 
     test = app_commands.Group(name='test', description='Test group')
 
@@ -31,79 +29,118 @@ class Test(commands.Cog):
     # bad slash command
     @test.command(name = 'bad')
     async def bad(self, interaction: discord.Interaction):
-        await interaction.response.send_message('**Bad**', ephemeral = True)
+        await interaction.response.send_message('**Bad**', ephemeral = True) # noqa
 
     # beep command
     @test.command(name = 'beep')
     async def beep(self, interaction: discord.Interaction):
-        await interaction.response.send_message('**Beep!**', ephemeral = True)
+        await interaction.response.send_message('**Beep!**', ephemeral = True) # noqa
 
     # Embed test
-    @commands.command(name = 'embed-test')
-    @commands.has_guild_permissions(manage_guild = True)
-    @commands.is_owner()
-    async def embed_test(self, ctx: discord.ext.commands.Context):
+    @test.command(name = 'embed')
+    @application_check(administrator = True)
+    async def embed_test(self, interaction: discord.Interaction):
+        if not await self.bot.is_owner(interaction.user):
+            # If the user is not the bot owner, deny the command
+            await interaction.response.send_message("You are not authorized to use this command.", ephemeral = False) # noqa
+            return
+
         colorvalue = discord.Colour.random()
         embed_var = discord.Embed(title = 'Title', description = 'Desc', color = colorvalue)
         embed_var.add_field(name = "Field1", value = "hi", inline = False)
         embed_var.add_field(name = "Field2", value = "hi2", inline = False)
-        await ctx.send(embed = embed_var)
+        await interaction.response.send_message(embed = embed_var) # noqa
 
     # Read test
-    @commands.command(name = 'read-test')
-    @commands.has_guild_permissions(manage_guild = True)
-    @commands.is_owner()
-    async def read_test(self, ctx: discord.ext.commands.Context):
+    @test.command(name = 'read')
+    @application_check(administrator = True)
+    async def read_test(self, interaction: discord.Interaction):
+        if not await self.bot.is_owner(interaction.user):
+            # If the user is not the bot owner, deny the command
+            await interaction.response.send_message("You are not authorized to use this command.", ephemeral = False) # noqa
+            return
+
         linecache.clearcache()
         title = linecache.getline('./data/welcome/welcome.ini', 2)
         color = linecache.getline('./data/welcome/welcome.ini', 4)
         description = linecache.getline('./data/welcome/welcome.ini', 6)
-        await ctx.send(title + color + description)
+        await interaction.response.send_message(title + color + description) # noqa
 
     # asyncio.sleep() test
-    @commands.command(name = 'asynciosleep')
-    @commands.has_guild_permissions(manage_guild = True)
-    @commands.is_owner()
-    async def asynciosleep(self, ctx: discord.ext.commands.Context, amount_to_sleep: int, *, sentence: str):
-        await ctx.send(f'Waiting {amount_to_sleep} seconds before sending your message.')
+    @test.command(name = 'asynciosleep')
+    @application_check(administrator = True)
+    async def asynciosleep(self, interaction: discord.Interaction, amount_to_sleep: int, *, sentence: str):
+        if not await self.bot.is_owner(interaction.user):
+            # If the user is not the bot owner, deny the command
+            await interaction.response.send_message("You are not authorized to use this command.", ephemeral = False) # noqa
+            return
+
+        await interaction.response.send_message(f'Waiting {amount_to_sleep} seconds before sending your message.') # noqa
         await asyncio.sleep(amount_to_sleep)
-        await ctx.send(f'{sentence}')
+        await interaction.followup.send(f'{sentence}')
 
     # time.sleep() test
-    @commands.command(name = 'timesleep')
-    @commands.has_guild_permissions(manage_guild = True)
-    @commands.is_owner()
-    async def timesleep(self, ctx: discord.ext.commands.Context, amount_to_sleep: int, *, sentence: str):
-        await ctx.send(f'Waiting {amount_to_sleep} seconds before sending your message.')
+    @test.command(name = 'timesleep')
+    @application_check(administrator = True)
+    async def timesleep(self, interaction: discord.Interaction, amount_to_sleep: int, *, sentence: str):
+        if not await self.bot.is_owner(interaction.user):
+            # If the user is not the bot owner, deny the command
+            await interaction.response.send_message("You are not authorized to use this command.", ephemeral = False) # noqa
+            return
+
+        await interaction.response.send_message(f'Waiting {amount_to_sleep} seconds before sending your message.') # noqa
         time.sleep(amount_to_sleep)
-        await ctx.send(f'{sentence}')
+        await interaction.response.send_message(f'{sentence}') # noqa
 
-    @commands.command(name = 'getroletest')
-    @commands.has_guild_permissions(manage_guild = True)
-    async def getroletest(self, ctx: discord.ext.commands.Context, *, role_name):
-        print(discord.utils.get(ctx.guild.roles, name = role_name))
+    @test.command(name = 'getroletest')
+    @application_check(administrator = True)
+    async def getroletest(self, interaction: discord.Interaction, *, role_name: str):
 
-    @commands.command(name = 'printMention')
-    @commands.has_guild_permissions(manage_guild = True)
-    async def print_mention(self, ctx: discord.ext.commands.Context, member: discord.Member):
-        await ctx.send(member.mention)
+        # If the user is not the bot owner, deny the command
+        if not await self.bot.is_owner(interaction.user):
+            await interaction.response.send_message("You are not authorized to use this command.", ephemeral = False) # noqa
+            return
+
+        print(discord.utils.get(interaction.guild.roles, name = role_name))
+
+    @test.command(name = 'print-mention')
+    @application_check(administrator = True)
+    async def print_mention(self, interaction: discord.Interaction, member: discord.Member):
+        if not await self.bot.is_owner(interaction.user):
+            # If the user is not the bot owner, deny the command
+            await interaction.response.send_message("You are not authorized to use this command.", ephemeral = False) # noqa
+            return
+
+        await interaction.response.send_message(member.mention) # noqa
         print(member.mention)
 
-    @commands.command(name = 'fetchtest')
-    @commands.has_guild_permissions(manage_guild = True)
+    @test.command(name = 'fetchtest')
+    @application_check(administrator = True)
     async def fetch_test(self, interaction: discord.Interaction):
-        with Database() as db:
-            cursor = db.get_cursor()
+        if not await self.bot.is_owner(interaction.user):
+            # If the user is not the bot owner, deny the command
+            await interaction.response.send_message("You are not authorized to use this command.", ephemeral = False) # noqa
+            return
 
-            await interaction.response.send_message(f"{DbChecks.check_guild_logs(cursor, guild = interaction.guild)}, "
-                                                    f"{DbChecks.get_log_channel(cursor, guild = interaction.guild)}")
+        async with PgDB() as db:
+            cursor = await db.get_cursor()
 
-    @app_commands.command(name = 'slashcommands')
-    @application_check(manage_guild = True)
-    async def slash_commands_get(self, interaction: discord.Interaction, guild: int):
-        for slash_command in self.bot.tree.walk_commands(discord.Object(guild)):
+            await interaction.response.send_message( # noqa
+                f"{DbChecks.check_guild_logs(cursor, guild = interaction.guild)}, "
+                f"{DbChecks.get_log_channel(cursor, guild = interaction.guild)}"
+            )
+
+    @test.command(name = 'slashcommands')
+    @application_check(administrator = True)
+    async def slash_commands_get(self, interaction: discord.Interaction):
+        if not await self.bot.is_owner(interaction.user):
+            # If the user is not the bot owner, deny the command
+            await interaction.response.send_message("You are not authorized to use this command.", ephemeral = False) # noqa
+            return
+
+        for slash_command in self.bot.tree.walk_commands(guild = interaction.guild):
             print(slash_command.name)
-        await interaction.response.send_message('slash commands are working.', ephemeral = True)
+        await interaction.response.send_message('slash commands are working.', ephemeral = True) # noqa
 
 
 async def setup(bot):

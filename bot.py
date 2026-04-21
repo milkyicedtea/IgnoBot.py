@@ -7,145 +7,150 @@
 #              #
 ################
 
+import asyncio
+import sys
+if sys.platform.startswith('win'):
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+import os
+
 import sys
 
 from discord.ext import commands
 import discord.utils
 
-import asyncio
-import builtins
+from dotenv import dotenv_values
 
-import logging
+from Utils.database.database import PgDB
 
-from Utils.dbchecks import *
-from Utils.dbhelper import *
+from Utils.logger import logger
 
-print('python version is:')
-print(sys.version)
-print(sys.version_info)
+################
+# Environment Setup
+################
 
-# Initializing variables from .env file
-TOKEN = dotenv.get_key(".env", 'BOT_TOKEN')
+env = dotenv_values('.env')
 
-# THESE GUILD IDS MAY PREVENT
-kodama_guild: int = int(dotenv.get_key(".env", "kodama_guild"))
-chill_ignorance: int = int(dotenv.get_key(".env", "chill_ignorance"))
-# ducks_hideout: int = int(dotenv.get_key(".env", "ducks_hideout"))
-ichiban_kuji_guild: int = int(dotenv.get_key(".env", "ichiban_kuji_guild"))
+TOKEN = env['BOT_TOKEN']
+GUILD_IDS = [
+    int(env['KODAMA_GUILD']),
+    int(env['CHILL_IGNORANCE']),
+    int(env['ICHIBAN_KUJI_GUILD']),
+    int(env['DUCKS_HIDEOUT'])
+]
 
-guild_list: list[int] = [kodama_guild, chill_ignorance, ichiban_kuji_guild]
-builtins.guild_list = guild_list
+################
+# Bot Setup
+################
 
+async def get_prefix(bot: commands.Bot, message: discord.Message) -> str:
+    async with PgDB() as db:
+        cursor = await db.get_cursor()
+        guild_id = message.guild.id
 
-def get_prefix(bot: commands.Bot, message) -> str:
-    # print('get prefix')
+        await cursor.execute("SELECT prefix FROM guild_settings WHERE guild_id = %s", (guild_id,))
+        result = await cursor.fetchone()
 
-    with Database() as db:
-        print('getting prefix..')
-        cursor = db.get_cursor()
-
-        guildid = message.guild.id
-        # DbChecks.guild_check(db, guildid)
-
-        cursor.execute(f"select count(*) from guildsettings where guildid = {guildid}")
-        if cursor.fetchone()[0] == 0:
-            cursor.execute(f"insert into guildsettings(guildid) values({guildid})")
-            # print(f"guild {guildid} added to settings")
-            db.commit()
-
-        cursor.execute(f'select prefix from guildsettings where guildid = {guildid}')
-        prefix = cursor.fetchone()[0]
-        # print(prefix)
-
-    return prefix
+        if result is None:
+            # Initialize settings if not found
+            await cursor.execute("INSERT INTO guild_settings (guild_id, prefix) VALUES (%s, %s)", (guild_id, "i."))
+            await db.commit()
+            return "i."
+        return result[0]
 
 
-# Prefix setup
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix = get_prefix, intents = intents, description = 'ducc')
-builtins.bot = bot
+bot = commands.Bot(command_prefix = get_prefix, intents = intents, description = 'ducc :3')
 
 
-# cogs loading and command counting
+################
+# Cog Loader
+################
+
 async def load_cogs():
-    for filename in os.listdir('./cogs'):  # loads all files (*.py)
-        if filename.endswith('.py'):
-            await bot.load_extension(f'cogs.{filename[:-3]}')  # loads the file without `.py` for example: cogs.ping
-            print(f'Loaded {filename[:-3]}')
+    """Dynamically load all cogs."""
+    for filename in os.listdir("./cogs"):
+        if filename.endswith(".py"):
+            try:
+                await bot.load_extension(f"cogs.{filename[:-3]}")
+                logger.info(f"Loaded cog: {filename[:-3]}")
+            except Exception as e:
+                logger.error(f"Failed to load cog {filename}: {e}")
 
-    print(f'Total number of commands: {len(list(bot.walk_commands()))}')
 
+################
+# Events
+################
 
 # Bot login event
 @bot.event
 async def on_ready():
+    """Bot startup event."""
     await bot.tree.sync()
-    for guild in guild_list:
-        await bot.tree.sync(guild = discord.Object(id = guild))
-    await bot.change_presence(activity = discord.Activity(type = discord.ActivityType.watching, name = f'ducks at the park \U0001f986'))
+    for guild_id in GUILD_IDS:
+        await bot.tree.sync(guild = discord.Object(id = guild_id))
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="the ducks at the park 🦆"))
+    logger.info(f"Logged in as {bot.user} (ID: {bot.user.id})")
 
 
 @bot.event
-async def on_guild_join(guild):
-    with Database() as db:
-        cursor = db.get_cursor()
+async def on_guild_join(guild: discord.Guild):
+    """Initialize settings for a new guild."""
+    default_channel = discord.utils.get(guild.text_channels, name="general")
+    welcome_message = f"Hey %mention_user%! Welcome to {guild.name}!"
 
-        guildid = guild.id
-        guildname = guild.name
+    async with PgDB() as db:
+        cursor = await db.get_cursor()
+        await cursor.execute("""
+            INSERT INTO guild_info (guild_id, guild_name) 
+            VALUES (%s, %s)
+            ON CONFLICT DO NOTHING;
+        """, (guild.id, guild.name),)
 
-        # do stuff in guildinfo
-        cursor.execute(f"insert into guildinfo(guildid, guildname) values({guildid}, '{guildname}')")
+        await cursor.execute("""
+            INSERT INTO guild_settings (guild_id, prefix) 
+            VALUES (%s, %s)
+            ON CONFLICT DO NOTHING;
+        """, (guild.id, "i."),)
 
-        # do stuff in guildsettings
-        cursor.execute(f"insert into guildsettings(guildid, prefix) values({guildid}, 'i.')")
+        await cursor.execute("""
+            INSERT INTO guild_settings (welcome_channel, guild_id, welcome_message)
+            VALUES (%s, %s, %s)
+            ON CONFLICT DO NOTHING;
+        """, (default_channel.id if default_channel else None, guild.id, welcome_message),)
+        await db.commit()
 
-        # do stuff in welcome
-        welcomedef_channel = discord.utils.get(guild.channels, name = 'general')
-        welcomedef_channel_id = welcomedef_channel.id
-        welcomedef_message = 'Hey %mention_user%! Welcome to {}!'.format(guildname)
-        cursor.execute(f"insert into welcome(channel_id, guildid, welcome_message) values({welcomedef_channel_id}, {guildid}, '{welcomedef_message}')")
-        db.commit()
-
-
-@bot.event
-async def on_guild_remove(guild):
-    with Database() as db:
-        cursor = db.get_cursor()
-
-        guildid = guild.id
-        guildname = guild.name
-
-        # guildsettings
-        cursor.execute(f'delete from guildsettings where guildid = {guildid}')
-
-        # welcome
-        cursor.execute(f'delete from welcome where guildid = {guildid}')
-
-        # leveling
-        cursor.execute(f'delete from leveling where guildid = {guildid}')
-
-        # roles
-        cursor.execute(f'delete from roles where guildid = {guildid}')
-
-        # do stuff in guildinfo
-        cursor.execute(f"delete from guildinfo where guildid = {guildid}")
-        db.commit()
-
-        print(f'deleted every information relative to guild {guildname} with id {guildid} from the database')
+    logger.info(f"Initialized settings for guild: {guild.name} (ID: {guild.id})")
 
 
-async def get_bot():
-    return bot
+# @bot.event
+# async def on_guild_remove(guild: discord.Guild):
+#     """Clean up database entries when the bot leaves a guild."""
+#     with PsqlDB() as db:
+#         cursor = await db.get_cursor()
+#         cursor.execute("DELETE FROM guildinfo WHERE guildid = %s", (guild.id,))
+#         cursor.execute("DELETE FROM guildsettings WHERE guildid = %s", (guild.id,))
+#         cursor.execute("DELETE FROM welcome WHERE guildid = %s", (guild.id,))
+#         cursor.execute("DELETE FROM roles WHERE guildid = %s", (guild.id,))
+#         db.commit()
+#     logger.info(f"Cleaned up database for guild: {guild.name} (ID: {guild.id})")
 
+################
+# Main Runner
+################
 
-# bot.run
 async def main():
-    handler = logging.FileHandler(filename = 'discord.log', encoding = 'utf-8', mode = 'w')
-    discord.utils.setup_logging(handler = handler)
-    async with bot:
-        await load_cogs()
-        await bot.start(TOKEN)
-        # await bot.close() # This one is to shut off the bot.
+    """Main entry point."""
+    try:
+        async with bot:
+            await load_cogs()
+            await asyncio.create_task(bot.start(TOKEN))
 
+    except KeyboardInterrupt:
+        logger.info("Bot shutting down...")
+    except Exception as e:
+        logger.error(f"An error occurred: {e}")
 
-asyncio.run(main())
+if __name__ == "__main__":
+    logger.info(f"Python version: {sys.version}")
+    asyncio.run(main())

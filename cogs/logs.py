@@ -6,15 +6,15 @@
 
 import discord
 from discord.ext import commands
-from discord import app_commands
+from discord import app_commands, RawMessageDeleteEvent
 
-from Utils.dbchecks import DbChecks
-from Utils.dbhelper import DbHelper as Database
+from Utils.db_checks import DbChecks
+from Utils.database.database import PgDB 
 
 
 class Logs(commands.Cog):
     def __init__(self, bot):
-        self.bot = bot
+        self.bot: commands.Bot = bot
 
     logsGroup = app_commands.Group(name = 'log', description = 'Logging related commands')
     application_check = app_commands.checks.has_permissions
@@ -28,27 +28,27 @@ class Logs(commands.Cog):
         """
 
         # Open the database connection
-        with Database() as db:
+        async with PgDB() as db:
 
             # Get the database cursor
-            cursor = db.get_cursor()
+            cursor = await db.get_cursor()
 
             # Get the guild object from the interaction
             guild = interaction.guild
 
             # Check if the guild exists in the database
-            DbChecks.guild_check(db, guild)
+            await DbChecks.guild_check(db, guild)
 
             if channel:
                 # Update the log channel in the database
-                cursor.execute(f"UPDATE guildsettings SET logchannel = {channel.id} WHERE guildid = {guild.id}")
-                db.commit()
-                await interaction.response.send_message(f"Your logs channel was updated to {channel.mention}.")
+                await cursor.execute(f"UPDATE guildsettings SET logchannel = {channel.id} WHERE guildid = {guild.id}")
+                await db.commit()
+                await interaction.response.send_message(f"Your logs channel was updated to {channel.mention}.") # noqa
             else:
                 # Clear the log channel in the database
-                cursor.execute(f"UPDATE guildsettings SET logchannel = NULL WHERE guildid = {guild.id}")
-                db.commit()
-                await interaction.response.send_message(f"Your logs channel has been updated to default. (None)", ephemeral=True)
+                await cursor.execute(f"UPDATE guildsettings SET logchannel = NULL WHERE guildid = {guild.id}")
+                await db.commit()
+                await interaction.response.send_message(f"Your logs channel has been updated to default. (None)", ephemeral=True) # noqa
 
             # Database connection closes automatically
 
@@ -57,51 +57,54 @@ class Logs(commands.Cog):
     async def toggle_logs(self, interaction: discord.Interaction):
         """Toggles logging to enabled/disabled."""
 
-        with Database() as db:
-            cursor = db.get_cursor()
+        async with PgDB() as db:
+            cursor = await db.get_cursor()
 
             guild = interaction.guild
 
-            DbChecks.guild_check(db, guild)
+            await DbChecks.guild_check(db, guild)
 
             wantslogs = DbChecks.check_guild_logs(cursor, guild)
 
             if not wantslogs:     # logs are off, switch on
-                cursor.execute(f"update guildsettings set wantslogs = 'true' where guildid = {guild.id}")
-                db.commit()
-                logchannel = DbChecks.get_log_channel(cursor, guild)
+                await cursor.execute(f"update guildsettings set wantslogs = 'true' where guildid = {guild.id}")
+                await db.commit()
+                logchannel = await DbChecks.get_log_channel(cursor, guild)
                 if logchannel is not None:
-                    await interaction.response.send_message(f"Events logging has been turned on.\n"
+                    await interaction.response.send_message(f"Events logging has been turned on.\n" # noqa
                                                             f"Events will be logged in {logchannel.mention}.")
                 else:
-                    await interaction.response.send_message(f"Events logging has been turned on, but no channel is set.\n"
+                    await interaction.response.send_message(f"Events logging has been turned on, but no channel is set.\n" # noqa
                                                             f"Use ```/logs channel <channel>``` to set one.")
             else:
-                cursor.execute(f"update guildsettings set wantslogs = 'false' where guildid = {guild.id}")
-                db.commit()
-                await interaction.response.send_message("Events logging has been turned off.")
+                await cursor.execute(f"update guildsettings set wantslogs = 'false' where guildid = {guild.id}")
+                await db.commit()
+                await interaction.response.send_message("Events logging has been turned off.") # noqa
 
     @commands.Cog.listener()
-    async def on_raw_message_delete(self, message: discord.Message):
+    async def on_raw_message_delete(self, payload: RawMessageDeleteEvent):
         """Listener for deleted messages logs"""
-        with Database() as db:
-            cursor = db.get_cursor()
+        guild = self.bot.get_guild(payload.guild_id)
 
-            DbChecks.guild_check(db, guild = message.guild)
+        async with PgDB() as db:
+            cursor = await db.get_cursor()
 
-            has_logs = DbChecks.check_guild_logs(cursor, guild = message.guild)
+            await DbChecks.guild_check(db, guild = guild)
 
-            if has_logs:
-                channel = DbChecks.get_log_channel(cursor, guild = message.guild)
+            has_logs = await DbChecks.check_guild_logs(cursor, guild = guild)
 
-                embed = discord.Embed(title = "Message deleted", color = discord.Colour.random())
+            if has_logs and payload.cached_message:
+                message = payload.cached_message
+                channel = await DbChecks.get_log_channel(cursor, guild = guild)
+
+                embed = discord.Embed(title = "Message deleted", color = discord.Colour.red())
                 embed.set_author(name = message.author.name + "#" + message.author.discriminator, icon_url = message.author.display_avatar)
                 embed.add_field(name = '', value = message.clean_content, inline = False)
 
                 await channel.send(embed = embed)
 
     @commands.Cog.listener()
-    async def on_message_edit(self, message: discord.Message):
+    async def on_message_edit(self, before: discord.Message, after: discord.Message):
         pass
 
 

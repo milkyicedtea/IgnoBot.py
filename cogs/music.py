@@ -4,27 +4,27 @@
 #               #
 #################
 
-import platform
+import asyncio
+import ctypes.util
+
+from cogs.Cog_Utils.music_helper import YTDLPCMVolumeTransformer, MusicPlayer
+
 import dotenv
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
+import platform
+
 import spotipy
-from spotipy import SpotifyOAuth
-
-import asyncio
-import ctypes.util
-
-from cogs.Cog_Utils.music_helper import YTDLPCMVolumeTransformer, MusicPlayer
+from spotipy.oauth2 import SpotifyClientCredentials
 
 
-SPOTIPY_CLIENT_ID = dotenv.get_key('.env', 'spotify_client_id')
-SPOTIPY_CLIENT_SECRET = dotenv.get_key('.env', 'spotify_client_secret')
-SPOTIPY_REDIRECT_URI = dotenv.get_key('.env', 'spotify_redirect_uri')
+SPOTIPY_CLIENT_ID = dotenv.get_key('.env', 'SPOTIFY_CLIENT_ID')
+SPOTIPY_CLIENT_SECRET = dotenv.get_key('.env', 'SPOTIFY_CLIENT_SECRET')
 
-sp = spotipy.Spotify(auth_manager = SpotifyOAuth(SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET, SPOTIPY_REDIRECT_URI))
+sp = spotipy.Spotify(client_credentials_manager = SpotifyClientCredentials(SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET))
 
 
 # print(platform.system())
@@ -77,42 +77,81 @@ class Music(commands.Cog):
     async def play_individual_spotify_track(self, interaction: discord.Interaction, track_url: str):
         """Plays/Adds to the queue a single Spotify track"""
 
-        song = YTDLPCMVolumeTransformer.create_source(interaction, track_url)
-        self.music_player.add_song_to_queue(song)
-        await interaction.followup.send(f'Added to the queue: **{song.title}**')
+        # extract track ID from URL
+        track_id = track_url.split('/')[-1].split('?')[0]
 
-        if not self.music_player.voice_client.is_playing():
-            await self.music_player.start_playing()
+        # get track info
+        track_info = sp.track(track_id)
+
+        if track_info:
+            artist_name = track_info['artists'][0]['name']
+            track_name = track_info['name']
+            search_query = f"{track_name} {artist_name}"
+
+            print(f"Search query: {search_query}")
+            print("Creating source...")
+            song = YTDLPCMVolumeTransformer.create_source(interaction, search_query)
+            if song:
+                print(f"Song created: {song.title}")
+                self.music_player.add_song_to_queue(song)
+                await interaction.followup.send(f'Added to the queue: **{song.title}**')
+                print(f"Queue length: {len(self.music_player.queue)}")
+
+                if not self.music_player.voice_client or not self.music_player.voice_client.is_connected():
+                    print("Connecting to voice channel...")
+                    channel = interaction.user.voice.channel
+                    self.music_player.voice_client = await channel.connect()
+
+                if not self.music_player.voice_client.is_playing():
+                    print("Starting playback")
+                    await self.music_player.start_playing()
+                else:
+                    print("Music is already playing")
+            else:
+                print("Failed to create song source")
+                await interaction.followup.send("Couldn't create audio source for the track. Please try again.")
+
+        else:
+            await interaction.followup.send("Couldn't find the Spotify track. Please try again.")
 
     async def play_youtube_playlist(self, interaction: discord.Interaction, playlist_url: str):
         """Plays/Adds to the queue a YouTube playlist"""
-
-        channel = interaction.channel
+        print(f"Processing YouTube playlist: {playlist_url}")
 
         playlist_info = YTDLPCMVolumeTransformer.extract_playlist_info(playlist_url)
 
         if 'entries' in playlist_info:
             entries = playlist_info['entries']
-            print(type(entries[0]))
-            print(type(entries))
-            print(len(entries))
+            print(f"Found {len(entries)} tracks in the YouTube playlist")
+
             if not entries:
                 await interaction.followup.send('No tracks found in the YouTube playlist.')
                 return
 
             await interaction.followup.send(f'**Found _{len(entries)}_ tracks from the YouTube playlist.**')
 
-            first_entry = entries[0]
-            print(type(entries))
-            first_song_url = first_entry['url']
-            first_song = YTDLPCMVolumeTransformer.create_source(interaction, first_song_url)
-            self.music_player.add_song_to_queue(first_song)
+            for i, entry in enumerate(entries):
+                if entry:
+                    print(f"Processing track {i + 1}/{len(entries)}: {entry.get('title', 'Unknown title')}")
 
-            if not self.music_player.voice_client.is_playing():
-                await self.music_player.start_playing()
-                await channel.send(f'Started playing the first track from the YouTube playlist.')
+                    try:
+                        song = YTDLPCMVolumeTransformer.create_source(interaction, entry['url'])
+                        if song:
+                            self.music_player.add_song_to_queue(song)
+                            print(f"Added to queue: {song.title}")
 
-            await asyncio.create_task(self.download_and_enqueue_songs(interaction, entries))
+                            if i == 0 and not self.music_player.voice_client.is_playing():
+                                print("Starting playback of first track")
+                                await self.music_player.start_playing()
+                        else:
+                            print(f"Failed to create source for: {entry.get('title', 'Unknown title')}")
+                    except Exception as e:
+                        print(f"Error processing track: {e}")
+
+                # Add a small delay to avoid rate limiting
+                await asyncio.sleep(1)
+
+            await interaction.followup.send(f'Added {len(entries)} tracks from the YouTube playlist to the queue.')
 
         else:
             await interaction.followup.send('No tracks found in the YouTube playlist.')
@@ -120,23 +159,54 @@ class Music(commands.Cog):
     async def play_spotify_playlist(self, interaction: discord.Interaction, playlist_url: str):
         """Plays/Adds to the queue a Spotify playlist"""
 
-        playlist_id = playlist_url.split('/')[-1]
-        tracks = sp.playlist_items(playlist_id)
+        playlist_id = playlist_url.split('/')[-1].split('?')[0]
 
-        if tracks and tracks['items']:
-            for track in tracks['items']:
-                track_url = track['track']['external_urls']['spotify']
-                print(track_url)
-                song = YTDLPCMVolumeTransformer.create_source(interaction, track_url)
-                self.music_player.add_song_to_queue(song)
+        try:
+            results = sp.playlist_items(playlist_id)
+            tracks = results['items']
 
-                if not self.music_player.voice_client.is_playing():
-                    await self.music_player.start_playing()
+            while results['next']:
+                results = sp.next(results)
+                tracks.extend(results['items'])
 
-            await interaction.followup.send(f'Added {len(tracks["items"])} from the Spotify playlist to the queue.')
+            print(f"Found {len(tracks)} tracks in the Spotify playlist")
 
-        else:
-            await interaction.followup.send('No tracks found in the Spotify playlist.')
+            if not tracks:
+                await interaction.followup.send('No tracks found in the Spotify playlist.')
+                return
+
+            await interaction.followup.send(f'**Found _{len(tracks)}_ tracks from the Spotify playlist.**')
+
+            for i, track_item in enumerate(tracks):
+                track = track_item['track']
+                if track['name'] and track['artists']:
+                    search_query = f"{track['name']} {track['artists'][0]['name']}"
+                    print(f"Processing track {i + 1}/{len(tracks)}: {search_query}")
+
+                    song = YTDLPCMVolumeTransformer.create_source(interaction, search_query)
+                    if song:
+                        self.music_player.add_song_to_queue(song)
+                        print(f"Added to queue: {song.title}")
+
+                        if i == 0 and not self.music_player.voice_client.is_playing():
+                            print("Starting playback of first track")
+                            await self.music_player.start_playing()
+                    else:
+                        print(f"Failed to create source for: {search_query}")
+
+                # Add a small delay to avoid rate limiting
+                await asyncio.sleep(1)
+
+            await interaction.followup.send(f'Added {len(tracks)} tracks from the Spotify playlist to the queue.')
+
+        except Exception as e:
+            print(f"Error processing Spotify playlist: {e}")
+            await interaction.followup.send('An error occurred while processing the Spotify playlist.')
+
+    async def play_spotify_album(self, interaction: discord.Interaction, album_url: str):
+        album_id = album_url.split('/')[-1].split('?')[0]
+
+
 
     @app_commands.command(name = 'play')
     async def play(self, interaction: discord.Interaction, search: str):
@@ -146,7 +216,8 @@ class Music(commands.Cog):
         if interaction.user.voice is None or interaction.user.voice.channel is None:
             await interaction.followup.send('You are not connected to a voice channel.')
             return
-        elif not self.music_player.voice_client:
+
+        if not self.music_player.voice_client or not self.music_player.voice_client.is_connected():
             channel = interaction.user.voice.channel
             self.music_player.voice_client = await channel.connect()
 
@@ -173,11 +244,13 @@ class Music(commands.Cog):
 
     @app_commands.command(name = 'stop')
     async def stop(self, interaction: discord.Interaction):
-        """Stops music playback"""
+        """Stops music playback, clears the queue, and disconnects the bot"""
 
         if self.music_player.voice_client and self.music_player.voice_client.is_connected():
-            self.music_player.voice_client.stop()
-            await interaction.response.send_message('Music playback stopped.')
+            self.music_player.stop()
+            await self.music_player.voice_client.disconnect()
+            self.music_player.voice_client = None
+            await interaction.response.send_message('Music playback stopped, queue cleared, and bot disconnected.')
         else:
             await interaction.response.send_message('The bot is not connected to a voice channel.', ephemeral = True)
 
@@ -187,7 +260,7 @@ class Music(commands.Cog):
 
         print("show_queue command executed")
 
-        if not self.music_player.queue:
+        if not self.music_player.queue or not self.music_player:
             print('queue if')
             await interaction.response.send_message('The queue is empty.')
             return
@@ -229,14 +302,12 @@ class Music(commands.Cog):
         """Skips the current song"""
 
         if not self.music_player.voice_client:
-            await interaction.followup.send("I'm not connected to any voice channel.")
-        elif not self.music_player.queue:
-            await interaction.followup.send('There are no songs to skip.')
-        elif self.music_player.voice_client.is_playing():
-            await self.music_player.skip()
-            await interaction.response.send_message('Song has been skipped.')
+            await interaction.response.send_message("I'm not connected to any voice channel.", ephemeral = True)
+        elif not self.music_player.voice_client.is_playing():
+            await interaction.response.send_message("There's no song playing to skip.", ephemeral = True)
         else:
-            await interaction.response.send_message('The bot is not connected to a voice channel or is not playing anything', ephemeral = True)
+            self.music_player.voice_client.stop()  # This will trigger the play_next_song method
+            await interaction.response.send_message('Skipped the current song.')
 
 
 async def setup(bot):

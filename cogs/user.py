@@ -4,8 +4,6 @@
 #              #
 ################
 
-import os
-
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -23,7 +21,7 @@ class User(commands.Cog):
         if user is None:
             user = interaction.user
 
-        embed = discord.Embed(title = f"{user.mention}'s profile image", color = discord.Colour.random())
+        embed = discord.Embed(title = f"{user.display_name}'s profile image", color = discord.Colour.random())
         embed.set_image(url = user.avatar)
         await interaction.response.send_message(embed = embed)
 

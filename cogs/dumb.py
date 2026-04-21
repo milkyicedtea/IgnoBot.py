@@ -50,6 +50,17 @@ class Dumb(commands.Cog):
             ]
             await interaction.response.send_message(', '.join(dice_rolls))
 
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message):
+        if 'BAD BOT' in message.content.upper():
+            await message.channel.send(':< sowwyyy')
+        elif 'THE WORST BOT!' in message.content.upper():
+            await message.channel.send(':sob:')
+        elif 'GOOD BOT' in message.content.upper():
+            await message.channel.send('thank you! :>')
+        elif 'THE BEST BOT!' in message.content.upper():
+            await message.channel.send(':smile:')
+
 
 async def setup(bot):
     await bot.add_cog(Dumb(bot))

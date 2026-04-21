@@ -4,14 +4,18 @@
 #                #
 ##################
 
+
+import asyncio
+
+import base64
+
+from cogs.rule34 import Rule34
+
 import discord
 from discord import app_commands
 from discord.ext import commands
 
-import base64
 import random
-from cogs.rule34 import Rule34
-import asyncio
 
 from Utils.APIs.animeAPI import get_anime_info
 

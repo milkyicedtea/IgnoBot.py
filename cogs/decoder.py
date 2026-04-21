@@ -4,11 +4,11 @@
 #                 #
 ###################
 
+import base64
+
 import discord
 from discord.ext import commands
 from discord import app_commands
-
-import base64
 
 
 class Decoder(commands.Cog):

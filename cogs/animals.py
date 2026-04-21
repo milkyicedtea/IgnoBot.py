@@ -4,9 +4,8 @@
 #                 #
 ###################
 
-import os
-
 import discord
+import dotenv
 from discord import app_commands
 from discord.ext import commands
 
@@ -58,26 +57,33 @@ class Animals(commands.Cog):
         guild_list = __import__('builtins').guild_list
         guild_id = interaction.guild_id
         if guild_id in guild_list:
-            cattos = os.getenv(random.choice(['catto0',
-                                              'catto1',
-                                              'catto2',
-                                              'catto3',
-                                              'catto4',
-                                              'catto5',
-                                              'catto6',
-                                              'catto7',
-                                              'catto8',
-                                              'catto9',
-                                              'catto10',
-                                              'catto11',
-                                              'catto12',
-                                              'catto13',
-                                              'catto14',
-                                              'catto15',
-                                              'catto16',
-                                              'catto17',
-                                              'catto18',
-                                              'catto19']))
+            cattos = dotenv.get_key(
+                '.env',
+                random.choice(
+                    [
+                        'CATTO0',
+                        'CATTO1',
+                        'CATTO2',
+                        'CATTO3',
+                        'CATTO4',
+                        'CATTO5',
+                        'CATTO6',
+                        'CATTO7',
+                        'CATTO8',
+                        'CATTO9',
+                        'CATTO10',
+                        'CATTO11',
+                        'CATTO12',
+                        'CATTO13',
+                        'CATTO14',
+                        'CATTO15',
+                        'CATTO16',
+                        'CATTO17',
+                        'CATTO18',
+                        'CATTO19'
+                    ]
+                )
+            )
             await interaction.response.send_message(cattos)
         else:
             await interaction.response.send_message('This command is only available to certain servers.')

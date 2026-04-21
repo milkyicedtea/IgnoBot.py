@@ -7,11 +7,11 @@
 import os
 import asyncpraw as apraw
 
-client_id = str(os.getenv('reddit_clientID'))
-client_secret = str(os.getenv('reddit_clientSecret'))
-user_agent = str(os.getenv('reddit_user_agent'))
-password = str(os.getenv('reddit_password'))
-username = str(os.getenv('reddit_username'))
+client_id = str(os.getenv('REDDIT_CLIENT_ID'))
+client_secret = str(os.getenv('REDDIT_CLIENT_SECRET'))
+user_agent = str(os.getenv('REDDIT_USER_AGENT'))
+password = str(os.getenv('REDDIT_PASSWORD'))
+username = str(os.getenv('REDDIT_USERNAME'))
 
 # The reddit instance
 reddit = apraw.Reddit(client_id = client_id,

@@ -4,18 +4,13 @@
 #                   #
 #####################
 
-import os
-
-import itertools
+from cogs.Cog_Utils.selfrole_helper import SelfroleHelper, SelfroleAssign, SelfroleLeave
 
 import discord
 from discord.ext import commands
 from discord import app_commands
 
-from cogs.Cog_Utils.selfrole_helper import SelfroleHelper, SelfroleAssign, SelfroleLeave
-
-from Utils.dbchecks import DbChecks
-from Utils.dbhelper import DbHelper as Database
+from Utils.database.database import PgDB 
 
 
 class Selfroles(commands.Cog):
@@ -38,8 +33,8 @@ class Selfroles(commands.Cog):
     async def select_role(self, interaction: discord.Interaction):
         """Brings up the selfrole menu to give yourself a role."""
 
-        with Database() as db:
-            cursor = db.get_cursor()
+        async with PgDB() as db:
+            cursor = await db.get_cursor()
 
             guild = interaction.guild
 
@@ -65,12 +60,13 @@ class Selfroles(commands.Cog):
             else:
                 await interaction.response.send_message('Something went wrong! (The guild does not have any selfrole)', ephemeral = True)
 
+    # noinspection Annotator
     @selfrole.command(name = 'leave')
     async def selfrole_leave(self, interaction: discord.Interaction):
         """Brings up the selfrole menu to remove a role from yourself."""
 
-        with Database() as db:
-            cursor = db.get_cursor()
+        async with PgDB() as db:
+            cursor = await db.get_cursor()
 
             guild = interaction.guild
 
@@ -83,9 +79,11 @@ class Selfroles(commands.Cog):
                 if roles_to_display:
                     view = Selfroles.DropdownView(roles_to_display, 'leave')
 
-                    embed = discord.Embed(title = "Select a role to remove from yourself!",
-                                          url = "https://milkyicedtea.epizy.com/Ignobot",
-                                          description = "These are the roles you currently have.")
+                    embed = discord.Embed(
+                        title = "Select a role to remove from yourself!",
+                        url = "https://milkyicedtea.epizy.com/Ignobot",
+                        description = "These are the roles you currently have."
+                    )
                     embed.set_author(name = "Selfrole Manager", icon_url = self.bot.user.display_avatar)
                     for index, role in enumerate(roles_to_display):
                         embed.add_field(name = "", value = f"{index + 1} {role.mention}", inline = False)
@@ -99,8 +97,8 @@ class Selfroles(commands.Cog):
     async def selfrole_list(self, interaction: discord.Interaction):
         """Shows a list with all the selfroles in the server."""
 
-        with Database() as db:
-            cursor = db.get_cursor()
+        async with PgDB() as db:
+            cursor = await db.get_cursor()
 
             guild = interaction.guild
             color_value = discord.Colour.random()
@@ -132,18 +130,18 @@ class Selfroles(commands.Cog):
     async def selfrole_add(self, interaction: discord.Interaction, role: discord.Role):
         """Adds a selfrole to the server's selfrole list."""
 
-        with Database() as db:
-            cursor = db.get_cursor()
+        async with PgDB() as db:
+            cursor = await db.get_cursor()
 
             guild = interaction.guild
             guildname = guild.name.replace("'", "")
 
-            cursor.execute(f"select count(*) from roles where guildid = {guild.id} "
+            await cursor.execute(f"select count(*) from roles where guildid = {guild.id} "
                            f"and rolenames = '{role.name}' and is_selfrole = 'true'")
-            if cursor.fetchone()[0] == 0:
-                cursor.execute(f"insert into roles(guildid, guildname, rolenames, is_selfrole) "
+            if (await cursor.fetchone())[0] == 0:
+                await cursor.execute(f"insert into roles(guildid, guildname, rolenames, is_selfrole) "
                                f"values({guild.id}, '{guildname}', '{role.name}', 'true')")
-                db.commit()
+                await db.commit()
                 await interaction.response.send_message(f"The role **<@&{role.id}>** is now self-assignable!")
             else:
                 await interaction.response.send_message(f"The role **<@&{role.id}>** is already self-assignable!",
@@ -154,25 +152,25 @@ class Selfroles(commands.Cog):
     async def selfrole_remove(self, interaction: discord.Interaction, role: discord.Role):
         """Removes a selfrole to the server's selfrole list."""
 
-        with Database() as db:
-            cursor = db.get_cursor()
+        async with PgDB() as db:
+            cursor = await db.get_cursor()
 
             guild = interaction.guild
             guildname = guild.name.replace("'", "")
 
             await interaction.response.defer(ephemeral = True, thinking = True)
 
-            cursor.execute(f"select count(*) from roles where guildid = {guild.id} "
+            await cursor.execute(f"select count(*) from roles where guildid = {guild.id} "
                            f"and guildname = '{guildname}' and rolenames = '{role.name}' "
                            f"and is_selfrole = 'true';")
-            if cursor.fetchone()[0] == 0:
+            if (await cursor.fetchone())[0] == 0:
                 await interaction.followup.send(f"The role **<@&{role.id}>** was not previously added as a selfrole!", ephemeral = True)
                 # await interaction.followup.delete()
             else:
-                cursor.execute(f"delete from roles where guildid = {guild.id} "
+                await cursor.execute(f"delete from roles where guildid = {guild.id} "
                                f"and guildname = '{guildname}' and rolenames = '{role.name}' "
                                f"and is_selfrole = 'true';")
-                db.commit()
+                await db.commit()
                 await SelfroleHelper.remove_role(interaction, role)
                 await interaction.followup.send(f'The role **<@&{role.id}>** was removed from every user and is no longer self-assignable')
 

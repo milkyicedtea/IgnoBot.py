@@ -4,14 +4,15 @@
 #                    #
 ######################
 
-import os
-
 import discord
 from discord import app_commands
 from discord.ext import commands
 
 import dotenv
+
 import json
+
+import os
 
 
 class Moderation(commands.Cog):
@@ -77,6 +78,8 @@ class Moderation(commands.Cog):
                 if reason:
                     embed.add_field(name = "Reason:", value = reason)
                 return await interaction.response.send_message(embed = embed)
+            return None
+        return None
 
     @app_commands.command(name = 'purge')
     @application_check(manage_messages = True)
@@ -143,6 +146,7 @@ class Moderation(commands.Cog):
 
         with open('memberList.json', "w") as outfile:
             print('dumping')
+            # noinspection PyTypeChecker
             json.dump(dictionary, outfile, indent = 1)
             outfile.close()
             await interaction.response.send_message("Check your DMs!", ephemeral = True)
@@ -242,10 +246,10 @@ class Moderation(commands.Cog):
         )
 
         async def on_submit(self, interaction: discord.Interaction):
-            duck_guild: discord.Guild = await self.bot.fetch_guild(int(dotenv.get_key('.env', 'ducks_hideout')))
+            duck_guild: discord.Guild = await self.bot.fetch_guild(int(dotenv.get_key('.env', 'DUCKS_HIDEOUT')))
             print(duck_guild.name)
             print(type(duck_guild))
-            feedback_channel: discord.TextChannel = await duck_guild.fetch_channel(int(dotenv.get_key('.env', 'feedback_channel')))
+            feedback_channel: discord.TextChannel = await duck_guild.fetch_channel(int(dotenv.get_key('.env', 'FEEDBACK_CHANNEL')))
             print(feedback_channel.id)
             print(feedback_channel.name)
             embed_var = discord.Embed(title = f'New feedback', color = discord.Colour.random())
@@ -263,7 +267,7 @@ class Moderation(commands.Cog):
 
     @server.command(name = 'feedback')
     async def feedback(self, interaction: discord.Interaction):
-        """Sends a feedback to IgnoBot's support server. Write about any issues or suggestions!"""
+        """Sends a feedback to our support server. Write about any issues or suggestions!"""
         feedback = self.FeedbackModal(self.bot, 'Send us your feedback!')
         await interaction.response.send_modal(feedback)
 

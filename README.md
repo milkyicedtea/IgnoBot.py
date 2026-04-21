@@ -21,6 +21,53 @@ In case you're wondering, [here are all the libraries used.](requirements.txt)
 > You can download the latest version of Python [here.](https://python.org/downloads)
 
 ## Commands list
+<details>
+  <summary>Animals Cog</summary>
+
+  | Command   | Description                                             | Parameters |
+  |-----------|---------------------------------------------------------|------------|
+  | animal    | Animal images/videos                                    | None       |
+  | duckimage | Sends you a cute duck image :3                          | None       |
+  | duckvideo | Sends you a cute duck video :3                          | None       |
+  | catimage  | Sends you a cute cat image :3                           | None       |
+  | catvideo  | Sends you a cute cat video :3                           | None       |
+  | cattos    | Sends more cats images. Only works in specific servers. | None       |
+</details>
+
+<details>
+  <summary>Decoder Cog</summary>
+
+  |   |   |   |
+  |---|---|---|
+  |   |   |   |
+  |   |   |   |
+
+</details>
+
+<details>
+  <summary>Osu Cog</summary>
+
+  | Command         | Description                | Parameters                |
+  |-----------------|----------------------------|---------------------------|
+  | map             | Get beatmap information    | beatmap_id: int = None    |
+  | set             | Get beatmapset information | beatmapset_id: int = None |
+  | beatmap_to_json | Convert beatmap to JSON    | beatmap_id: int = None    |
+</details>
+<details>
+  <summary>Economy Cog</summary>
+  
+  | Command | Description          | Parameters |
+  |---------|----------------------|------------|
+  | balance | Check user's balance |            |
+</details>
+<details>
+  <summary>Help Cog</summary>
+  
+  | Command | Description | Parameters |
+  |---------|-------------|------------|
+  | help    |             |            |
+</details>
+
 | Command                       | Description                                                                                     | Parameters                    | Cog                                     |
 |-------------------------------|-------------------------------------------------------------------------------------------------|-------------------------------|-----------------------------------------|
 | Encode                        | Takes a string, encodes it into b64 format and DMs it to the user.                              | - String to encode            | [decoder.py](./cogs/decoder.py)         |
@@ -45,7 +92,7 @@ In case you're wondering, [here are all the libraries used.](requirements.txt)
 | catvideo                      | Returns a random cat video from [r/cats](https://reddit.com/r/cats).                            | No parameters                 | [dumb.py](./cogs/dumb.py)               |
 | cattos                        | Private cat command. Don't think too much about it.                                             | No parameters.                | [dumb.py](./cogs/dumb.py)               |
 | kayo                          | Returns the anime's info and download.                                                          | - Anime name                  | [hentie.py](./cogs/hentie.py)           |
-| level                         | Returns an embed with the level and xp of the respective user.                                  | - User (Optional)             | [levelsystem.py](./cogs/levelsystem.py) |
+| level                         | Returns an embed with the level and xp of the respective user.                                  | - User (Optional)             | [levelsystem.py](cogs/level_system.py) |
 |                               |                                                                                                 |                               |                                         |
 
 https://discord.com/oauth2/authorize?client_id=913424314290815007&permissions=397770484806&scope=bot%20applications.commands \
